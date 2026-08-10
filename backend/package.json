@@ -9,8 +9,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node ./node_modules/nodemon/bin/nodemon.js index.js",
-    "test": "NODE_ENV=test jest --runInBand --forceExit",
-    "test:coverage": "NODE_ENV=test jest --runInBand --forceExit --coverage",
+    "test": "NODE_ENV=test jest --runInBand",
+    "test:coverage": "NODE_ENV=test jest --runInBand --coverage",
     "test:watch": "NODE_ENV=test jest --watch",
     "audit:deps": "npm audit --audit-level=high"
   },

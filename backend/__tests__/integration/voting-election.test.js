@@ -72,6 +72,16 @@ async function createActiveElection() {
 describe('votação — pleito multi-cargo (v2)', () => {
   beforeAll(() => setupIntegrationTest());
   afterAll(() => teardownIntegrationTest());
+  afterEach(async () => {
+    await Promise.all([
+      VoterParticipation.deleteMany({}),
+      Vote.deleteMany({}),
+      VotingCandidate.deleteMany({}),
+      VotingCategory.deleteMany({}),
+      Votation.deleteMany({}),
+      VotingServidor.deleteMany({}),
+    ]);
+  });
 
   test('login aceita nome sem acento quando cadastro tem acento', async () => {
     const CPF = '28918394802';
