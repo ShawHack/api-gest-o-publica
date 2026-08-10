@@ -21,8 +21,4 @@ const DLocSchema = new Schema(
   }
 )
 
-// índices (sem espaços no path)
-DLocSchema.index({ quadra: 1 }, { unique: true })
-DLocSchema.index({ '_extra.pluscode': 1 })
-
 module.exports = mongoose.model('DLoc', DLocSchema) // o nome do model pode ser ‘DLoc’

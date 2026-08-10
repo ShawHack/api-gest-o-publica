@@ -4,7 +4,7 @@ const { Schema } = mongoose
 const ruralVehicleSchema = new Schema(
   {
     plate: { type: String, required: true, trim: true },
-    plateNormalized: { type: String, required: true, trim: true, index: true },
+    plateNormalized: { type: String, required: true, trim: true },
     codigoUpa: { type: String, required: true, trim: true, index: true },
     ownerUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     brand: { type: String, trim: true, default: '' },

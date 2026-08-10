@@ -184,6 +184,8 @@ function filesFromMulter(files) {
 
 async function writeLog(req, payload = {}) {
   try {
+    if (AuditLog.db.readyState !== 1) return
+
     const client = parseClient(req)
     const path = req?.originalUrl || req?.path || ''
     const ua = parseUserAgent(req?.headers?.['user-agent'])
@@ -221,7 +223,11 @@ async function writeLog(req, payload = {}) {
       method: req?.method,
     })
   } catch (err) {
-    console.error('[audit] Falha ao registrar trilha:', err?.message || err)
+    const message = String(err?.message || err)
+    if (AuditLog.db.readyState !== 1 || /client was closed|topology was destroyed|operation interrupted/i.test(message)) {
+      return
+    }
+    console.error('[audit] Falha ao registrar trilha:', message)
   }
 }
 

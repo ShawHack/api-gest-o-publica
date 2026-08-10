@@ -120,7 +120,6 @@ SepultadoSchema.index({ rua: 1 })
 SepultadoSchema.index({ quadra: 1 })
 SepultadoSchema.index({ chapa: 1 })
 SepultadoSchema.index({ 'user._id': 1 })
-SepultadoSchema.index({ plusCodeQuadra: 1 })
 SepultadoSchema.index({ plusCodePreciso: 1 })
 
 // ===========================================================
