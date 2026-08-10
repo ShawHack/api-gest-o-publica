@@ -7,6 +7,7 @@ BASE_DIR="${BASE_DIR:-/home/semit/Documentos/backups-completos}"
 CONTAINER="${RESTORE_TEST_CONTAINER:-mongo-restore-test}"
 PORT="${RESTORE_TEST_PORT:-27099}"
 LOG="${REPO}/docs/RESTORE-BACKUP-LOG.md"
+UPDATE_LOG="${UPDATE_LOG:-1}"
 
 LATEST=$(find "$BASE_DIR" -maxdepth 1 -type d -name '20*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
 DUMP="${LATEST}/full/mongo/backup"
@@ -49,14 +50,15 @@ print("apicemiterio.sepultados: " + db.getSiblingDB("apicemiterio").sepultados.c
 docker rm -f "$CONTAINER" >/dev/null
 ok "Restore de teste concluído (container removido)"
 
-TS="$(date +%Y-%m-%d)"
-if grep -q "Teste homologação automático" "$LOG" 2>/dev/null; then
-  sed -i "s|.*Teste homologação automático.*|${TS} | script | \`${LATEST##*/}\` | ~2 min | **OK** | mongorestore em mongo:${PORT} |" "$LOG" || true
-else
-  cat >> "$LOG" <<EOF
+if [ "$UPDATE_LOG" = "1" ]; then
+  TS="$(date +%Y-%m-%d)"
+  if grep -q "Teste homologação automático" "$LOG" 2>/dev/null; then
+    sed -i "s|.*Teste homologação automático.*|${TS} | script | \`${LATEST##*/}\` | ~2 min | **OK** | mongorestore em mongo:${PORT} |" "$LOG" || true
+  else
+    cat >> "$LOG" <<EOF
 
 | ${TS} | script | \`${LATEST##*/}\` | ~2 min | **OK** | Teste homologação automático (mongorestore em mongo:${PORT}) |
 EOF
+  fi
+  echo "Log atualizado: $LOG"
 fi
-
-echo "Log atualizado: $LOG"

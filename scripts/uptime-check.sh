@@ -62,6 +62,17 @@ if [ -x "$REPO/scripts/ci-check-secret-logs.sh" ]; then
   fi
 fi
 
+if [ -x "$REPO/scripts/verificar-backup.sh" ]; then
+  if BASE_DIR="${BACKUP_BASE_DIR:-/home/semit/Documentos/backups-completos}" \
+      MAX_AGE_HOURS="${BACKUP_MAX_AGE_HOURS:-30}" \
+      bash "$REPO/scripts/verificar-backup.sh" >> "$LOG" 2>&1; then
+    log "OK backup recente e válido"
+  else
+    log "FALHA backup ausente, antigo ou inválido"
+    FAIL=1
+  fi
+fi
+
 send_alert_email() {
   local kind="$1"
   if ! command -v docker >/dev/null 2>&1; then
