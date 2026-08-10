@@ -1,0 +1,19 @@
+
+*{
+  padding: 0;
+  margin:0;
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+
+h1{
+  color:#f1f1f1;
+  margin-bottom: 1em;
+  font-size: 2.1em;
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.bold{
+  font-weight:bold;
+  color:#364ba3; /* Identidade Visual Garça - Azul Escuro */
+}

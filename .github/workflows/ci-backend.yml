@@ -1,0 +1,43 @@
+name: CI Backend
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+      - 'scripts/ci-check-secret-logs.sh'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+      - 'scripts/ci-check-secret-logs.sh'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verificar logs de segredos
+        run: bash ../scripts/ci-check-secret-logs.sh
+
+      - name: Testes automatizados
+        run: npm test
+        env:
+          JWT_SECRET: ci-test-jwt-secret-only
+
+      - name: Auditoria de dependências (high+)
+        run: npm audit --audit-level=high
+        continue-on-error: true

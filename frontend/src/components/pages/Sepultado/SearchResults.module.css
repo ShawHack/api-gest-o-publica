@@ -1,0 +1,429 @@
+/* Estilos complementares para SearchResults.module.css */
+
+/* Container principal */
+.search_results_container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 60vh;
+}
+
+/* Cabeçalho da pesquisa */
+.search_header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.search_header h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.search_term {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.search_term strong {
+  color: #2c5f2d;
+}
+
+/* Estados de carregamento e erro */
+.loading {
+  text-align: center;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.loading_spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2c5f2d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.error p {
+  color: #c33;
+  margin-bottom: 15px;
+}
+
+.retry_button {
+  background-color: #2c5f2d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.retry_button:hover {
+  background-color: #1e4220;
+}
+
+/* Contador de resultados */
+.results_count {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #2c5f2d;
+}
+
+.results_count p {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.showing_count {
+  color: #666;
+  font-weight: normal;
+}
+
+/* Container dos cards */
+.sepultado_container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+/* Card individual */
+.sepultado_card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.sepultado_card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Imagem do card */
+.sepultado_card_image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.no_image_placeholder {
+  font-size: 3rem;
+  color: #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Conteúdo do card */
+.sepultado_card_content {
+  padding: 20px;
+}
+
+.sepultado_card_content h3 {
+  margin: 0 0 15px 0;
+  color: #2c5f2d;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.sepultado_card_content h4 {
+  margin: 20px 0 10px 0;
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 5px;
+}
+
+.sepultado_card_content p {
+  margin: 8px 0;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.sepultado_card_content .bold {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Seções específicas do card */
+.sepultado_dates {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.sepultado_family {
+  background-color: #fff8e1;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  border-left: 4px solid #ffc107;
+}
+
+.sepultado_location {
+  background-color: #e8f5e8;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  border-left: 4px solid #2c5f2d;
+}
+
+.sepultado_epitaph {
+  background-color: #f3e5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  border-left: 4px solid #9c27b0;
+}
+
+.epitaph_text {
+  font-style: italic;
+  color: #6a1b9a;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+/* Ações do card */
+.card_actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.details_link {
+  display: inline-block;
+  background-color: #2c5f2d;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.details_link:hover {
+  background-color: #1e4220;
+  text-decoration: none;
+  color: white;
+}
+
+/* Destaque do termo pesquisado */
+.highlight {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Estado sem resultados */
+.no_results {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.no_results_icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.no_results h3 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.no_results > p {
+  color: #6c757d;
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.search_tips {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  margin: 25px 0;
+  border: 1px solid #dee2e6;
+  text-align: left;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search_tips h4 {
+  color: #495057;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.search_tips ul {
+  list-style-type: disc;
+  padding-left: 25px;
+  color: #6c757d;
+}
+
+.search_tips li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Estado sem termo de pesquisa */
+.no_search_term {
+  text-align: center;
+  padding: 80px 20px;
+  color: #6c757d;
+}
+
+.search_prompt_icon {
+  font-size: 5rem;
+  margin-bottom: 25px;
+  opacity: 0.5;
+}
+
+.no_search_term h3 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+.no_search_term > p {
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Ações alternativas */
+.alternative_actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.view_all_link,
+.add_new_link {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  text-align: center;
+}
+
+.view_all_link {
+  background-color: #6c757d;
+  color: white;
+}
+
+.view_all_link:hover {
+  background-color: #545b62;
+  text-decoration: none;
+  color: white;
+}
+
+.add_new_link {
+  background-color: #28a745;
+  color: white;
+}
+
+.add_new_link:hover {
+  background-color: #218838;
+  text-decoration: none;
+  color: white;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .search_results_container {
+    padding: 15px;
+  }
+
+  .sepultado_container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .search_header h2 {
+    font-size: 1.6rem;
+  }
+
+  .sepultado_card_image {
+    height: 150px;
+  }
+
+  .sepultado_card_content {
+    padding: 15px;
+  }
+
+  .alternative_actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .view_all_link,
+  .add_new_link {
+    width: 100%;
+    max-width: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search_results_container {
+    padding: 10px;
+  }
+
+  .sepultado_card_content h3 {
+    font-size: 1.2rem;
+  }
+
+  .search_tips {
+    padding: 20px;
+    margin: 20px 0;
+  }
+}

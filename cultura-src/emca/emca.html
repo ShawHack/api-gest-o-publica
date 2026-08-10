@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMCA - Escola Municipal de Cultura e Arte</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../logo.jpg" type="image/jpeg">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="emca.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="page-emca">
+    
+
+    <!-- Navbar -->
+    <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='../index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #1e293b; letter-spacing: 2px;">EMCA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Escola de Cultura e Artes</span>
+      </div>
+      
+      <nav class="nav-menu" style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap; justify-content: center;">
+        <a href="../index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Início</a>
+        <a href="./emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="../biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="../teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="../museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="../eventos/eventos.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos/Notícias</a>
+        <a href="../pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+</nav>
+
+      <div class="header-actions-wrapper" style="display: flex; align-items: center;">
+        <div class="desktop-nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="../mapa.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">
+            <i data-lucide="map" style="width: 18px; height: 18px;"></i> <span class="map-text">Mapa</span>
+          </a>
+          <a href="../login.html" class="btn-login" style="padding: 10px 20px; border-radius: 30px; border: 1px solid #e2e8f0; color: #475569; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">Login</a>
+          <a href="../cadastro.html" class="btn-cadastro" style="background: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease; box-shadow: 0 6px 15px rgba(255, 113, 110, 0.3);">Cadastro</a>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer; margin-left: 1rem;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="../index.html" class="nav-link" onclick="toggleMenu()">Início</a>
+    <a href="./emca.html" class="nav-link" onclick="toggleMenu()">EMCA</a>
+    <a href="../museu/museu.html" class="nav-link" onclick="toggleMenu()">Museu Histórico</a>
+    <a href="../teatro/teatro.html" class="nav-link" onclick="toggleMenu()">Teatro Municipal</a>
+    <a href="../biblioteca/biblioteca.html" class="nav-link" onclick="toggleMenu()">Biblioteca</a>
+    <a href="../eventos/eventos.html" class="nav-link" onclick="toggleMenu()">Eventos</a>
+    
+        <a href="../pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+<div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+    
+    <script>
+      function toggleMenu() {
+        const menu = document.getElementById("mobile-menu");
+        const overlay = document.getElementById("menu-overlay");
+        if (menu) {
+            menu.classList.toggle("open");
+            if(menu.classList.contains("open")) {
+                overlay.classList.add("active");
+            } else {
+                overlay.classList.remove("active");
+            }
+        }
+      }
+    </script>
+
+    <main>
+        <!-- Hero / Carousel Section -->
+        <section class="hero" id="home">
+            <div class="carousel-container">
+                <div class="carousel-track" id="mainCarousel">
+                    <!-- Carousel items will be populated here -->
+                    <div class="carousel-slide">
+                        <div class="slide-content slide-ballet"
+                            style="position: relative; display: flex; align-items: center; justify-content: flex-start;">
+                            <!-- Gradient overlay to ensure text readability without a solid box -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 100%); pointer-events: none;"></div>
+                            
+                            <div class="slide-text-container" style="position: relative; z-index: 2; text-align: left; padding: 40px 40px 40px 8%; max-width: 700px;">
+                                <h2 style="font-family: 'Rubik', sans-serif; font-size: 4rem; color: #fff; margin-bottom: 10px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0px 4px 20px rgba(0,0,0,0.6);">A Magia do Ballet</h2>
+                                <p style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #fff; margin-bottom: 35px; font-weight: 300; letter-spacing: 1px; text-shadow: 0px 2px 10px rgba(0,0,0,0.6);">Descubra a leveza e a disciplina da dança classica na EMCA.</p>
+                                <a href="#cursos" style="display: inline-block; padding: 14px 45px; background: transparent; color: #fff; text-decoration: none; border-radius: 50px; font-weight: 300; font-family: 'Rubik', sans-serif; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(8px); transition: all 0.4s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='#fff'; this.style.transform='translateY(-3px)'" onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateY(0)'">Ver Mais</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content slide-musica slide-content-right"
+                            style="position: relative; display: flex; align-items: center; justify-content: flex-end;">
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 100%); pointer-events: none;"></div>
+                            <div class="slide-text-container" style="position: relative; z-index: 2; text-align: right; padding: 40px 8% 40px 40px; max-width: 700px;">
+                                <h2 style="font-family: 'Rubik', sans-serif; font-size: 4rem; color: #fff; margin-bottom: 10px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0px 4px 20px rgba(0,0,0,0.6);">O Poder da Música</h2>
+                                <p style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #fff; margin-bottom: 35px; font-weight: 300; letter-spacing: 1px; text-shadow: 0px 2px 10px rgba(0,0,0,0.6);">Explore ritêmos, melodias e transforme sua paixao em arte na EMCA.</p>
+                                <a href="#cursos" style="display: inline-block; padding: 14px 45px; background: transparent; color: #fff; text-decoration: none; border-radius: 50px; font-weight: 300; font-family: 'Rubik', sans-serif; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(8px); transition: all 0.4s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='#fff'; this.style.transform='translateY(-3px)'" onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateY(0)'">Ver Mais</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="slide-content slide-circo"
+                            style="position: relative; display: flex; align-items: center; justify-content: flex-start;">
+                            <!-- Gradient overlay to ensure text readability without a solid box -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 100%); pointer-events: none;"></div>
+                            
+                            <div class="slide-text-container" style="position: relative; z-index: 2; text-align: left; padding: 40px 40px 40px 8%; max-width: 700px;">
+                                <h2 style="font-family: 'Rubik', sans-serif; font-size: 4rem; color: #fff; margin-bottom: 10px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0px 4px 20px rgba(0,0,0,0.6);">A Magia do Circo</h2>
+                                <p style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #fff; margin-bottom: 35px; font-weight: 300; letter-spacing: 1px; text-shadow: 0px 2px 10px rgba(0,0,0,0.6);">Desafie a gravidade e expresse sua criatividade não curso de Circo da EMCA.</p>
+                                <a href="#cursos" style="display: inline-block; padding: 14px 45px; background: transparent; color: #fff; text-decoration: none; border-radius: 50px; font-weight: 300; font-family: 'Rubik', sans-serif; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(8px); transition: all 0.4s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='#fff'; this.style.transform='translateY(-3px)'" onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateY(0)'">Ver Mais</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="carousel-btn prev-btn"><i data-lucide="chevron-left"></i></button>
+                <button class="carousel-btn next-btn"><i data-lucide="chevron-right"></i></button>
+
+                <div class="carousel-indicators" style="">
+                </div>
+            </div>
+        </section>
+
+        
+        
+
+
+        <!-- Cursos Oferecidos Section -->
+        <section class="cursos-section-new reveal" id="cursos">
+            <div class="container">
+                <div class="cursos-custom-header">
+                    <h2 class="cursos-title-img">CURSOS</h2>
+                    <p class="cursos-subtitle">Atualmente a EMCA trabalha com quatro grandes frentes artísticas: Artes Cênicas, Artes Plásticas, Dança e Música.</p>
+                </div>
+
+                <div class="cursos-carousel-container">
+                    <div style="overflow: hidden; width: 100%;">
+                        <div class="cursos-carousel-track" id="cursosCarousel">
+                            <!-- Circo -->
+                            <div class="curso-slide">
+                                <div class="curso-column">
+                                        <div class="curso-circle-img" style="background-image: url('imagesemca/Circo/R6II4147.jpg');"></div>
+                                        <h3 class="curso-column-title">Circo</h3>
+                                    <p class="curso-column-text">O Curso de Circo requer a idade mínima de 07 anos. As aulas são coletivas e acontecem duas vezes por semana.</p>
+                                    <p class="curso-bold-text">Técnicas: Cambalhota, Perna de pau, Malabares, Aparelhos Aéreos.</p>
+
+                                </div>
+                            </div>
+
+                            <!-- Teatro -->
+                            <div class="curso-slide">
+                                <div class="curso-column">
+                                    <div class="curso-circle-img" style="background-image: url('imagesemca/teatro/teatro.jpeg');"></div>
+                                        <h3 class="curso-column-title">Teatro</h3>
+                                    <p class="curso-column-text">O Curso de Teatro requer a idade mínima de 5 anos. Aulas coletivas com foco em expressão corporal e vocal.</p>
+                                    <p class="curso-bold-text">Técnicas: Jogos Teatrais, Interpretação, Preparação Física.</p>
+
+                                    </div>
+                            </div>
+
+                            <!-- Desenho e Pintura -->
+                            <div class="curso-slide">
+                                <div class="curso-column">
+                                    <div class="curso-circle-img" style="background-image: url('imagesemca/desenho/desenho1.jpg');"></div>
+                                        <h3 class="curso-column-title">Desenho e Pintura</h3>
+                                    <p class="curso-column-text">A partir de 7 anos. Foco no desenvolvimento do traço, uso das cores e técnicas mistas.</p>
+                                    <p class="curso-bold-text">Técnicas: Aquarela, Guache, Carvão, Cores, Luz e Sombra.</p>
+
+                                    </div>
+                            </div>
+
+                            <!-- Dança -->
+                            <div class="curso-slide">
+                                <div class="curso-column">
+                                    <div class="curso-circle-img" style="background-image: url('imagesemca/Alice_Ballet/R6II7394.jpg');"></div>
+                                        <h3 class="curso-column-title">Dança</h3>
+                                    <p class="curso-column-text">Oferecemos Ballet Clássico, Contemporâneo e Jazz. Aulas para alunos a partir de 5 anos.</p>
+                                    <p class="curso-bold-text">Modalidades: Ballet Clássico, Jazz e Contemporâneo.</p>
+
+                                    </div>
+                            </div>
+
+                            <!-- Música -->
+                            <div class="curso-slide">
+                                <div class="curso-column">
+                                        <div class="curso-circle-img" style="background-image: url('imagesemca/musica/IMG_0126.jpg');"></div>
+                                        <h3 class="curso-column-title">Música</h3>
+                                    <p class="curso-column-text">Diversos instrumentos: Bateria, Canto, Piano, Violão e aulas de iniciação musical.</p>
+                                    <p class="curso-bold-text">Cursos: Instrumentos Variados e Iniciação Musical.</p>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="carousel-btn prev-btn-cursos"><i data-lucide="chevron-left"></i></button>
+                    <button class="carousel-btn next-btn-cursos"><i data-lucide="chevron-right"></i></button>
+                </div>
+            </div>
+        </section>
+<!-- Conheça a EMCA (Sobre) Section -->
+        <section class="sobre-section reveal" id="sobre" style="background-color: #ffffff; padding: 80px 0 120px;">
+            <div class="container sobre-container" style="display: flex; flex-wrap: wrap; gap: 50px; align-items: center;">
+                <div class="sobre-content" style="flex: 1; min-width: 300px;">
+                    <h2 style="font-size: 2.8rem; color: #ffad85; font-weight: 800; margin-bottom: 10px; font-family: 'Rubik', sans-serif;">Conheça a EMCA</h2>
+                    <h3 class="subtitle" style="font-size: 1.2rem; color: #ffad85; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px;">Nossa História de Cultura e Arte</h3>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px;">
+                        A Escola Municipal de Cultura e Arte (EMCA) tem sido um pilar na comunidade de Garça para o fomento e celebração das expressões artísticas. Acreditamos que a arte tem o poder de transformar vidas e construir perspectivas brilhantes.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 30px;">
+                        Com uma infraestrutura acolhedora e uma equipe de professores altamente capacitados, nosso compromisso é proporcionar um ambiente criativo e inclusivo para que cada aluno — desde crianças até a melhor idade — possa alcançar o seu pleno potencial.
+                    </p>
+                    <a href="https://www.emcacultura.com/" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="background: #ffad85; color: white; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: 600; display: inline-block; box-shadow: 0 4px 15px rgba(230, 92, 0, 0.3);">Descubra Mais</a>
+                </div>
+                <div class="sobre-image" style="flex: 1; min-width: 300px; position: relative; display: flex; align-items: center; justify-content: center;">
+                    <img src="imagesemca/emca_fachada.png" alt="Fachada da EMCA" style="width: 100%; max-width: 480px; aspect-ratio: 1/1; object-fit: cover; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; box-shadow: 0 15px 35px rgba(0,0,0,0.15); border: 8px solid #fff; transition: border-radius 0.5s ease-in-out;" onmouseover="this.style.borderRadius='60% 40% 30% 70% / 60% 30% 70% 40%'" onmouseout="this.style.borderRadius='40% 60% 70% 30% / 40% 50% 60% 50%'">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Diferenciais -->
+        <section id="diferenciais" class="diferenciais-section" style="padding: 100px 0; background: #ffffff; position: relative; overflow: hidden;">
+            <!-- Decorative Elements -->
+            <div style="position: absolute; top: 10%; left: 5%; color: rgba(255, 113, 110, 0.1); font-size: 5rem; animation: float 6s ease-in-out infinite;"><i class="fa-solid fa-music"></i></div>
+            <div style="position: absolute; bottom: 15%; right: 8%; color: rgba(255, 142, 140, 0.1); font-size: 6rem; animation: float 8s ease-in-out infinite reverse;"><i class="fa-solid fa-masks-theater"></i></div>
+            <div style="position: absolute; top: 20%; right: 10%; color: rgba(255, 173, 133, 0.1); font-size: 4rem; animation: float 7s ease-in-out infinite;"><i class="fa-solid fa-palette"></i></div>
+            <div style="position: absolute; bottom: 20%; left: 8%; color: rgba(160, 46, 46, 0.05); font-size: 4.5rem; animation: float 9s ease-in-out infinite reverse;"><i class="fa-solid fa-shoe-prints"></i></div>
+
+            <div class="container" style="position: relative; z-index: 2;">
+                <div class="section-header" style="text-align: center; margin-bottom: 70px;">
+                    <h2 class="reveal reveal-up" style="font-family: 'Rubik', sans-serif; color: #ffad85 !important; font-size: 3.2rem; font-weight: 900; display: inline-block; position: relative; letter-spacing: -1px;">Diferenciais Pedagógicos</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s; color: #64748b; font-size: 1.3rem; margin-top: 20px; font-weight: 300;">Por que praticar artes na EMCA?</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 45px;">
+                    <!-- Card 1 -->
+                    <div class="diferencial-card reveal reveal-up" style="background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%); padding: 50px 35px; border-radius: 24px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.25); text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 25px 50px rgba(255, 113, 110, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.25)'">
+                        <div style="width: 80px; height: 80px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: #ff716e; font-size: 2.2rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1) rotate(5deg)'" onmouseout="this.style.transform='scale(1) rotate(0)'">
+                            <i class="fa-solid fa-masks-theater"></i>
+                        </div>
+                        <h3 style="color: #ffffff !important; font-size: 1.6rem; font-weight: 800 !important; margin-bottom: 18px; font-family: 'Rubik', sans-serif;">Experiência de Palco</h3>
+                        <p style="color: rgba(255,255,255,0.9); line-height: 1.8; font-size: 1.1rem; font-weight: 400;">Nossos alunos realizam apresentações anuais no majestoso Teatro Municipal, vivenciando a emoção dos grandes espetáculos.</p>
+                    </div>
+                    
+                    <!-- Card 2 -->
+                    <div class="diferencial-card reveal reveal-up" style="background: linear-gradient(135deg, #ff8e8c 0%, #ff716e 100%); padding: 50px 35px; border-radius: 24px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.25); text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; transition-delay: 0.1s;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 25px 50px rgba(255, 113, 110, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.25)'">
+                        <div style="width: 80px; height: 80px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: #ff716e; font-size: 2.2rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1) rotate(5deg)'" onmouseout="this.style.transform='scale(1) rotate(0)'">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h3 style="color: #ffffff !important; font-size: 1.6rem; font-weight: 800 !important; margin-bottom: 18px; font-family: 'Rubik', sans-serif;">Corpo Docente</h3>
+                        <p style="color: rgba(255,255,255,0.9); line-height: 1.8; font-size: 1.1rem; font-weight: 400;">Professores especialistas em suas áreas, garantindo uma metodologia de ensino técnica, atualizada e inspiradora.</p>
+                    </div>
+                    
+                    <!-- Card 3 -->
+                    <div class="diferencial-card reveal reveal-up" style="background: linear-gradient(135deg, #ff716e 0%, #ffad85 100%); padding: 50px 35px; border-radius: 24px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.25); text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; transition-delay: 0.2s;" onmouseover="this.style.transform='translateY(-15px) scale(1.02)'; this.style.boxShadow='0 25px 50px rgba(255, 173, 133, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.25)'">
+                        <div style="width: 80px; height: 80px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: #ff716e; font-size: 2.2rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1) rotate(5deg)'" onmouseout="this.style.transform='scale(1) rotate(0)'">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <h3 style="color: #ffffff !important; font-size: 1.6rem; font-weight: 800 !important; margin-bottom: 18px; font-family: 'Rubik', sans-serif;">Ampla Estrutura</h3>
+                        <p style="color: rgba(255,255,255,0.9); line-height: 1.8; font-size: 1.1rem; font-weight: 400;">Salas de espelhos para dança, estúdios com acústica para música e ateliês equipados para o desenvolvimento artístico.</p>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @keyframes float {
+                    0% { transform: translateY(0px) rotate(0deg); }
+                    50% { transform: translateY(-20px) rotate(5deg); }
+                    100% { transform: translateY(0px) rotate(0deg); }
+                }
+            </style>
+        </section>
+
+
+        
+
+        
+
+        
+
+        <!-- Galeria de Fotos -->
+        <section class="galeria-quadrada reveal" id="galeria">
+            <div class="container">
+
+                <div class="desktop-masonry">
+                    <div class="photo-wall">
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/jazz/R6II0273.jpg" style="animation-delay:0.05s"><img loading="lazy" src="imagesemca/jazz/R6II0273.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/Circo/R6II4147.jpg" style="animation-delay:0.10s"><img loading="lazy" src="imagesemca/Circo/R6II4147.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/musica/R6II2267.jpg" style="animation-delay:0.15s"><img loading="lazy" src="imagesemca/musica/R6II2267.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/jazz/R6II0295.jpg" style="animation-delay:0.25s"><img loading="lazy" src="imagesemca/jazz/R6II0295.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/Circo/R6II4162.jpg" style="animation-delay:0.30s"><img loading="lazy" src="imagesemca/Circo/R6II4162.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/musica/R6II2430.jpg" style="animation-delay:0.35s"><img loading="lazy" src="imagesemca/musica/R6II2430.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/jazz/R6II0319.jpg" style="animation-delay:0.45s"><img loading="lazy" src="imagesemca/jazz/R6II0319.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/Circo/R6II4347.jpg" style="animation-delay:0.50s"><img loading="lazy" src="imagesemca/Circo/R6II4347.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/musica/R6II2437.jpg" style="animation-delay:0.55s"><img loading="lazy" src="imagesemca/musica/R6II2437.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/jazz/R6II0386.jpg" style="animation-delay:0.65s"><img loading="lazy" src="imagesemca/jazz/R6II0386.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/Circo/R6II4398.jpg" style="animation-delay:0.70s"><img loading="lazy" src="imagesemca/Circo/R6II4398.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/musica/R6II2477.jpg" style="animation-delay:0.75s"><img loading="lazy" src="imagesemca/musica/R6II2477.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/jazz/R6II0516.jpg" style="animation-delay:0.85s"><img loading="lazy" src="imagesemca/jazz/R6II0516.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/desenho/desenho1.jpg" style="animation-delay:0.90s"><img loading="lazy" src="imagesemca/desenho/desenho1.jpg" alt="Desenho"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/pintura/pintura1.jpg" style="animation-delay:0.95s"><img loading="lazy" src="imagesemca/pintura/pintura1.jpg" alt="Pintura"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                        <div class="photo-wall-item gallery-trigger" data-img="imagesemca/Alice_Ballet/R6II7394.jpg" style="animation-delay:1.00s"><img loading="lazy" src="imagesemca/Alice_Ballet/R6II7394.jpg" alt="Dança"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div>
+
+                    </div>
+                </div>
+
+                <!-- Mobile: Carousel -->
+                <div class="mobile-carousel cursos-carousel-container">
+                    <div style="overflow: hidden; width: 100%;">
+                        <div class="cursos-carousel-track" id="galeriaCarousel">
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/jazz/R6II0273.jpg"><img loading="lazy" src="imagesemca/jazz/R6II0273.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/Circo/R6II4147.jpg"><img loading="lazy" src="imagesemca/Circo/R6II4147.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/musica/R6II2267.jpg"><img loading="lazy" src="imagesemca/musica/R6II2267.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/jazz/R6II0295.jpg"><img loading="lazy" src="imagesemca/jazz/R6II0295.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/Circo/R6II4162.jpg"><img loading="lazy" src="imagesemca/Circo/R6II4162.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/musica/R6II2430.jpg"><img loading="lazy" src="imagesemca/musica/R6II2430.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/jazz/R6II0319.jpg"><img loading="lazy" src="imagesemca/jazz/R6II0319.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/Circo/R6II4347.jpg"><img loading="lazy" src="imagesemca/Circo/R6II4347.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/musica/R6II2437.jpg"><img loading="lazy" src="imagesemca/musica/R6II2437.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/jazz/R6II0386.jpg"><img loading="lazy" src="imagesemca/jazz/R6II0386.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/Circo/R6II4398.jpg"><img loading="lazy" src="imagesemca/Circo/R6II4398.jpg" alt="Circo"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/musica/R6II2477.jpg"><img loading="lazy" src="imagesemca/musica/R6II2477.jpg" alt="Música"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/jazz/R6II0516.jpg"><img loading="lazy" src="imagesemca/jazz/R6II0516.jpg" alt="Jazz"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/desenho/desenho1.jpg"><img loading="lazy" src="imagesemca/desenho/desenho1.jpg" alt="Desenho"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/pintura/pintura1.jpg"><img loading="lazy" src="imagesemca/pintura/pintura1.jpg" alt="Pintura"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                            <div class="curso-slide"><div class="gallery-square-img gallery-trigger" data-img="imagesemca/Alice_Ballet/R6II7394.jpg"><img loading="lazy" src="imagesemca/Alice_Ballet/R6II7394.jpg" alt="Dança"><div class="gallery-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></div></div></div>
+                        </div>
+                    </div>
+                    <button class="carousel-btn prev-btn-galeria"><i data-lucide="chevron-left"></i></button>
+                    <button class="carousel-btn next-btn-galeria"><i data-lucide="chevron-right"></i></button>
+                </div>
+
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox" class="lightbox" role="dialog" aria-modal="true">
+            <button class="lightbox-close" id="lightboxClose" aria-label="Fechar">&times;</button>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Anterior"><i data-lucide="chevron-left"></i></button>
+            <div class="lightbox-content">
+                <img id="lightboxImg" src="" alt="Foto da galeria EMCA">
+            </div>
+            <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Praxima"><i data-lucide="chevron-right"></i></button>
+            <div class="lightbox-counter" id="lightboxCounter"></div>
+        </div>
+
+    </main>
+
+    <!-- Footer Premium Laranjinha -->
+            <style>
+    .biblio-footer {
+        background: #000000;
+        color: #ffffff;
+        font-family: 'Rubik', sans-serif !important;
+        padding-top: 50px;
+        padding-bottom: 30px;
+        margin-top: 50px;
+        border: none;
+    }
+    .biblio-footer-wrapper {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 5%;
+    }
+    .biblio-footer .brand-col {
+        display: flex;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+    .biblio-footer .brand-col .logo-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+    }
+    .biblio-footer .brand-col .logo-subtitle {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        color: rgba(255,255,255,0.9);
+    }
+    .biblio-footer .footer-col h4 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #ffffff;
+    }
+    .biblio-footer .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .biblio-footer ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .biblio-footer ul li a {
+        color: #ffffff;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+    .biblio-footer ul li a:hover {
+        opacity: 0.8;
+    }
+    .biblio-footer .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        color: #ffffff;
+    }
+    .biblio-footer .contact-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .biblio-footer .bottom-bar {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.8);
+        font-size: 0.9rem;
+    }
+    @media (max-width: 992px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 576px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+  
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <footer class="biblio-footer">
+    <div class="biblio-footer-wrapper">
+      <div class="footer-col brand-col">
+        <div class="logo-title">GAR&Ccedil;A</div>
+        <div class="logo-subtitle">Cidade de Culturas</div>
+        <p style="color: #ffffff; line-height: 1.6; margin: 0;">Espa&ccedil;os dedicados ao conhecimento, &agrave; arte e ao desenvolvimento de toda a nossa comunidade.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/secultgarca" target="_blank" style="color: #ffffff; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fa-brands fa-instagram" style="font-size: 1.2rem;"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Acesso Rápido</h4>
+        <ul>
+          <li><a href="../index.html">In&iacute;cio</a></li>
+          <li><a href="../emca/emca.html">EMCA</a></li>
+          <li><a href="../biblioteca/biblioteca.html">Biblioteca</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i data-lucide="map-pin" style="flex-shrink: 0;"></i> 
+            <span>Rua Bar&atilde;o do Rio Branco, 131 - Centro<br>Gar&ccedil;a/SP</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="phone"></i> <span>(14) 3471-1616</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="mail"></i> <span>cultura@garca.sp.gov.br</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <p>&copy; 2026 Gar&ccedil;a Cidade de Culturas. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+
+    <!-- Scripts -->
+    <script async src="https://www.instagram.com/embed.js"></script>
+    <script src="emca.js"></script>
+  <script>lucide.createIcons();</script>
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+</button>
+<style>
+    #backToTopBtn {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        background: #ff716e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 55px;
+        height: 55px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4);
+        transition: all 0.3s ease;
+    }
+    #backToTopBtn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(255, 113, 110, 0.6);
+        background: #fa5f5c;
+    }
+    #backToTopBtn.show {
+        display: flex;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+        #backToTopBtn {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+    }
+
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const backBtn = document.getElementById("backToTopBtn");
+        if (backBtn) {
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 400) {
+                    backBtn.classList.add("show");
+                } else {
+                    backBtn.classList.remove("show");
+                    backBtn.style.display = window.scrollY > 400 ? "flex" : "none";
+                }
+            });
+            backBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+    });
+</script>
+<!-- /BACK TO TOP BUTTON -->
+
+  <!-- VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+

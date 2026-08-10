@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- REGRAS PARA AGENDAMENTOS (appointments) ---
+    // Permite acesso público pois a autenticação é feita pela API externa
+    match /appointments/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // --- REGRAS PARA SERVIÇOS (Corrigir tela de Serviços) ---
+    match /services/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /Services/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // --- REGRAS PARA ILUMINAÇÃO (Corrigir envio de problemas) ---
+    match /iluminacao_reports/{document=**} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if true;
+    }
+    match /iluminacao_settings/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // --- REGRAS PARA FORMULÁRIOS DO FORMS GARÇA ---
+    // Permite acesso público pois a autenticação é feita pela API externa
+    match /forms_garca/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // --- REGRAS PARA INSCRIÇÕES DO FORMS GARÇA ---
+    // Permite acesso público pois a autenticação é feita pela API externa
+    match /inscriptions_garca/{document=**} {
+      allow read, write: if true;
+    }
+
+    // --- REGRA PADRÃO PARA OUTRAS COLEÇÕES ---
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

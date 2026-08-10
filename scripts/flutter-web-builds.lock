@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updated": "2026-07-29",
+  "note": "Builds Flutter web aprovados. /servicos/ nunca recompilar. Atualizar via scripts/promover-flutter-web.sh",
+  "modules": {
+    "servicos": {
+      "md5": "ac4a67e3c4568197d5355c3ed95ff7ba",
+      "marker": "Serviços Web Integrados",
+      "recompile": false
+    },
+    "agendamentos": {
+      "md5": "117df30cc8b3cc55916fbee5abb7d8c0",
+      "recompile": true
+    },
+    "formularios": {
+      "md5": "7db6467da70be2ce0ddf0f983536e6af",
+      "recompile": true
+    },
+    "iluminacao": {
+      "md5": "406cc89f73dadb4dc500683a4d29467c",
+      "recompile": true
+    }
+  }
+}

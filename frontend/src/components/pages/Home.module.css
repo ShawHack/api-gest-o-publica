@@ -1,0 +1,293 @@
+/* ========== Header Sepultados ========== */
+.admin_cards_row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.admin_card {
+    display: block;
+    text-decoration: none;
+    border: 1px solid #d0d7e2;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f7fb 100%);
+    border-radius: 10px;
+    padding: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(54, 75, 163, 0.15);
+}
+
+.admin_card h3 {
+    margin: 0 0 6px 0;
+    color: #364ba3;
+    font-size: 1.1rem;
+}
+
+.admin_card p {
+    margin: 0 0 8px 0;
+    color: #344054;
+    font-size: 0.92rem;
+}
+
+.admin_card span {
+    color: #364ba3;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.sepultado_home_header{
+    margin-bottom: 2em;
+}
+.sepultado_home_header h1{
+    margin-bottom:  0.3em;
+}
+
+.sepultado_container{
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.sepultado_card{
+    width: 22%;
+    margin: 1.5%;
+    display: flex;
+    flex-direction: column;
+    text-align: start;
+}
+
+.sepultado_card_image{
+    background-size: cover;
+    background-position: center;
+    height: 225px;
+    width: 100%;
+    margin-bottom: 1.2em;
+}
+.sepultado_card h3{
+  color: #12303a;
+  margin-bottom: 1em;
+  font-size: 1.0em;
+  font-weight: bold;
+  padding: 8px;
+}
+.sepultado_card h4{
+ margin-top: 1em;
+ font-size: 0.5x;
+  padding: 8px;
+   color: #12303a;
+  
+}
+.sepultado_home_header h5{
+ 
+  margin-bottom: 1em;
+  font-size: 1.3em;
+  padding: 8px;
+}
+
+.sepultado_card a{
+    margin-bottom: 1em;
+}
+
+.sepultado_card a{
+    text-decoration: none;
+    margin-top: 4px;
+   text-decoration: none;
+    background-color: #cbd4db;
+    color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+    font-weight: bold;
+    cursor:pointer;
+    transition: 0.5s;
+    text-align: center;
+    font-size: 1.1em;
+    padding: 15px;
+    border-radius: 5px;
+}
+.sepultado_card a:hover{
+   background-color: #5480ac; 
+   color: aliceblue;
+}
+
+/* Media Queries para Responsividade */
+
+/* Tablets (768px e abaixo) */
+@media screen and (max-width: 768px) {
+    .sepultado_card {
+        width: 45%;
+        margin: 2.5%;
+    }
+    
+    .sepultado_card_image {
+        height: 200px;
+    }
+    
+    .sepultado_home_header h5 {
+        font-size: 1.2em;
+    }
+}
+
+/* Smartphones (480px e abaixo) */
+@media screen and (max-width: 480px) {
+    .sepultado_container {
+        justify-content: center;
+    }
+    
+    .sepultado_card {
+        width: 90%;
+        margin: 2% 5%;
+        max-width: 350px;
+    }
+    
+    .sepultado_card_image {
+        height: 180px;
+    }
+    
+    .sepultado_card h3 {
+        font-size: 1.1em;
+        text-align: center;
+    }
+    
+    .sepultado_card h4 {
+        font-size: 0.9em;
+        text-align: center;
+    }
+    
+    .sepultado_card p {
+        padding: 0 8px;
+        font-size: 0.9em;
+    }
+    
+    .sepultado_card a {
+        font-size: 1.0em;
+        padding: 12px;
+    }
+    
+    .sepultado_home_header h5 {
+        font-size: 1.1em;
+        text-align: center;
+    }
+}
+
+/* Smartphones muito pequenos (320px e abaixo) */
+@media screen and (max-width: 320px) {
+    .sepultado_card {
+        width: 95%;
+        margin: 2% 2.5%;
+    }
+    
+    .sepultado_card_image {
+        height: 160px;
+    }
+    
+    .sepultado_card h3 {
+        font-size: 1.0em;
+    }
+    
+    .sepultado_card h4 {
+        font-size: 0.8em;
+    }
+    
+    .sepultado_card p {
+        font-size: 0.8em;
+    }
+    
+    .sepultado_card a {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+}
+
+
+
+/* Estilos para o modal de imagem expandida */
+.image_modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.modal_content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.expanded_image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.close_button {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.close_button:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+}
+
+/* Adicionar cursor pointer para indicar que a imagem é clicável */
+.sepultado_card_image {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.sepultado_card_image:hover {
+    transform: scale(1.02);
+}
+
+/* Media queries para o modal em dispositivos móveis */
+@media screen and (max-width: 768px) {
+    .modal_content {
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    .close_button {
+        top: -30px;
+        right: -30px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .close_button {
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.8);
+    }
+}

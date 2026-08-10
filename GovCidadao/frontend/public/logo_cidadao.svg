@@ -1,0 +1,10 @@
+<svg width="640" height="310" viewBox="0 0 640 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="310" fill="transparent"/>
+  <text x="40" y="160" font-family="Arial, Helvetica, sans-serif" font-size="98" font-weight="700" fill="#F4F8FF">GARCA</text>
+  <text x="45" y="222" font-family="Arial, Helvetica, sans-serif" font-size="56" font-style="italic" font-weight="700" fill="#F08C9A">Cidadao</text>
+  <path d="M482 55 C495 70, 494 98, 494 130 L494 265" stroke="#F08C9A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M472 62 C485 70, 486 98, 486 125 L486 265" stroke="#F4F8FF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M513 106 C535 118, 540 145, 540 166" stroke="#F4F8FF" stroke-width="6" stroke-linecap="round"/>
+  <path d="M510 122 C530 130, 536 152, 536 180" stroke="#F08C9A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M512 84 C530 92, 538 108, 538 124" stroke="#F4F8FF" stroke-width="5" stroke-linecap="round"/>
+</svg>

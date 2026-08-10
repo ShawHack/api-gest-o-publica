@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Festival Garça em Danças - Eventos Garça</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="eventos.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='../index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="../index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Início</a>
+        <a href="../emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="../biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="../teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="../museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="./eventos.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos</a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="./eventos.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: background 0.3s;">
+          <i data-lucide="arrow-left"></i> <span class="map-text">Voltar</span>
+        </a>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="../index.html" class="nav-link" onclick="toggleMenu()">Início</a>
+    <a href="../emca/emca.html" class="nav-link" onclick="toggleMenu()">EMCA</a>
+    <a href="../biblioteca/biblioteca.html" class="nav-link" onclick="toggleMenu()">Biblioteca</a>
+    <a href="../teatro/teatro.html" class="nav-link" onclick="toggleMenu()">Teatro</a>
+    <a href="../museu/museu.html" class="nav-link" onclick="toggleMenu()">Museu</a>
+    <a href="./eventos.html" class="nav-link" onclick="toggleMenu()">Eventos</a>
+    
+    <div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <script>
+    if (typeof toggleMenu === 'undefined') {
+      window.toggleMenu = function() {
+        const menu = document.getElementById("mobile-menu");
+        const overlay = document.getElementById("menu-overlay");
+        if (menu) {
+            menu.classList.toggle("open");
+            if(menu.classList.contains("open")) {
+                overlay.classList.add("active");
+            } else {
+                overlay.classList.remove("active");
+            }
+        }
+      }
+    }
+  </script>
+
+
+  <main class="news-detail-container">
+    <div class="news-hero">
+      <div class="news-badge" style="background: #364ba3;">Festival / Solidário</div>
+      <h1 class="news-title">Festival Garça em Danças</h1>
+      <div class="news-meta">
+        <span><i data-lucide="calendar"></i> 22 e 23 de Março</span>
+        <span><i data-lucide="ticket"></i> Entrada: 1kg de Alimento</span>
+        <span><i data-lucide="map-pin"></i> Teatro Municipal</span>
+      </div>
+    </div>
+
+    <div class="news-content">
+      <div class="image-featured-news" style="margin-bottom: 30px; text-align: center;">
+         <img src="envolve.jpg" alt="Cartaz Oficial do Evolve Festival" style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      </div>
+
+      <p class="lead-text">Um dos maiores eventos de dança do estado de São Paulo! O festival reunirá artistas, dançarinos e admiradores em uma verdadeira celebração cultural, com mais de 150 coreografias e aproximadamente 300 participantes de diversas regiões.</p>
+      
+      <h2>Sobre o Evento</h2>
+      <p>As apresentações começam dia 22 (a partir das 16h) e dia 23 (a partir das 15h), abrangendo modalidades como balé clássico, danças urbanas, jazz, contemporâneo e hip-hop. A entrada é solidária e os alimentos arrecadados serão destinados a instituições de caridade da cidade.</p>
+      
+      <h2>Seletiva para o Evolve Festival</h2>
+      <p>O evento servirá como seletiva para o <strong>Evolve Festival Internacional de Dança</strong> (que acontecerá de 8 a 13 de julho em Garça). O Evolve oferecerá R$ 40.000 em prêmios, bolsas para intercâmbio internacional e a chance de participar de festivais ao redor do mundo!</p>
+
+      <div class="image-featured-news" style="margin: 30px 0; text-align: center;">
+         <img src="cartaz-evolve-premios.jpg" alt="Premiações do Evolve Festival" style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      </div>
+
+      <h2>Programação Evolve Festival (Julho)</h2>
+      <div class="schedule-box">
+        <ul>
+          <li><strong>Terça - 08/07 (17:30h):</strong> Balé Clássico de Repertório, Neoclássico e Clássico Livre</li>
+          <li><strong>Quarta - 09/07 (16h):</strong> Espetáculo: Lúdico - Cia. Druw</li>
+          <li><strong>Quarta - 09/07 (18h):</strong> Ballet Clássico de Repertório, Neoclássico e Clássico Livre</li>
+          <li><strong>Quinta - 10/07 (18h):</strong> Jazz Dance & Dança Contemporânea</li>
+          <li><strong>Sexta - 11/07 (17h):</strong> Danças Populares, Danças Urbanas, Sapateado Americano, Jazz Dance & Dança Contemporânea</li>
+          <li><strong>Sábado - 12/07 (17h):</strong> Estilo Livre</li>
+          <li><strong>Domingo - 13/07 (14h):</strong> Gala dos campeões</li>
+        </ul>
+      </div>
+
+      <div class="news-footer-info">
+        <strong>Realização:</strong> Evolve Produções e SECULT<br>
+        Apoio: APAA, Cultura SP, Secretaria da Cultura SP
+      </div>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if(menu) menu.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+!*.env.example
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# Dependências e caches
+node_modules/
+.dart_tool/
+.next/
+.pytest_cache/
+**/ephemeral/
+
+# Builds, testes e cobertura
+build/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.log
+*.apk
+
+# Conteúdo operacional e privado
+uploads/
+backend/private/
+backend/public/
+nginx/react/
+cultura-src/emca/imagesemca/
+cultura-src/biblioteca/bibliotecaimages/
+cultura-src/biblioteca/*.mp4
+
+# Backups e pacotes
+full/
+backend.pre_sync_bak.*/
+*.bak
+*.bak.*
+*.backup
+*.backup.*
+*.zip
+*.tar
+*.tar.gz
+
+# Editores e sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

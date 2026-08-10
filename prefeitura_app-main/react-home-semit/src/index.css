@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --azul: #384D9C;
+  --laranja: #EE7070;
+  --branco: #FFFFFF;
+  --cinza-claro: #F5F5F5;
+  --cinza-medio: #9E9E9E;
+  --cinza-escuro: #424242;
+}
+
+body {
+  font-family: 'Roboto Slab', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--cinza-escuro);
+  background-color: var(--branco);
+}
+
+#root {
+  min-height: 100vh;
+}
+

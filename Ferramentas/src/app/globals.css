@@ -1,0 +1,55 @@
+:root {
+  --semit-blue: #3b4ea0;
+  --semit-blue-dark: #364ba3;
+  --semit-blue-light: #7481d1;
+  --semit-page: #eceff4;
+  --semit-ink: #1f2a44;
+  --semit-muted: #475569;
+  --semit-success: #48bb78;
+  --semit-orange: #ed9756;
+
+  --ink: var(--semit-ink);
+  --muted: var(--semit-muted);
+  --line: #d5dde8;
+  --surface: #ffffff;
+  --accent: var(--semit-blue-light);
+  --accent-2: #8ea0e8;
+  --accent-strong: var(--semit-orange);
+  --font-display: var(--font-rubik), "Segoe UI", sans-serif;
+  --font-body: var(--font-rubik), "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--semit-page);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

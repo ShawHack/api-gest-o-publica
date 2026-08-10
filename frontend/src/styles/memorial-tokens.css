@@ -1,0 +1,50 @@
+/* Tokens — Memorial Santa Faustina (busca de sepulturas) */
+:root {
+  --memorial-primary: #364ba3;
+  --memorial-primary-dark: #2a3a82;
+  --memorial-secondary: #7481d1;
+  --memorial-accent: #ed9756;
+  --memorial-accent-soft: #ffb583;
+  --memorial-success: #446042;
+  --memorial-warning: #b45309;
+  --memorial-error: #a02e2e;
+  --memorial-bg: #f4f6fb;
+  --memorial-surface: #ffffff;
+  --memorial-text: #1e293b;
+  --memorial-text-muted: #64748b;
+  --memorial-border: #e2e8f0;
+  --memorial-focus: #364ba3;
+  --memorial-shadow: 0 4px 16px rgba(30, 41, 59, 0.08);
+  --memorial-radius: 14px;
+  --memorial-radius-sm: 10px;
+  --memorial-space-xs: 4px;
+  --memorial-space-sm: 8px;
+  --memorial-space-md: 16px;
+  --memorial-space-lg: 24px;
+  --memorial-space-xl: 32px;
+  --memorial-max-width: 1320px;
+  --memorial-touch: 44px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

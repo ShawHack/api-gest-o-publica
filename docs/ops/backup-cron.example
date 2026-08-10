@@ -1,0 +1,5 @@
+# Exemplo de cron para backup diário (ajuste PROJ_DIR e usuário)
+# crontab -e
+#
+# 02:30 todos os dias
+30 2 * * * PROJ_DIR=/home/semit/Documentos/api-semit BASE_DIR=/home/semit/Documentos/backups-completos /home/semit/Documentos/api-semit/backup_completo.sh >> /var/log/api-semit-backup.log 2>&1

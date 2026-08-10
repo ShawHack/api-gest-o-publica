@@ -1,0 +1,48 @@
+# Estrutura de Pastas
+
+```plaintext
+prefeitura_app-main/
+    prefeitura_app-main/
+        .flutter-plugins-dependencies
+        .gitattributes
+        .metadata
+        README.md
+        analysis_options.yaml
+        firebase.json
+        prefeitura_app.iml
+        pubspec.lock
+        pubspec.yaml
+        .dart_tool/
+            package_config.json
+            package_config_subset
+            package_graph.json
+            version
+            dartpad/
+                web_plugin_registrant.dart
+            flutter_build/
+                dart_plugin_registrant.dart
+                2465b3eb7c622b02a0c282b9f0b8cc6a/
+                    .filecache
+                    app.dill
+                    dart_build.d
+                    dart_build.stamp
+                    dart_build_result.json
+                    debug_android_application.stamp
+                    flutter_assets.d
+                    gen_dart_plugin_registrant.stamp
+                    gen_localizations.stamp
+                    install_code_assets.d
+                    install_code_assets.stamp
+                    kernel_snapshot_program.d
+                    kernel_snapshot_program.stamp
+                    native_assets.json
+                    outputs.json
+                a864bd2dd6b2122fbdc9594eaf7afe25/
+                    .filecache
+                    app.dill
+                    dart_build.d
+                    dart_build.stamp
+                    dart_build_result.json
+                    debug_android_application.stamp
+                    flut
+```

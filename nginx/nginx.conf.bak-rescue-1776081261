@@ -1,0 +1,183 @@
+
+# ==================================================
+# CONFIGURAÇÃO NGINX MESTRE - PRODUÇÃO (10.15.25.28)
+# UNIFICAÇÃO: MEMORIAL + GARCAPET + GARÇA CIDADÃO
+# ==================================================
+
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+server {
+  listen 80;
+  listen 443 ssl;
+  server_name api.garca.sp.gov.br localhost;
+
+  ssl_certificate     /etc/letsencrypt/live/api.garca.sp.gov.br/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/api.garca.sp.gov.br/privkey.pem;
+  ssl_protocols       TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+
+  # ROOT DO MEMORIAL SANTA FAUSTINA
+  root /opt/backend-public;
+
+  resolver 127.0.0.11 valid=30s ipv6=off;
+
+  # 1) NORMALIZAÇÃO DE ROTAS
+  rewrite ^/agendamentos$ /agendamentos/ permanent;
+  rewrite ^/servicos$ /servicos/ permanent;
+  rewrite ^/formularios$ /formularios/ permanent;
+  rewrite ^/iluminacao$ /iluminacao/ permanent;
+  rewrite ^/dsu$ /dsu/ permanent;
+
+  # --------------------------------------------------
+  # 2) GARÇA CIDADÃO (Proxy para Next.js / FastAPI)
+  # --------------------------------------------------
+  location ^~ /garca-cidadao-api/ {
+    set $gov_api govcidadao-api:8000;
+    proxy_pass http://$gov_api/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location = /logo_garca_cidade.png {
+    set $gov_fe govcidadao-frontend:3000;
+    proxy_pass http://$gov_fe/logo_garca_cidade.png;
+    proxy_set_header Host $host;
+  }
+
+  location = /garca-cidadao { return 301 /garca-cidadao/; }
+
+  location ^~ /garca-cidadao/ {
+    set $gov_fe govcidadao-frontend:3000;
+    proxy_pass http://$gov_fe;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  # --------------------------------------------------
+  # 3) BACKEND /api (Memorial + SAMA)
+  # --------------------------------------------------
+  location /api/ {
+    proxy_pass http://api:5000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 25m;
+  }
+
+  location /images/ { 
+    proxy_pass http://api:5000/images/; 
+    proxy_set_header Host $host;
+  }
+  
+  location /images_semit_a_pet/ { 
+    proxy_pass http://api:5000/images_semit_a_pet/; 
+    proxy_set_header Host $host;
+  }
+  
+  location = /health { proxy_pass http://api:5000/health; proxy_set_header Host $host; }
+  location = /stats  { proxy_pass http://api:5000/stats; proxy_set_header Host $host; }
+  location = /readyz { proxy_pass http://api:5000/readyz; proxy_set_header Host $host; }
+  location = /dashboard.html { 
+    proxy_pass http://api:5000/dashboard.html; 
+    proxy_set_header Host $host;
+    add_header Cache-Control "no-cache"; 
+  }
+
+  # --------------------------------------------------
+  # 4) GARCAPET (Ajuste de Refresh /garcapet/)
+  # --------------------------------------------------
+  location = /garcapet { return 301 /garcapet/; }
+
+  location ^~ /garcapet/ {
+    alias /opt/backend-public/sama/;
+    index index.html;
+    try_files $uri $uri/ /garcapet/index.html;
+    add_header X-Debug-Route "garcapet-fix-v5" always;
+  }
+
+  # Retrocompatibilidade de rotas legadas do SAMA
+  location ~ ^/(pet|pets|arvore|arvores|sobre|castracao|zoologico|funcionalidade|denunciar|adotar|login|register)(?:/.*)?$ {
+    root /opt/backend-public;
+    try_files $uri $uri/ /sama/index.html;
+  }
+
+  # --------------------------------------------------
+  # 5) MEDICAMENTOS / FARMÁCIA
+  # --------------------------------------------------
+  location ^~ /medicamentos/ {
+    root /opt/backend-public;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # --------------------------------------------------
+  # 5.1) DSU - Serviços Urbanos (proxy para 10.15.25.15:3000)
+  # --------------------------------------------------
+  location ^~ /dsu/ {
+    proxy_pass http://10.15.25.15:3000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  # --------------------------------------------------
+  # 5.2) PONTE DE ATIVOS ESTÁTICOS (DSU + Memorial)
+  # Resolve o erro de MIME type quando o DSU busca ativos na raiz /static/
+  # --------------------------------------------------
+  location /static/ {
+    root /opt/backend-public;
+    try_files $uri @dsu_assets;
+  }
+
+  location @dsu_assets {
+    proxy_pass http://10.15.25.15:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_cache_bypass $http_upgrade;
+  }
+
+  # --------------------------------------------------
+  # 6) FLUTTER WEB EM /agendamentos/, /servicos/, etc.
+  # --------------------------------------------------
+  location ^~ /agendamentos/ { alias /usr/share/nginx/html/agendamentos/; index index.html; try_files $uri $uri/ /agendamentos/index.html =404; }
+  location ^~ /servicos/     { alias /usr/share/nginx/html/servicos/; index index.html; try_files $uri $uri/ /servicos/index.html =404; }
+  location ^~ /formularios/  { alias /usr/share/nginx/html/formularios/; index index.html; try_files $uri $uri/ /formularios/index.html =404; }
+  location ^~ /iluminacao/   { alias /usr/share/nginx/html/iluminacao/; index index.html; try_files $uri $uri/ /iluminacao/index.html =404; }
+
+  # --------------------------------------------------
+  # 7) FRONTEND PRINCIPAL (MEMORIAL) NA RAIZ
+  # --------------------------------------------------
+  location / {
+    root /opt/backend-public;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # --------------------------------------------------
+  # 8) HEADERS + GZIP
+  # --------------------------------------------------
+  add_header X-Content-Type-Options nosniff always;
+  add_header X-Frame-Options SAMEORIGIN always;
+  gzip on;
+  gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+  server_tokens off;
+}

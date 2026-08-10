@@ -1,0 +1,290 @@
+.wrap {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 0.2rem clamp(1rem, 3vw, 1.5rem) 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.header h1 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3vw, 1.95rem);
+  color: var(--semit-blue-dark);
+}
+
+.header p {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 0.9rem;
+  padding: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #4a5568;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid #d5dceb;
+  border-radius: 0.55rem;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  color: #1b2437;
+  background: #fff;
+}
+
+.field input:focus {
+  outline: 2px solid rgba(37, 211, 102, 0.35);
+  border-color: #25d366;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.meta {
+  font-size: 0.88rem;
+  color: #6b778c;
+  font-weight: 600;
+}
+
+.adminToggle {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--semit-blue-dark);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+}
+
+.adminToggle:hover {
+  border-color: var(--semit-blue-light);
+}
+
+.adminPanel {
+  display: grid;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  padding: 1rem;
+}
+
+.adminHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.adminFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.adminActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.adminUserRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.adminUserRow p {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.92rem;
+}
+
+.adminLogin,
+.adminLogged {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnGhost,
+.btnDanger {
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  border: none;
+  background: var(--semit-blue);
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: var(--semit-blue-dark);
+}
+
+.btnSecondary {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--semit-blue-dark);
+}
+
+.btnGhost {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: underline;
+  padding-inline: 0.35rem;
+}
+
+.btnDanger {
+  border: 1px solid #f5c2c0;
+  background: #fff5f5;
+  color: #9b2c2c;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editFields {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.editFields input {
+  width: 100%;
+  border: 1px solid #d5dceb;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+}
+
+.error,
+.empty {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  color: #6b778c;
+}
+
+.error {
+  border-color: #f5c2c0;
+  background: #fff5f5;
+  color: #9b2c2c;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 0.85rem;
+  padding: 0.95rem 1rem;
+  box-shadow: 0 6px 16px rgba(35, 52, 99, 0.05);
+}
+
+.cardBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.ramal {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--semit-blue-dark);
+  letter-spacing: 0.02em;
+}
+
+.nome {
+  margin: 0.2rem 0 0;
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  white-space: nowrap;
+  background: #25d366;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.whatsapp:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .filters,
+  .adminFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .whatsapp,
+  .cardActions {
+    width: 100%;
+  }
+
+  .cardActions > * {
+    flex: 1 1 auto;
+  }
+}

@@ -1,0 +1,535 @@
+# =========================
+# CONFIGURAÇÃO NGINX PARA DESENVOLVIMENTO LOCAL
+# Apenas HTTP (sem SSL)
+# =========================
+
+# Mapa para WebSocket upgrade
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+# =========================
+# HTTP (porta 80)
+# =========================
+server {
+  listen 80;
+  listen 443 ssl;
+  server_name api.garca.sp.gov.br localhost;
+  ssl_certificate /etc/letsencrypt/live/api.garca.sp.gov.br/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/api.garca.sp.gov.br/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+  root /usr/share/nginx/html;
+
+  # --------------------------------------------------
+  # NORMALIZAR ROTAS (rewrites)
+  # --------------------------------------------------
+  rewrite ^/agendamentos$ /agendamentos/ permanent;
+  rewrite ^/sama$ /sama/ permanent;
+  rewrite ^/semit-a-pet$ /semit-a-pet/ permanent;
+  rewrite ^/servicos$ /servicos/ permanent;
+  rewrite ^/formularios$ /formularios/ permanent;
+  rewrite ^/iluminacao$ /iluminacao/ permanent;
+  rewrite ^/user/profile$ /sama/user/profile permanent;
+  rewrite ^/user/profile/(.*)$ /sama/user/profile/$1 permanent;
+  # Compatibilidade rota "Quero Adotar" do SAMA
+  # Normaliza URLs do SAMA para o caminho legado que renderiza corretamente
+  rewrite ^/sama/pet$ /pet permanent;
+  rewrite ^/sama/pet/(.*)$ /pet/$1 permanent;
+  rewrite ^/sama/pets$ /pet permanent;
+  rewrite ^/sama/pets/(.*)$ /pet/$1 permanent;
+
+  # --------------------------------------------------
+  # GOVCIDADAO (FastAPI + Next.js)
+  # --------------------------------------------------
+  location ^~ /garca-cidadao-api/ {
+    proxy_pass http://127.0.0.1:8000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Authorization $http_authorization;
+    proxy_redirect off;
+    client_max_body_size 25m;
+  }
+
+  location = /garca-cidadao {
+    proxy_pass http://127.0.0.1:3000/garca-cidadao;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  location ^~ /garca-cidadao/ {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  # --------------------------------------------------
+  # BACKEND /api
+  # --------------------------------------------------
+  location /api/ {
+    proxy_pass http://api:5000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        $connection_upgrade;
+    proxy_set_header Authorization     $http_authorization;
+    proxy_redirect    off;
+    client_max_body_size 25m;
+    proxy_read_timeout 60s;
+    proxy_send_timeout 60s;
+
+    # CORS para desenvolvimento
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Allow-Methods 'GET, POST, PATCH, PUT, DELETE, OPTIONS' always;
+    add_header Access-Control-Allow-Headers 'Authorization, Content-Type, Origin, Accept, X-Requested-With, Cache-Control, Pragma' always;
+    add_header Access-Control-Allow-Credentials true always;
+    
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin * always;
+      add_header Access-Control-Allow-Methods 'GET, POST, PATCH, PUT, DELETE, OPTIONS' always;
+      add_header Access-Control-Allow-Headers 'Authorization, Content-Type, Origin, Accept, X-Requested-With, Cache-Control, Pragma' always;
+      add_header Access-Control-Max-Age 1728000;
+      add_header Content-Type 'text/plain charset=UTF-8';
+      add_header Content-Length 0;
+      return 204;
+    }
+  }
+
+  # --------------------------------------------------
+  # BLOQUEIO DE SERVICE WORKERS NA RAIZ
+  # --------------------------------------------------
+  location = /flutter_service_worker.js { return 410; }
+  location = /service-worker.js       { return 410; }
+  location = /manifest.json           { try_files $uri =404; }
+
+  # --------------------------------------------------
+  # FLUTTER WEB EM /agendamentos/
+  # --------------------------------------------------
+  location ^~ /agendamentos/ {
+    alias /usr/share/nginx/html/agendamentos/;
+    index index.html;
+    try_files $uri $uri/ /agendamentos/index.html =404;
+    add_header X-Frame-Options         "SAMEORIGIN" always;
+    add_header X-Content-Type-Options  "nosniff"    always;
+  }
+
+  location = /agendamentos/flutter_service_worker.js {
+    alias /usr/share/nginx/html/agendamentos/flutter_service_worker.js;
+    add_header Service-Worker-Allowed "/agendamentos/" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location ~* ^/agendamentos/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|wasm|bin|json))$ {
+    alias /usr/share/nginx/html/agendamentos/$1;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # --------------------------------------------------
+  # FLUTTER WEB EM /servicos/ (Prefeitura Online)
+  # --------------------------------------------------
+  location ^~ /servicos/ {
+    alias /usr/share/nginx/html/servicos/;
+    index index.html;
+
+    # Fallback para rotas Flutter (SPA)
+    if (!-e $request_filename) {
+      rewrite ^/servicos/.*$ /servicos/index.html last;
+    }
+
+    add_header X-Frame-Options         "SAMEORIGIN" always;
+    add_header X-Content-Type-Options  "nosniff"    always;
+  }
+
+  location = /servicos/index.html {
+    alias /usr/share/nginx/html/servicos/index.html;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location = /servicos/flutter_service_worker.js {
+    alias /usr/share/nginx/html/servicos/flutter_service_worker.js;
+    add_header Service-Worker-Allowed "/servicos/" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location ~* ^/servicos/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|wasm|bin|json))$ {
+    alias /usr/share/nginx/html/servicos/$1;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # --------------------------------------------------
+  # FLUTTER WEB EM /formularios/
+  # --------------------------------------------------
+  location ^~ /formularios/ {
+    alias /usr/share/nginx/html/formularios/;
+    index index.html;
+    
+    # Verifica se o arquivo existe, senão serve index.html
+    if (!-e $request_filename) {
+      rewrite ^/formularios/.*$ /formularios/index.html last;
+    }
+    
+    add_header X-Frame-Options         "SAMEORIGIN" always;
+    add_header X-Content-Type-Options  "nosniff"    always;
+  }
+
+  location = /formularios/index.html {
+    alias /usr/share/nginx/html/formularios/index.html;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location = /formularios/flutter_service_worker.js {
+    alias /usr/share/nginx/html/formularios/flutter_service_worker.js;
+    add_header Service-Worker-Allowed "/formularios/" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location ~* ^/formularios/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|wasm|bin|json))$ {
+    alias /usr/share/nginx/html/formularios/$1;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # --------------------------------------------------
+  # DASHBOARD E ASSETS DA API
+  # --------------------------------------------------
+  location = /dashboard.html {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    proxy_pass http://api:5000/dashboard.html;
+    proxy_set_header Host $host;
+  }
+
+  location = /routes.json {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    proxy_pass http://api:5000/routes.json;
+    proxy_set_header Host $host;
+  }
+
+  location = /endpoints.html {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    proxy_pass http://api:5000/endpoints.html;
+    proxy_set_header Host $host;
+  }
+
+  location = /api-logo.png {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    proxy_pass http://api:5000/api-logo.png;
+    proxy_set_header Host $host;
+  }
+
+  location = /health {
+    proxy_pass http://api:5000/health;
+    proxy_set_header Host $host;
+  }
+
+  location = /readyz {
+    proxy_pass http://api:5000/readyz;
+    proxy_set_header Host $host;
+  }
+
+  location = /api/stats {
+    proxy_pass http://api:5000/stats;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    add_header Access-Control-Allow-Origin * always;
+  }
+
+  location = /stats {
+    proxy_pass http://api:5000/stats;
+    proxy_set_header Host $host;
+    add_header Access-Control-Allow-Origin * always;
+  }
+
+  location /images/ {
+    proxy_pass http://api:5000/images/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /images_semit_a_pet/ {
+    proxy_pass http://api:5000/images_semit_a_pet/;
+    proxy_set_header Host $host;
+  }
+
+  # --------------------------------------------------
+  # SAMA e SEMIT_A_PET - ambos servidos pela API (backend/public/sama)
+  # O HTML referencia /sama/* para assets, então ambos paths precisam ir para a API
+  # --------------------------------------------------
+  location ^~ /sama/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+
+  # Rotas legadas do SAMA sem prefixo (mantém URL e serve o app SAMA no refresh).
+  # Landing p??blica do GarcaPet/SAMA
+  location = /castracao {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /castracao/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+
+  # Rotas de autentica????o do SAMA (evita cair no login do memorial no refresh)
+  location = /login { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /login/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location = /register { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /register/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location = /user/profile { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /user/profile/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  # Rotas p??blicas do GarcaPet/SAMA (refresh-safe)
+  location = /sobre { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /sobre/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /zoologico { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /zoologico/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /denunciar { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /denunciar/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /funcionalidade { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /funcionalidade/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /adotar { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /adotar/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /institucional { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /institucional/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /termos { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /termos/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  location = /adocao { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+  location ^~ /adocao/ { proxy_pass http://api:5000/sama/; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; }
+
+  # Rotas legadas de ??rvore no singular
+  location = /arvore {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /arvore/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+
+  location = /pet {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /pet/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location = /pets {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /pets/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location = /arvores {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /arvores/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location = /denounces {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /denounces/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location = /settings {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location ^~ /settings/ {
+    proxy_pass http://api:5000/sama/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+
+  location /semit-a-pet/ {
+    proxy_pass http://api:5000/semit-a-pet/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # --------------------------------------------------
+  # FLUTTER WEB EM /iluminacao/
+  # --------------------------------------------------
+  location ^~ /iluminacao/ {
+    alias /usr/share/nginx/html/iluminacao/;
+    index index.html;
+    
+    # Verifica se o arquivo existe, senão serve index.html (importante para rotas dinâmicas como /report/123)
+    if (!-e $request_filename) {
+      rewrite ^/iluminacao/.*$ /iluminacao/index.html last;
+    }
+    
+    add_header X-Frame-Options         "SAMEORIGIN" always;
+    add_header X-Content-Type-Options  "nosniff"    always;
+  }
+
+  location = /iluminacao/index.html {
+    alias /usr/share/nginx/html/iluminacao/index.html;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location = /iluminacao/flutter_service_worker.js {
+    alias /usr/share/nginx/html/iluminacao/flutter_service_worker.js;
+    add_header Service-Worker-Allowed "/iluminacao/" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location ~* ^/iluminacao/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|wasm|bin|json))$ {
+    alias /usr/share/nginx/html/iluminacao/$1;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # --------------------------------------------------
+  # FRONTEND PRINCIPAL (REACT) NA RAIZ
+  # --------------------------------------------------
+  location = /index.html {
+    root /usr/share/nginx/html;
+    try_files /index.html =404;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # --------------------------------------------------
+  # HEALTH CHECK
+  # --------------------------------------------------
+  location /nginx-health { 
+    return 200 "OK"; 
+    add_header Content-Type text/plain;
+  }
+
+  # --------------------------------------------------
+  # HEADERS + GZIP
+  # --------------------------------------------------
+  add_header X-Content-Type-Options nosniff     always;
+  add_header X-Frame-Options        SAMEORIGIN  always;
+  add_header Referrer-Policy        strict-origin-when-cross-origin always;
+
+  gzip on;
+  gzip_comp_level 5;
+  gzip_min_length 1024;
+  gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+  server_tokens off;
+  proxy_hide_header X-Powered-By;
+}

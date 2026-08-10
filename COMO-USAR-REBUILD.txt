@@ -1,0 +1,216 @@
+================================================================================
+                    COMO USAR O SCRIPT DE REBUILD
+================================================================================
+
+PROBLEMA QUE FOI RESOLVIDO:
+---------------------------
+Antes, ao fazer rebuild, os apps Flutter (agendamentos e formularios) sumiam
+e davam erro 404 no servidor.
+
+Agora, o script SEMPRE rebuilda tudo automaticamente!
+
+
+================================================================================
+                         USO NO WINDOWS (LOCAL)
+================================================================================
+
+1. Abra o PowerShell
+
+2. Navegue ate a pasta do projeto:
+   cd c:\full\project
+
+3. Execute o script:
+   .\rebuild.ps1
+
+4. Aguarde (leva 3-5 minutos)
+
+5. Pronto! Tudo foi rebuildado:
+   - Frontend React
+   - Agendamentos (Flutter)
+   - Formularios (Flutter)
+   - Containers Docker
+
+
+================================================================================
+                        USO NO SERVIDOR (LINUX)
+================================================================================
+
+1. Conecte via SSH:
+   ssh semit@10.15.25.28
+   Senha: defina localmente; nunca registre credenciais neste arquivo.
+
+2. Navegue ate a pasta do projeto:
+   cd ~/Documentos/api-semit
+
+3. Execute o script:
+   ./rebuild.sh
+
+4. Aguarde (leva 3-5 minutos)
+
+5. Pronto! Tudo foi rebuildado no servidor
+
+
+================================================================================
+                         O QUE O SCRIPT FAZ
+================================================================================
+
+[1/5] Rebuilda Frontend React
+      - Limpa build anterior
+      - Executa npm run build
+      - Cria arquivos em frontend/build/
+
+[2/5] Rebuilda Agendamentos (Flutter)
+      - Limpa build anterior
+      - Executa flutter pub get
+      - Builda com --base-href=/agendamentos/
+      - Copia para frontend/build/agendamentos/
+
+[3/5] Rebuilda Formularios (Flutter)
+      - Limpa build anterior
+      - Builda com --base-href=/formularios/
+      - Usa main_formulario.dart como entry point
+      - Copia para frontend/build/formularios/
+
+[4/5] Rebuilda Containers Docker
+      - Para todos os containers
+      - Rebuilda imagens
+      - Inicia containers novamente
+
+[5/5] Verifica Status
+      - Mostra status de todos os containers
+      - Confirma que tudo esta rodando
+
+
+================================================================================
+                         URLS DISPONIVEIS
+================================================================================
+
+APOS O REBUILD, ACESSE:
+
+Local (Windows):
+  - Frontend:      http://localhost
+  - Agendamentos:  http://localhost/agendamentos/
+  - Formularios:   http://localhost/formularios/
+  - API:           http://localhost/api
+
+Servidor (Producao):
+  - Frontend:      https://api.garca.sp.gov.br
+  - Agendamentos:  https://api.garca.sp.gov.br/agendamentos/
+  - Formularios:   https://api.garca.sp.gov.br/formularios/
+  - API:           https://api.garca.sp.gov.br/api
+
+
+================================================================================
+                         QUANDO USAR O REBUILD
+================================================================================
+
+Use o rebuild quando:
+  - Modificar codigo do Frontend React
+  - Modificar codigo Flutter (agendamentos ou formularios)
+  - Atualizar dependencias (npm ou Flutter)
+  - Fazer deploy de nova versao
+  - Corrigir problemas de build
+
+
+================================================================================
+                         PROBLEMAS COMUNS
+================================================================================
+
+PROBLEMA: "flutter: comando nao encontrado"
+SOLUCAO:  Instale o Flutter SDK
+          sudo snap install flutter --classic
+
+PROBLEMA: "docker compose: comando nao encontrado"
+SOLUCAO:  Use docker-compose (com hifen)
+          ou instale: sudo apt install docker-compose-plugin
+
+PROBLEMA: Erro de permissao ao deletar arquivos
+SOLUCAO:  Pare os containers primeiro
+          docker compose down
+          ./rebuild.sh
+
+PROBLEMA: Build do Flutter muito lento
+SOLUCAO:  Normal! Build Flutter leva 2-3 minutos por app
+          Seja paciente :)
+
+
+================================================================================
+                         VERIFICAR SE DEU CERTO
+================================================================================
+
+Apos o rebuild, verifique:
+
+1. Containers rodando:
+   docker compose ps
+   
+   Deve mostrar:
+   - mongo    (healthy)
+   - api      (running)
+   - nginx    (running)
+   - certbot  (running)
+
+2. Arquivos criados:
+   ls -la frontend/build/
+   
+   Deve ter:
+   - agendamentos/  (pasta)
+   - formularios/   (pasta)
+   - index.html     (arquivo)
+   - static/        (pasta)
+
+3. Teste no navegador:
+   - Abra: http://localhost/agendamentos/
+   - Abra: http://localhost/formularios/
+   - Ambos devem carregar sem erro 404
+
+
+================================================================================
+                         DICAS IMPORTANTES
+================================================================================
+
+1. SEMPRE use o script de rebuild
+   Nao builde manualmente, use .\rebuild.ps1 ou ./rebuild.sh
+
+2. Aguarde o script terminar
+   Nao interrompa no meio, pode corromper os builds
+
+3. Verifique os logs
+   O script mostra [OK] ou [ERRO] para cada etapa
+
+4. Em caso de erro
+   Leia a mensagem de erro e tente novamente
+   Se persistir, pare os containers e tente de novo:
+   docker compose down
+   ./rebuild.sh
+
+5. Backup antes de rebuild importante
+   Se for fazer deploy em producao, faca backup primeiro
+
+
+================================================================================
+                         TEMPO ESTIMADO
+================================================================================
+
+Tempo total de rebuild:
+  - Frontend React:     30-60 segundos
+  - Agendamentos:       2-3 minutos
+  - Formularios:        2-3 minutos
+  - Docker:             30-60 segundos
+  
+  TOTAL: 5-8 minutos
+
+
+================================================================================
+                         CONTATO / SUPORTE
+================================================================================
+
+Em caso de duvidas:
+  - Leia o README-REBUILD.md para mais detalhes
+  - Verifique os logs do script
+  - Consulte a documentacao do projeto
+
+
+================================================================================
+Ultima atualizacao: 13/01/2026
+Versao: 1.0
+================================================================================

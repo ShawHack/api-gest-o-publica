@@ -1,0 +1,8 @@
+
+ATENÇÃO: Adicione as seguintes linhas no seu arquivo 'index.js' (ou 'server.js') do backend para ativar o novo módulo:
+
+1. Nas importações (topo do arquivo):
+const ShiftHandoverRoutes = require('./routes/ShiftHandoverRoutes');
+
+2. No registro das rotas (junto com app.use('/users', ...)):
+app.use('/shift-handovers', ShiftHandoverRoutes);

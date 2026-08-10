@@ -1,0 +1,132 @@
+.state,
+.welcome {
+  background: var(--memorial-surface);
+  border: 1px solid var(--memorial-border);
+  border-radius: var(--memorial-radius);
+  padding: var(--memorial-space-xl) var(--memorial-space-lg);
+  text-align: center;
+  box-shadow: var(--memorial-shadow);
+}
+
+.icon {
+  color: var(--memorial-secondary);
+  margin-bottom: var(--memorial-space-md);
+}
+
+.state h2,
+.welcome h2 {
+  font-size: 1.35rem;
+  color: var(--memorial-text);
+  margin: 0 0 8px;
+}
+
+.state p,
+.welcome p,
+.hint {
+  color: var(--memorial-text-muted);
+  margin: 0 0 12px;
+  line-height: 1.55;
+}
+
+.errorTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--memorial-error);
+  margin: 0 0 8px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btnPrimary,
+.btnSecondary,
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--memorial-touch);
+  padding: 0 18px;
+  border-radius: var(--memorial-radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+
+.btnPrimary {
+  background: var(--memorial-accent);
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: var(--memorial-accent-soft);
+}
+
+.btnSecondary {
+  background: var(--memorial-primary);
+  color: #fff;
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--memorial-primary);
+  border: 1px solid var(--memorial-border);
+}
+
+.welcome {
+  text-align: left;
+}
+
+.welcome ul {
+  margin: 12px 0 0;
+  padding-left: 1.25rem;
+  color: var(--memorial-text-muted);
+  line-height: 1.6;
+}
+
+.history {
+  margin-top: var(--memorial-space-lg);
+  padding-top: var(--memorial-space-md);
+  border-top: 1px solid var(--memorial-border);
+}
+
+.history h3 {
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+  color: var(--memorial-text);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--memorial-border);
+  background: var(--memorial-bg);
+  color: var(--memorial-primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--memorial-secondary);
+}
+
+.btnPrimary:focus-visible,
+.btnSecondary:focus-visible,
+.btnGhost:focus-visible,
+.chip:focus-visible {
+  outline: 3px solid var(--memorial-focus);
+  outline-offset: 2px;
+}

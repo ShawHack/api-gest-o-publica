@@ -1,0 +1,14 @@
+# Anexa a API à rede do stack memorial para EXTERNAL_MONGO_URI (apicemiterio.users).
+# Uso: docker compose -f docker-compose.yml -f docker-compose.memorial-bridge.yml up -d api
+services:
+  api:
+    networks:
+      - default
+      - memorial_stack
+    environment:
+      EXTERNAL_MONGO_URI: mongodb://mongo:27017
+
+networks:
+  memorial_stack:
+    external: true
+    name: ${MEMORIAL_STACK_NETWORK:-api-semit_stack}

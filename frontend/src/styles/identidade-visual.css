@@ -1,0 +1,195 @@
+/* ========================================
+   IDENTIDADE VISUAL - PREFEITURA DE GARÇA
+   ======================================== */
+
+/* NOTA: As fontes Rubik são importadas via index.html
+   usando: <link rel="stylesheet" href="%PUBLIC_URL%/fonts/rubik.css" />
+*/
+
+/* ========================================
+   VARIÁVEIS DE CORES - IDENTIDADE VISUAL GARÇA
+   ======================================== */
+/* 
+   Cores oficiais do Manual de Identidade Visual
+   Baseado na paleta de cores fornecida
+*/
+
+:root {
+  /* Cores Principais da Paleta */
+  --cor-azul-escuro: #364ba3;        /* RGB: 56 77 156 - Dark Blue */
+  --cor-azul-claro: #7481d1;         /* RGB: 116 129 209 - Light Blue/Lavender */
+  --cor-vermelho-escuro: #a02e2e;    /* RGB: 160 46 46 - Dark Red */
+  --cor-vermelho-claro: #ff716e;     /* RGB: 238 112 112 - Pink/Coral */
+  --cor-laranja: #ed9756;            /* RGB: 237 151 86 - Orange/Peach */
+  --cor-laranja-claro: #ffb583;      /* RGB: 255 181 131 - Light Peach/Cream */
+  --cor-verde-escuro: #446042;       /* RGB: 68 96 66 - Dark Green */
+  --cor-verde-claro: #749666;        /* RGB: 116 150 102 - Light Green/Olive */
+  
+  /* Cores de Interface (aplicação prática) */
+  --cor-primaria: var(--cor-azul-escuro);      /* Cor principal - Azul Escuro */
+  --cor-secundaria: var(--cor-azul-claro);     /* Cor secundária - Azul Claro */
+  --cor-destaque: var(--cor-laranja);           /* Cor de destaque - Laranja */
+  --cor-accent: var(--cor-vermelho-claro);     /* Cor de acento - Vermelho Claro */
+  
+  /* Cores de Interface Específicas */
+  --cor-navbar: var(--cor-azul-escuro);        /* Navbar - Azul Escuro */
+  --cor-botao-primario: var(--cor-laranja);    /* Botões principais - Laranja */
+  --cor-botao-primario-hover: var(--cor-laranja-claro);
+  --cor-botao-secundario: var(--cor-azul-escuro);
+  --cor-botao-secundario-hover: var(--cor-azul-claro);
+  --cor-link: var(--cor-azul-claro);
+  --cor-link-hover: var(--cor-azul-escuro);
+  --cor-texto: #333;
+  --cor-texto-claro: #666;
+  --cor-texto-destaque: var(--cor-azul-escuro);
+  --cor-fundo: #fff;
+  --cor-fundo-cinza: #f8f9fa;
+  --cor-borda: #e0e6ed;
+  
+  /* Tipografia */
+  --fonte-principal: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --fonte-tamanho-base: 16px;
+  --fonte-tamanho-pequeno: 14px;
+  --fonte-tamanho-grande: 18px;
+  --fonte-tamanho-titulo: 24px;
+}
+
+/* ========================================
+   APLICAÇÃO GLOBAL
+   ======================================== */
+
+* {
+  font-family: var(--fonte-principal);
+}
+
+body {
+  font-family: var(--fonte-principal);
+  font-size: var(--fonte-tamanho-base);
+  color: var(--cor-texto);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--fonte-principal);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+/* Exceção: Nome do falecido deve permanecer branco */
+.sepultado_details_header h1 {
+  color: #fff !important;
+}
+
+/* ========================================
+   NAVBAR
+   ======================================== */
+
+.navbar {
+  background-color: var(--cor-navbar) !important;
+}
+
+/* ========================================
+   BOTÕES
+   ======================================== */
+
+.btn-primary,
+button[type="submit"],
+.search_button {
+  background-color: var(--cor-botao-primario) !important;
+  color: #fff !important;
+}
+
+.btn-primary:hover,
+button[type="submit"]:hover,
+.search_button:hover {
+  background-color: var(--cor-botao-primario-hover) !important;
+}
+
+.btn-secondary {
+  background-color: var(--cor-botao-secundario) !important;
+  color: #fff !important;
+}
+
+.btn-secondary:hover {
+  background-color: var(--cor-botao-secundario-hover) !important;
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+
+a {
+  color: var(--cor-link);
+}
+
+a:hover {
+  color: var(--cor-destaque);
+  opacity: 0.8;
+}
+
+/* ========================================
+   TEXTOS DESTACADOS
+   ======================================== */
+
+.bold {
+  color: var(--cor-primaria) !important;
+  font-weight: 600;
+}
+
+/* ========================================
+   ESTILOS ADICIONAIS
+   ======================================== */
+
+/* Cards e Containers */
+.card, .container {
+  border-color: var(--cor-borda);
+}
+
+.card:hover {
+  border-color: var(--cor-azul-claro);
+  box-shadow: 0 2px 8px rgba(54, 75, 163, 0.1);
+}
+
+/* Inputs e Formulários */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--cor-azul-claro);
+  outline-color: var(--cor-azul-claro);
+}
+
+/* Badges e Tags */
+.badge, .tag {
+  background-color: var(--cor-azul-claro);
+  color: #fff;
+}
+
+.badge-success {
+  background-color: var(--cor-verde-escuro);
+}
+
+.badge-warning {
+  background-color: var(--cor-laranja);
+}
+
+.badge-danger {
+  background-color: var(--cor-vermelho-escuro);
+}
+
+/* Alertas */
+.alert {
+  border-left: 4px solid var(--cor-azul-escuro);
+}
+
+.alert-success {
+  border-left-color: var(--cor-verde-escuro);
+  background-color: rgba(68, 96, 66, 0.1);
+}
+
+.alert-warning {
+  border-left-color: var(--cor-laranja);
+  background-color: rgba(237, 151, 86, 0.1);
+}
+
+.alert-danger {
+  border-left-color: var(--cor-vermelho-escuro);
+  background-color: rgba(160, 46, 46, 0.1);
+}
+

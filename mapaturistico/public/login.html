@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Admin - Mapa Turístico</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-border: rgba(255,255,255,0.12);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --primary: #1d4ed8;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+    p.desc {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .field {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      background: #0b1220;
+      color: var(--text);
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
+    .error {
+      color: var(--danger);
+      min-height: 20px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .actions {
+      margin-top: 14px;
+      text-align: center;
+    }
+    .actions a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Área Administrativa</h1>
+    <p class="desc">Acesso restrito para usuários com papel <strong>admin</strong>.</p>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="password">Senha</label>
+        <input id="password" type="password" required autocomplete="current-password" />
+      </div>
+      <button type="submit">Entrar</button>
+      <div class="error" id="errorMsg"></div>
+    </form>
+
+    <div class="actions">
+      <a href="/mapaturistico/">Voltar ao mapa público</a>
+    </div>
+  </main>
+
+  <script>
+    const TOKEN_KEY = 'mapaturistico_admin_token';
+    const ROLE_KEY = 'mapaturistico_admin_role';
+
+    function showError(message) {
+      document.getElementById('errorMsg').textContent = message || '';
+    }
+
+    async function tryResumeSession() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) return;
+      try {
+        const res = await fetch('/api/users/checkuser', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (!res.ok) throw new Error('Sessão inválida');
+        const user = await res.json();
+        if (user && user.role === 'admin') {
+          location.replace('/mapaturistico/admin.html');
+        }
+      } catch (_) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ROLE_KEY);
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      showError('');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.ok || !json.token) {
+          throw new Error(json.message || 'Falha no login.');
+        }
+        if (json.role !== 'admin') {
+          throw new Error('Acesso permitido apenas para usuários admin.');
+        }
+
+        localStorage.setItem(TOKEN_KEY, json.token);
+        localStorage.setItem(ROLE_KEY, json.role);
+        location.replace('/mapaturistico/admin.html');
+      } catch (err) {
+        showError(err.message || 'Não foi possível autenticar.');
+      }
+    });
+
+    tryResumeSession();
+  </script>
+</body>
+</html>

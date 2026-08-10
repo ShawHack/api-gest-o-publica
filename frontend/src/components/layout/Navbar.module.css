@@ -1,0 +1,585 @@
+/* === Base (Desktop >1024px) — Grid 3 colunas === */
+.navbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  /* iOS notch / áreas seguras */
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-left: calc(2rem + env(safe-area-inset-left));
+  padding-right: calc(2rem + env(safe-area-inset-right));
+  background-color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky; /* melhora UX no mobile */
+  top: 0;
+  z-index: 1000;
+}
+
+.left { 
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search_container { grid-column: 2; }
+
+.right {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Botão Home (ícone) — sem borda e fundo — alvo 44x44 */
+.back_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #ffb583; /* Identidade Visual Garça - Laranja Claro */
+  background: transparent;
+  border: none;
+}
+
+/* Logo/título */
+.navbar_logo { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.9rem;   /* mais respiro e habilita ellipsis */
+  min-width: 0; /* importante p/ ellipsis funcionar */
+}
+
+.navbar_logo img { 
+  height: clamp(36px, 5.5vw, 64px) !important; 
+  width: auto; 
+}
+
+.navbar_logo h1 { 
+  font-size: clamp(1.1rem, 1.6vw + 0.8rem, 2rem) !important; 
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin: 0; 
+  color: #ed9756; /* Identidade Visual Garça - Laranja */ 
+}
+
+/* Hamburguer (esconde no desktop) */
+.hamburger {
+  display: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #ffb583; /* Identidade Visual Garça - Laranja Claro */
+  background: transparent !important;
+  border: 0;
+  padding: 0.25rem 0.5rem;
+  min-width: 44px;  /* alvo mínimo */
+  min-height: 44px; /* alvo mínimo */
+  border-radius: 10px;
+}
+
+/* Navegação (desktop inline) */
+.nav_links {
+  display: flex;
+  list-style: none;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  /* respeita safe area quando for absoluta no mobile */
+  right: max(env(safe-area-inset-right), 0);
+}
+
+.navbar ul li { cursor: pointer; }
+
+.navbar ul li a,
+.navbar ul li button {
+  color: #ffb583 !important; /* Identidade Visual Garça - Laranja Claro - Todos os botões */
+  text-decoration: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  transition: background-color 0.25s ease, opacity 0.25s ease;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.navbar ul li a:hover,
+.navbar ul li button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ícones genéricos (lucide herda via currentColor) — 24px p/ retina */
+.icon,
+.item_icon {
+  width: 24px;
+  height: 24px;
+  color: inherit;
+}
+
+/* Compartilhar — sempre visível e flat (44px alvo) */
+.icon_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.share_btn {
+  color: #ffb583; /* Identidade Visual Garça - Laranja Claro */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 0.75rem;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+.share_btn:hover,
+.share_btn:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Foco acessível */
+.hamburger:focus-visible,
+.back_btn:focus-visible,
+.navbar ul li button:focus-visible,
+.navbar ul li a:focus-visible,
+.share_btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* === Busca === */
+.search_container {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 1rem;
+}
+.search_form {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.search_input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  font-size: 1rem; /* ≥16px evita zoom no iOS */
+  background-color: transparent;
+  color: #333;
+  min-height: 44px; /* alvo toque */
+}
+.search_input::placeholder { color: #666; }
+.search_button {
+  padding: 0.75rem 1rem;
+  border: none;
+  background-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  min-height: 44px;  /* alvo toque */
+  min-width: 48px;   /* dedo confortável */
+}
+.search_button:hover:not(:disabled) { background-color: #ffb583; } /* Identidade Visual Garça - Laranja Claro */
+.search_button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+/* === Sugestões === */
+.suggestions_dropdown {
+  position: absolute;
+  top: 100%;
+  left: max(env(safe-area-inset-left), 0);
+  right: max(env(safe-area-inset-right), 0);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+  margin-top: 4px;
+}
+.suggestion_item { 
+  padding: 0.75rem 1rem; 
+  cursor: pointer; 
+  border-bottom: 1px solid #eee; 
+  transition: background-color 0.2s ease; 
+}
+.suggestion_item:hover { background-color: #f8f9fa; }
+.suggestion_item:last-child { border-bottom: none; }
+.suggestion_content { color: #333; font-size: 0.9rem; }
+.suggestion_content strong { color: #364ba3; } /* Identidade Visual Garça - Azul Escuro */
+.suggestion_item_all {
+  padding: 0.75rem 1rem; 
+  cursor: pointer; 
+    background-color: #ecf0f1; 
+    color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  font-weight: 500; 
+  text-align: center; 
+  border-top: 1px solid #ddd; 
+  transition: background-color 0.2s ease;
+}
+.suggestion_item_all:hover { background-color: #d5dbdb; }
+
+/* === Desktop: ícone ACIMA do texto nos itens === */
+@media (min-width: 1025px) {
+  .nav_links li a,
+  .nav_links li button {
+    display: inline-flex;
+    flex-direction: column;    /* ícone em cima, texto embaixo */
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+  }
+  .icon, .item_icon { width: 22px; height: 22px; }
+}
+
+/* ===== Tablet (769–1024px): hambúrguer, itens à ESQUERDA ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .navbar {
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;   /* 2ª linha para a busca */
+  }
+
+  .navbar_logo h1 { font-size: 1.3rem; }
+  .hamburger { display: block; }
+
+  /* Dropdown do menu (painel ancorado à DIREITA) */
+  .nav_links {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: max(env(safe-area-inset-right), 0);
+    background-color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+    flex-direction: column;
+    width: min(92vw, 360px);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    border-radius: 0 0 0 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.2s ease;
+    padding: 0;
+    z-index: 1001;
+
+    /* alinhamento à ESQUERDA internamente */
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 0.5rem;
+  }
+  .nav_links.active { max-height: 600px; opacity: 1; padding: 0.75rem; }
+
+  .nav_links li { width: 100%; }
+  .nav_links li a,
+  .nav_links li button {
+    display: flex;
+    flex-direction: row;        /* ícone à esquerda */
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1.25;
+    min-height: 48px; /* alvo toque confortável */
+  }
+
+  .search_container {
+    grid-column: 1 / -1; grid-row: 2;
+    width: 100%; max-width: 100%; margin: 0.5rem 0 0;
+  }
+}
+
+/* ===== Mobile (≤768px): hambúrguer, itens à ESQUERDA ===== */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+  }
+
+  .navbar_logo h1 { font-size: 1.2rem; }
+  .hamburger { display: block; }
+
+  .nav_links {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: max(env(safe-area-inset-right), 0);    /* painel ancorado à direita */
+    background-color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+    flex-direction: column;
+    width: min(94vw, 370px); /* cabe bem em 390px */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    border-radius: 0 0 0 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.2s ease;
+    padding: 0;
+    z-index: 1001;
+
+    /* alinhamento interno à ESQUERDA */
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 0.5rem;
+  }
+  .nav_links.active { max-height: 500px; opacity: 1; padding: 0.75rem; }
+
+  .nav_links li { width: 100%; }
+  .nav_links li a,
+  .nav_links li button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;   /* +conforto p/ toque */
+    border-radius: 8px;
+    font-size: 1.05rem;     /* legível em 390px */
+    line-height: 1.25;
+    min-height: 48px;
+  }
+
+  .search_container {
+    grid-column: 1 / -1; grid-row: 2;
+    width: 100%; max-width: 100%; margin: 0.35rem 0.5rem 0;
+  }
+
+  /* Dropdown não passa da tela e rola bem */
+  .suggestions_dropdown {
+    max-height: min(50vh, 420px);
+    overscroll-behavior: contain;
+  }
+}
+
+/* ===== Micro-mobile (≤480px) — ajustes finos (iPhone 12 incluído) ===== */
+@media (max-width: 480px) {
+  .navbar { 
+    padding: calc(0.5rem + env(safe-area-inset-top)) 0.5rem 0.5rem; 
+  }
+
+  .navbar_logo { gap: 0.6rem; }
+  .navbar_logo img { height: clamp(38px, 12.5vw, 54px) !important; }
+  .navbar_logo h1 {
+    font-size: clamp(1.06rem, 5vw, 1.4rem) !important;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .back_btn { width: 44px; height: 44px; }
+
+  .search_input { padding: 0.5rem 0.9rem; font-size: 1rem; }
+  .search_button { padding: 0.5rem 0.9rem; font-size: 1.1rem; }
+
+  .nav_links {
+    width: min(94vw, 370px);
+  }
+
+  .nav_links li a,
+  .nav_links li button {
+    font-size: 1.05rem;
+    min-height: 48px;
+  }
+}
+
+/* ===== Preferências de movimento ===== */
+@media (prefers-reduced-motion: reduce) {
+  .nav_links {
+    transition: none;
+  }
+  .navbar ul li a,
+  .navbar ul li button,
+  .search_button {
+    transition: none;
+  }
+}
+
+/* Estados de toque (iOS não tem hover) */
+.navbar ul li a:active,
+.navbar ul li button:active,
+.share_btn:active,
+.back_btn:active {
+  background-color: rgba(255,255,255,0.14);
+}
+/* ==== FIX: impedir estouro da barra de busca no mobile ==== */
+
+/* 1) Garanta border-box em tudo (largura inclui padding) */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* 2) Em grids, itens podem estourar se não puderem encolher.
+      Deixe as colunas poderem contrair. */
+.left,
+.right,
+.search_container { min-width: 0; }
+
+/* 3) A busca precisa ocupar só o espaço disponível, sem somar margens
+      que empurrem para fora. Use width 100% + sem margem lateral no mobile. */
+@media (max-width: 768px) {
+  .search_container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0.35rem 0 0; /* remove margem direita que empurrava */
+    padding-inline: max(0.5rem, env(safe-area-inset-left))
+                    max(0.5rem, env(safe-area-inset-right)); /* respiro seguro */
+  }
+
+  /* A própria “capsula” da busca não pode crescer além do container */
+  .search_form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* O input precisa poder encolher dentro do flex */
+  .search_input {
+    min-width: 0;       /* chave do encolhimento no iOS */
+    flex: 1 1 auto;     /* pode reduzir quando faltar espaço */
+  }
+}
+
+/* 4) Dropdown de sugestões alinhado exatamente às bordas do container
+      (evita “ganhar” pixels a mais em alguns safaris) */
+.suggestions_dropdown {
+  left: 0;
+  right: 0;
+}
+
+/* 5) Se ainda “morder” a direita por causa do menu absoluto,
+      force o grid a não contar o painel como largura útil */
+@media (max-width: 768px) {
+  .nav_links {
+    max-width: 100vw;     /* nunca maior que a viewport */
+    contain: layout style;/* isola layout do painel */
+  }
+}
+/* === Ajuste: logo um pouco mais à esquerda no mobile === */
+@media (max-width: 768px) {
+  /* reduz levemente o padding esquerdo, respeitando o safe area */
+  .navbar {
+    padding-left: max(0.25rem, env(safe-area-inset-left));
+  }
+
+  /* aproxima logo do botão Home */
+  .left { gap: 0.5rem; }
+
+  /* opcional: 2px a menos de “respiro” ao redor do logo/título */
+  .navbar_logo { margin-left: -2px; }  /* seguro e sutil */
+}
+
+@media (max-width: 480px) {
+  /* mobile “estrito” (iPhone 12 incluído): ainda mais à esquerda, sem invadir o notch */
+  .navbar {
+    /* mantém seu padding-top/bottom originais e só ajusta o esquerdo */
+    padding-left: max(0.2rem, env(safe-area-inset-left));
+  }
+
+  .left { gap: 0.45rem; }
+
+  /* micro-tweak: mova 1px se quiser ainda mais colado */
+  .navbar_logo { margin-left: -1px; }
+}
+
+/* ========================================
+   CORES ESPECÍFICAS NAVBAR - IDENTIDADE VISUAL GARÇA
+   ======================================== */
+
+/* Todos os botões da navbar - Laranja Claro (#ffb583) */
+.logout_btn,
+.profile_btn,
+.users_btn,
+.memorial_btn {
+  color: #ffb583 !important;
+}
+
+.logout_btn:hover,
+.profile_btn:hover,
+.users_btn:hover,
+.memorial_btn:hover {
+  background-color: rgba(255, 181, 131, 0.1) !important;
+  color: #ffb583 !important;
+}
+
+/* ========================================
+   CORES ESPECÍFICAS POR SEÇÃO - IDENTIDADE VISUAL GARÇA
+   ======================================== */
+
+/* Botão Sair - Vermelho Escuro (#a02e2e) */
+.logout_btn {
+  color: #a02e2e !important;
+}
+.logout_btn:hover {
+  background-color: rgba(160, 46, 46, 0.1) !important;
+}
+
+/* Link Perfil - Verde Claro (#749666) */
+.profile_btn {
+  color: #749666 !important;
+}
+.profile_btn:hover {
+  background-color: rgba(116, 150, 102, 0.1) !important;
+}
+
+/* Link Usuários - Laranja Claro (#ffb583) */
+.users_btn {
+  color: #ffb583 !important;
+}
+.users_btn:hover {
+  background-color: rgba(255, 181, 131, 0.1) !important;
+}
+
+/* Link Memorial - Vermelho Claro/Coral (#ff716e) */
+.memorial_btn {
+  color: #ff716e !important;
+}
+.memorial_btn:hover {
+  background-color: rgba(255, 113, 110, 0.1) !important;
+}
+
+/* === Monitoramento Semit Override === */
+.title_monitoramento {
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+}
+
+.logout_monitoramento {
+  color: #ffffff !important;
+}
+.logout_monitoramento:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Link Serviços - Azul Claro/Cyan */
+.services_btn {
+  color: #4dd0e1 !important;
+}
+.services_btn:hover {
+  background-color: rgba(77, 208, 225, 0.1) !important;
+}

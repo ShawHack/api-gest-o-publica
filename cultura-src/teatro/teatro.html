@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teatro Municipal - Garça Cultural</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../style.css">
+  
+  <style>
+    :root {
+      --municipal-primary: #721c24; /* Vinho Escuro */
+      --municipal-accent: #ffffff; /* Branco */
+      --municipal-dark: #111111;
+      --municipal-light: #fdfbf7;
+    }
+
+    body {
+      background-color: var(--municipal-light);
+      color: #333;
+    }
+
+    /* Hero Section */
+    .teatro-hero {
+      position: relative;
+      height: 80vh;
+      min-height: 500px;
+      background-image: linear-gradient(rgba(17, 17, 17, 0.7), rgba(114, 28, 36, 0.8)), url('../emca/imagesemca/teatro/teatro.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      border-bottom: 5px solid var(--municipal-accent);
+    }
+    
+    .teatro-hero-content {
+      max-width: 800px;
+      padding: 0 20px;
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    .teatro-hero h1 {
+      font-family: 'Rubik', sans-serif;
+      font-size: 4.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 20px rgba(0,0,0,0.8);
+      color: var(--municipal-light);
+    }
+
+    .teatro-hero h1 span {
+      color: var(--municipal-accent);
+    }
+
+    .teatro-hero p {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 300;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    /* Sobre Section */
+    .teatro-sobre {
+      padding: 100px 5%;
+      background: #ffffff;
+    }
+    .teatro-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .sobre-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .sobre-img-box {
+      position: relative;
+    }
+    .sobre-img-box img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      border: 3px solid var(--municipal-accent);
+    }
+    .sobre-img-box::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      width: 100%;
+      height: 100%;
+      background: var(--municipal-primary);
+      border-radius: 8px;
+      z-index: -1;
+    }
+    .section-title {
+      font-family: 'Rubik', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--municipal-primary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 4px;
+      background: var(--municipal-accent);
+      margin-top: 15px;
+    }
+    .sobre-text p {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+
+    /* Agenda Section */
+    .teatro-agenda {
+      padding: 100px 5%;
+      background: var(--municipal-dark);
+      color: white;
+    }
+    .agenda-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .agenda-header .section-title {
+      color: var(--municipal-light);
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .agenda-header .section-title::after {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .agenda-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .agenda-card:hover {
+      transform: translateY(-10px);
+      background: rgba(255,255,255,0.1);
+      border-color: var(--municipal-accent);
+    }
+    .agenda-date {
+      background: var(--municipal-primary);
+      color: var(--municipal-accent);
+      padding: 15px;
+      text-align: center;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .agenda-info {
+      padding: 25px;
+    }
+    .agenda-info h3 {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      color: var(--municipal-accent);
+    }
+    .agenda-info p {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .agenda-btn {
+      display: inline-block;
+      padding: 8px 20px;
+      border: 1px solid var(--municipal-accent);
+      color: var(--municipal-accent);
+      text-decoration: none;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .agenda-btn:hover {
+      background: var(--municipal-accent);
+      color: var(--municipal-dark);
+    }
+
+    /* Info Section */
+    .teatro-info {
+      padding: 80px 5%;
+      background: var(--municipal-primary);
+      color: white;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+    .info-item i {
+      font-size: 3rem;
+      color: var(--municipal-accent);
+      margin-bottom: 20px;
+    }
+    .info-item h4 {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      font-family: 'Rubik', sans-serif;
+    }
+    .info-item p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+    }
+
+    /* Gallery */
+    .teatro-gallery {
+      padding: 100px 5%;
+      background: #ffffff;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 40px;
+    }
+    .gallery-item {
+      height: 250px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .gallery-item:hover img {
+      transform: scale(1.1);
+    }
+
+    /* Rider Tecnico Section */
+    .teatro-rider {
+      padding: 100px 5%;
+      background: #fdfbf7;
+    }
+    .rider-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    .rider-header .section-title { margin-bottom: 10px; }
+    .rider-header p { color: #64748b; font-size: 1.1rem; }
+    
+    .rider-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .rider-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border-top: 5px solid var(--municipal-primary);
+    }
+    .rider-card h3 {
+      font-family: 'Rubik', sans-serif;
+      font-size: 1.5rem;
+      color: var(--municipal-primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .rider-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .rider-card ul li {
+      position: relative;
+      padding-left: 25px;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .rider-card ul li::before {
+      content: '\f0da';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      left: 0;
+      top: 2px;
+      color: var(--municipal-primary);
+    }
+
+    @media (max-width: 992px) {
+      .sobre-grid { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .teatro-hero h1 { font-size: 3rem; }
+    }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-area" onclick="window.location.href='../index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu" style="display: flex; gap: 30px; align-items: center;">
+        <a href="../index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s;">Início</a>
+        <a href="../emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s;">EMCA</a>
+        <a href="../biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s;">Biblioteca</a>
+        <a href="./teatro.html" class="nav-link" style="color: #721c24; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s; border-bottom: 2px solid #ffffff;">Teatro</a>
+        <a href="../museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s;">Museu</a>
+        <a href="../eventos/eventos.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; text-transform: uppercase; font-size: 0.85rem; transition: color 0.3s;">Eventos/Notícias</a>
+        <a href="../pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+</nav>
+
+        <div class="header-actions-wrapper" style="display: flex; align-items: center;">
+        <div class="desktop-nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="../mapa.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">
+            <i data-lucide="map" style="width: 18px; height: 18px;"></i> <span class="map-text">Mapa</span>
+          </a>
+          <a href="../login.html" class="btn-login" style="padding: 10px 20px; border-radius: 30px; border: 1px solid #e2e8f0; color: #475569; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">Login</a>
+          <a href="../cadastro.html" class="btn-cadastro" style="background: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease; box-shadow: 0 6px 15px rgba(255, 113, 110, 0.3);">Cadastro</a>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer; margin-left: 1rem;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="../index.html" class="nav-link" onclick="toggleMenu()">Início</a>
+    <a href="../emca/emca.html" class="nav-link" onclick="toggleMenu()">EMCA</a>
+    <a href="../biblioteca/biblioteca.html" class="nav-link" onclick="toggleMenu()">Biblioteca</a>
+    <a href="./teatro.html" class="nav-link" onclick="toggleMenu()">Teatro</a>
+    <a href="../museu/museu.html" class="nav-link" onclick="toggleMenu()">Museu</a>
+    <a href="../eventos/eventos.html" class="nav-link" onclick="toggleMenu()">Eventos</a>
+    
+        <a href="../pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+<div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <script>
+    if (typeof toggleMenu === 'undefined') {
+      window.toggleMenu = function() {
+        const menu = document.getElementById("mobile-menu");
+        const overlay = document.getElementById("menu-overlay");
+        if (menu) {
+            menu.classList.toggle("open");
+            if(menu.classList.contains("open")) {
+                overlay.classList.add("active");
+            } else {
+                overlay.classList.remove("active");
+            }
+        }
+      }
+    }
+  </script>
+
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="teatro-hero">
+      <div class="teatro-hero-content">
+        <h1>Teatro <span>Municipal</span></h1>
+        <p>O palco principal da cultura, emoção e grandes espetáculos de Garça. Descubra a magia que acontece quando as cortinas se abrem.</p>
+      </div>
+    </section>
+
+    <!-- SOBRE SECTION -->
+    <section class="teatro-sobre">
+      <div class="teatro-container sobre-grid">
+        <div class="sobre-text">
+          <h2 class="section-title">Palco da Nossa História</h2>
+          <p>O Teatro Municipal de Garça é mais do que um edifício; é o coração cultural da nossa cidade. Com uma arquitetura grandiosa e acústica impecável, ele tem sido o palco de espetáculos inesquecíveis, desde peças teatrais e concertos de orquestra até recitais de dança e formaturas.</p>
+          <p>Sede de importantes apresentações da EMCA e de companhias renomadas de todo o Brasil, nosso teatro oferece uma experiência imersiva para o público e uma infraestrutura de ponta para os artistas.</p>
+          <p>Equipado com sistemas modernos de iluminação e som, camarins espaçosos e um foyer elegante, o Teatro Municipal está preparado para receber eventos de todos os portes com excelência e conforto.</p>
+        </div>
+        <div class="sobre-img-box">
+          <img src="../emca/imagesemca/teatro/teatro2.jpeg" alt="Interior do Teatro Municipal">
+        </div>
+      </div>
+    </section>
+
+    <!-- INFO SECTION -->
+    <section class="teatro-info">
+      <div class="teatro-container info-grid">
+        <div class="info-item">
+          <i class="fa-solid fa-ticket-simple"></i>
+          <h4>Bilheteria</h4>
+          <p>Abertura 2 horas antes de cada espetáculo. Ingressos também disponíveis na Secretaria de Cultura durante a semana.</p>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-wheelchair"></i>
+          <h4>Acessibilidade</h4>
+          <p>Espaço totalmente adaptado com rampas de acesso, elevadores e assentos reservados para cadeirantes.</p>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-chair"></i>
+          <h4>Capacidade</h4>
+          <p>Auditório climatizado com 400 poltronas confortáveis, garantindo visibilidade perfeita de qualquer ângulo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AGENDA SECTION -->
+    <section class="teatro-agenda">
+      <div class="teatro-container">
+        <div class="agenda-header">
+          <h2 class="section-title">Em Cartaz</h2>
+          <p>Confira os próximos espetáculos e eventos programados.</p>
+        </div>
+        
+        <div class="agenda-grid" id="agenda-grid-container">
+          <p style="text-align: center; color: #a1a1aa; width: 100%;">Carregando programação...</p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      async function loadTeatroCartaz() {
+        const container = document.getElementById('agenda-grid-container');
+        if (!container) return;
+        try {
+          const res = await fetch('/api/posts');
+          const posts = await res.json();
+          
+          const cartazPosts = posts.filter(p => p.emCartazTeatro === true);
+          container.innerHTML = '';
+          
+          if (cartazPosts.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #a1a1aa; width: 100%; font-size: 1.1rem;">Nenhum espetáculo em cartaz no momento.</p>';
+            return;
+          }
+
+          cartazPosts.forEach(post => {
+            let dateDisplay = 'Em breve';
+            if (post.datasHorarios && post.datasHorarios.length > 0) {
+              const dateRaw = post.datasHorarios[0].data;
+              const timeRaw = post.datasHorarios[0].horario;
+              
+              let day = "00";
+              let monthStr = "MÊS";
+              const d = new Date(dateRaw);
+              if (!isNaN(d.getTime())) {
+                day = String(d.getDate()).padStart(2, '0');
+                monthStr = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
+              } else if (dateRaw.includes('/')) {
+                const parts = dateRaw.split('/');
+                day = parts[0];
+                const m = parseInt(parts[1]) - 1;
+                const dt = new Date(2026, m, 1);
+                monthStr = dt.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
+              }
+              dateDisplay = `${day} ${monthStr} | ${timeRaw}`;
+            }
+
+            const cardHTML = `
+              <div class="agenda-card">
+                <div class="agenda-date">${dateDisplay}</div>
+                <div class="agenda-info">
+                  <h3>${post.titulo}</h3>
+                  <p>${post.descricao.substring(0, 100)}${post.descricao.length > 100 ? '...' : ''}</p>
+                  <a href="/eventos/detalhes.html?id=${post._id}" class="agenda-btn">Mais Informações</a>
+                </div>
+              </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHTML);
+          });
+        } catch (error) {
+          console.error('Erro ao carregar cartaz:', error);
+          container.innerHTML = '<p style="text-align: center; color: #ef4444; width: 100%;">Erro ao carregar a programação.</p>';
+        }
+      }
+      document.addEventListener('DOMContentLoaded', loadTeatroCartaz);
+    </script>
+
+    <!-- RIDER TÉCNICO SECTION -->
+    <section class="teatro-rider">
+      <div class="teatro-container">
+        <div class="rider-header">
+          <h2 class="section-title">Rider Técnico</h2>
+          <p>Informações técnicas e infraestrutura do Teatro Municipal Miguel Mônico</p>
+        </div>
+        
+        <div class="rider-grid">
+          <!-- Infraestrutura -->
+          <div class="rider-card">
+            <h3><i class="fa-solid fa-building"></i> Infraestrutura</h3>
+            <ul>
+              <li>Teatro com capacidade de 417 lugares (10 lugares para portadores de necessidades especiais);</li>
+              <li>Bilheteria (duas cabines);</li>
+              <li>Hall de entrada coberto e Jardim externo;</li>
+              <li>Foyer de aproximadamente 100m², com balcão (bomboniére);</li>
+              <li>Acesso para portadores de deficiência física;</li>
+              <li>Ar condicionado em todos os ambientes;</li>
+              <li>Banheiros femininos e masculinos;</li>
+              <li>Cabine técnica com acesso pela bilheteria;</li>
+              <li>Cenotécnica (100m²) com acesso ao lado esquerdo do palco, com portão de entrada/saída de automóveis;</li>
+              <li>Equipe interna: encarregado de equipe e manutenção, técnico de luz e som, copeira.</li>
+            </ul>
+          </div>
+          
+          <!-- Camarim -->
+          <div class="rider-card">
+            <h3><i class="fa-solid fa-star"></i> Camarim (100m²)</h3>
+            <ul>
+              <li>Entrada pelo lado direito do palco;</li>
+              <li>02 camarins coletivos para 10 pessoas cada (12m²) com araras, mesa de passar roupa e ferro elétrico, poltronas e sofás, bancada com espelhos e iluminação para maquiagem;</li>
+              <li>Área de recepção externa;</li>
+              <li>Sala de aquecimento/ensaio (70m²);</li>
+              <li>Banheiros femininos e masculinos (com chuveiros);</li>
+              <li>Copa equipada com pia, micro-ondas e geladeira.</li>
+            </ul>
+          </div>
+
+          <!-- Palco -->
+          <div class="rider-card">
+            <h3><i class="fa-solid fa-masks-theater"></i> Palco</h3>
+            <ul>
+              <li><strong>Medida Interna:</strong> 20 x 13 = 260m²</li>
+              <li><strong>Boca de cena:</strong> 13m (até ciclorama 10)</li>
+              <li><strong>Pé direito:</strong> 9m | <strong>Altura Chão-Palco:</strong> 120cm</li>
+              <li>Piso de madeira, possui linóleo;</li>
+              <li>Piano Yamaha 1/2 cauda (Yamaha 1987 C2);</li>
+              <li>Ciclorama de 13m;</li>
+              <li>1 cortina nobre, em veludo, com acionamento manual na lateral esquerda, rotunda preta, coxias e bambolinas;</li>
+              <li>09 Varas contrapesadas de iluminação (sistema de contra-peso e cordas manuais);</li>
+              <li>Varas de cenário, rotunda e bambolinas têm sistema de cordas manuais;</li>
+              <li>02 saídas laterais (sala e ensaios/camarim e cenotécnica);</li>
+              <li>Coxias com aproximadamente 1,5m².</li>
+            </ul>
+          </div>
+
+          <!-- Iluminação e Som -->
+          <div class="rider-card">
+            <h3><i class="fa-solid fa-lightbulb"></i> Iluminação e Som</h3>
+            <p style="font-weight: 700; color: #1e293b; margin-bottom: 10px;">ILUMINAÇÃO</p>
+            <ul style="margin-bottom: 20px;">
+              <li>01 console jands ESPII -48/96;</li>
+              <li>50 refletores PAR 64;</li>
+              <li>12 refletores Fresnel; 08 Elipsoidal; 04 set lights;</li>
+              <li>Platéia dimerizada;</li>
+              <li>02 racks de 48 canais, de 2000 KW.</li>
+            </ul>
+            <p style="font-weight: 700; color: #1e293b; margin-bottom: 10px;">SOM</p>
+            <ul>
+              <li>03 módulos de potência Master PA 1000AB;</li>
+              <li>01 Equalizador Beringher mod.FBQ3102; 02 compressores Beringher mod. 4600 eCX 3400; 01 Multicom Beringher Mod. Pro XL MDX4600;</li>
+              <li>01 Multi cabo 28 canais Chorus mod MC-28;</li>
+              <li>04 Monitores Master; 04 Caixas Médio Master - line Array; 02 subgrave com altofalante 10" Marca Master;</li>
+              <li>Microfones: 02 auricular/sem fio (head set) UFH Amplitronix; 04 com fio 400ohm YOGA; 02 sem fio Kaesect KRU 302; 04 com fio 600ohm Carol MUD515ME; 02 com fio Shure SM58; 01 com fio Shure SM57;</li>
+              <li>01 CDj Player KSK Profissional Dual;</li>
+              <li>10 PC's (sem as lâmpadas).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESERVA DE PAUTA SECTION -->
+    <section class="teatro-reserva" style="padding: 80px 5%; background: #f8fafc;">
+      <div class="teatro-container">
+        <h2 class="section-title" style="text-align: center;">Reserva de Pauta do Teatro</h2>
+        <div style="max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+          
+          <p style="margin-bottom: 20px; color: #475569; line-height: 1.6; font-family: 'Poppins', sans-serif;">
+            De acordo com o <strong style="color: #1e293b;">Decreto Nº: 8.841/2019</strong> sobre a utilização e ocupação do Teatro Municipal: 
+            <a href="http://leis.org/pxkfq" target="_blank" style="color: #ea580c; font-weight: 600; text-decoration: none;">http://leis.org/pxkfq</a>
+          </p>
+
+          <div style="background: rgba(234, 88, 12, 0.1); border-left: 4px solid #ea580c; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
+            <p style="margin: 0; color: #1e293b; font-weight: 500; font-family: 'Poppins', sans-serif;">
+              <i class="fa-solid fa-circle-info" style="color: #ea580c; margin-right: 8px;"></i>
+              Abra um protocolo e coloque o maior número de informações que julgar importante: Do que se trata, sinopse, elenco, se haverá cobrança de ingressos e datas pretendidas.
+            </p>
+          </div>
+
+          <h3 style="font-family: 'Rubik', sans-serif; font-size: 1.4rem; color: #1e293b; margin-bottom: 20px;">Passo a passo do 1doc:</h3>
+          
+          <ul style="list-style: none; padding: 0; margin: 0; font-family: 'Poppins', sans-serif;">
+            <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 15px 20px; border-radius: 8px;">
+              <div style="background: #ea580c; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+              <div>Entrar no site: <a href="https://garca.1doc.com.br/b.php?pg=o/wp" target="_blank" style="color: #ea580c; text-decoration: none; font-weight: 600;">garca.1doc.com.br/b.php?pg=o/wp</a></div>
+            </li>
+            <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 15px 20px; border-radius: 8px;">
+              <div style="background: #ea580c; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+              <div>Realizar um cadastro no sistema</div>
+            </li>
+            <li style="display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 15px 20px; border-radius: 8px;">
+              <div style="background: #ea580c; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+              <div>Selecionar a categoria <strong>"CULTURA"</strong> <i class="fa-solid fa-arrow-right" style="margin: 0 10px; color: #94a3b8;"></i> <strong>"TEATRO"</strong></div>
+            </li>
+          </ul>
+
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="biblio-footer" style="background: #111111; color: #ffffff; padding: 50px 0 30px; margin-top: 0; border: none;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 5%;">
+      <div>
+        <h2 style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 5px; color: #ffffff;">GARÇA</h2>
+        <div style="font-size: 0.9rem; text-transform: uppercase; margin-bottom: 20px; color: rgba(255,255,255,0.7);">Cidade de Culturas</div>
+        <p style="color: rgba(255,255,255,0.8); line-height: 1.6;">Espaços dedicados ao conhecimento, à arte e ao desenvolvimento de toda a nossa comunidade.</p>
+      </div>
+      <div>
+        <h4 style="font-size: 1.2rem; margin-bottom: 20px; color: #ffffff;">Acesso Rápido</h4>
+        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px;">
+          <li><a href="../index.html" style="color: rgba(255,255,255,0.8); text-decoration: none;">Início</a></li>
+          <li><a href="../emca/emca.html" style="color: rgba(255,255,255,0.8); text-decoration: none;">EMCA</a></li>
+          <li><a href="../biblioteca/biblioteca.html" style="color: rgba(255,255,255,0.8); text-decoration: none;">Biblioteca</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="font-size: 1.2rem; margin-bottom: 20px; color: #ffffff;">Contato do Teatro</h4>
+        <div style="display: flex; flex-direction: column; gap: 15px; color: rgba(255,255,255,0.8);">
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <i class="fa-solid fa-location-dot" style="margin-top: 4px;"></i>
+            <span>Av. Dr. Rafael Paes de Barros, 522<br>Vila Williams - Garça/SP</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <i class="fa-solid fa-phone" style="margin-top: 4px;"></i> <span>(14) 3471-1234</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+      <p>&copy; 2026 Garça Cidade de Culturas. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
+

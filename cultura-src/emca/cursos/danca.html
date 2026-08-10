@@ -1,0 +1,1736 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso de Dança - EMCA</title>
+    <link class="favicon" rel="icon" href="../../logo.jpg" type="image/jpeg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800;900&family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../emca.css">
+    
+    <style>
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff0000, 0 0 15px #ff0000;
+            z-index: 4;
+            animation: twinkle 2s infinite alternate;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* Override all backgrounds to strong white as requested */
+        body, .page-emca, article, .course-info-section, .diferenciais-section, .aprendizado-section, .modalidades-section, .gallery-section, .cronograma-step, .diferencial-card, .course-sidebar, .modalidade-text-item {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+        .page-emca::before, .page-emca::after {
+            display: none !important;
+        }
+
+        /* Bold, creative titles using Rubik 900 (Extra Thick) and smooth color transitions */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Rubik', sans-serif !important;
+            font-weight: 700 !important; /* Extremely thick font! */
+            color: #a02e2e !important;
+            text-shadow: none !important; /* Completely remove any neon/glow text-shadows */
+            -webkit-text-fill-color: initial !important;
+            background: none !important;
+        }
+
+        /* Completely remove hover neon glow on h2 and all headers */
+        .section-header:hover h2, 
+        .course-details:hover h2, 
+        .section-header h2:hover,
+        h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
+            text-shadow: none !important;
+        }
+
+        /* Section Headings with solid color */
+        .section-header h2, .course-details h2 {
+            font-size: 2.6rem;
+            font-weight: 700 !important; /* Extra thick */
+            color: #a02e2e !important;
+            margin-bottom: 15px;
+            display: inline-block;
+            letter-spacing: -1px;
+            position: relative;
+            text-shadow: none !important;
+        }
+        
+        .section-header h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #a02e2e;
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
+        
+        .course-details h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #a02e2e;
+            margin: 12px 0 0;
+            border-radius: 2px;
+        }
+
+        /* Custom Scroll Reveal Animations (Left, Right, Scale, Up) */
+        .reveal.reveal-left {
+            opacity: 0;
+            transform: translateX(-100px) translateY(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-right {
+            opacity: 0;
+            transform: translateX(100px) translateY(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-up {
+            opacity: 0;
+            transform: translateY(60px) translateX(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-scale {
+            opacity: 0;
+            transform: scale(0.3) translateY(0); /* starts very small for a popup effect */
+            transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1); /* bouncy pop effect */
+        }
+        
+        .reveal.reveal-left.active,
+        .reveal.reveal-right.active,
+        .reveal.reveal-up.active,
+        .reveal.reveal-scale.active {
+            opacity: 1;
+            transform: translateX(0) translateY(0) scale(1);
+        }
+
+        .course-hero { margin-top: 0;
+            height: 60vh;
+            min-height: 450px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align content to the left of viewport */
+            color: var(--text-inverse);
+            transition: all 0.5s ease;
+        }
+
+        /* Desktop Carousel Background Slides */
+        .hero-bg-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1;
+        }
+
+        .hero-bg-slide.active {
+            opacity: 1;
+        }
+        
+        .course-hero .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align items to the left */
+            text-align: left;
+            z-index: 2; /* Keep above slides */
+        }
+
+        .hero-text-wrapper {
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .typewriter-title {
+            color: #fff !important;
+            font-family: 'Rubik', sans-serif !important;
+            font-weight: 700 !important; /* Thick */
+            font-size: 3.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+            overflow: hidden;
+            border-right: 4px solid var(--peach);
+            white-space: nowrap;
+            width: 0; /* starts hidden */
+            letter-spacing: -1px;
+            animation: 
+              typing 2s steps(15, end) 0.5s forwards,
+              blink-caret 0.75s step-end infinite alternate,
+              remove-cursor 0.5s step-end 3.5s forwards;
+        }
+        
+        /* Multiple Hero Subtitles */
+        .hero-subtitle {
+            display: none;
+            opacity: 0;
+            font-family: 'Rubik', sans-serif;
+            font-weight: 300;
+            font-size: 1.25rem;
+            color: #fff;
+            line-height: 1.6;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+        
+        .hero-subtitle.active {
+            display: block;
+            opacity: 1;
+            animation: fadeInSimple 0.8s ease-out forwards;
+        }
+        
+        /* First subtitle initial page load animation */
+        .fade-in-subtitle {
+            display: block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1.2s ease-out 2.2s forwards;
+        }
+
+        @keyframes fadeInSimple {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-bg-slide {
+                display: none !important; /* Hide slide carousel on mobile */
+            }
+            .course-hero {
+                background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../imagesemca/capacelularballet1.png') !important;
+                height: 520px;
+                justify-content: center; /* Center align on mobile */
+                background-size: cover;
+                background-position: center;
+            }
+            .course-hero .container {
+                align-items: center;
+                text-align: center;
+                padding: 0 20px;
+            }
+            .hero-text-wrapper {
+                align-items: center;
+            }
+            .typewriter-title {
+                font-size: 2.2rem;
+                margin-bottom: 15px;
+                animation: 
+                  typing 2s steps(15, end) 0.5s forwards,
+                  blink-caret 0.75s step-end infinite alternate,
+                  remove-cursor 0.5s step-end 3.5s forwards;
+            }
+            .fade-in-subtitle {
+                font-size: 1rem;
+            }
+            /* Show only first subtitle on mobile */
+            #subtitle-2 {
+                display: none !important;
+            }
+            .section-header h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Custom buttons for Dança page */
+        .btn-coral {
+            background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4) !important;
+            transition: all 0.4s ease !important;
+            font-weight: 700 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-coral:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 25px rgba(255, 113, 110, 0.6) !important;
+            background: linear-gradient(135deg, #ff8e8c 0%, #ff716e 100%) !important;
+        }
+
+        .btn-lavender {
+            background: linear-gradient(135deg, #7481d1 0%, #909ce0 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(116, 129, 209, 0.4) !important;
+            transition: all 0.4s ease !important;
+            font-weight: 700 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-lavender:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 25px rgba(116, 129, 209, 0.6) !important;
+            background: linear-gradient(135deg, #909ce0 0%, #7481d1 100%) !important;
+        }
+
+        .course-info-section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--bg-alt);
+        }
+        
+        .course-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .course-details p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+        
+        .course-sidebar {
+            background-color: var(--bg-main);
+            padding: 30px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.03);
+            height: fit-content;
+        }
+        
+        .info-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .info-list li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+        
+        .info-list i {
+            font-size: 1.3rem;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .schedule-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .schedule-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        /* Decorative floating circus icons with creative colored settings */
+        .circus-decor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            user-select: none;
+        }
+        
+        .circus-decor-1 { top: 8%; left: 3%; }
+        .circus-decor-2 { top: 28%; right: 4%; }
+        .circus-decor-3 { top: 12%; left: 4%; }
+        .circus-decor-4 { top: 48%; right: 3%; }
+        .circus-decor-5 { top: 15%; left: 3%; }
+        .circus-decor-6 { top: 58%; right: 4%; }
+        .circus-decor-7 { top: 22%; left: 5%; }
+        .circus-decor-8 { top: 62%; right: 5%; }
+        .circus-decor-9 { top: 18%; left: 4%; }
+        .circus-decor-10 { top: 68%; right: 4%; }
+
+        .float-animation-1 { animation: float-slow 8s ease-in-out infinite; display: inline-block; }
+        .float-animation-2 { animation: float-reverse 10s ease-in-out infinite 1s; display: inline-block; }
+        .float-animation-3 { animation: float-slow 9s ease-in-out infinite 2s; display: inline-block; }
+        .float-animation-4 { animation: float-reverse 7s ease-in-out infinite 0.5s; display: inline-block; }
+        .float-animation-5 { animation: float-slow 7.5s ease-in-out infinite 1.5s; display: inline-block; }
+        .float-animation-6 { animation: float-reverse 11s ease-in-out infinite 0.7s; display: inline-block; }
+
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            50% { transform: translateY(-18px) rotate(18deg) scale(1.1); }
+        }
+
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1.1); }
+            50% { transform: translateY(20px) rotate(-20deg) scale(0.95); }
+        }
+
+        /* Diferenciais Section */
+        .diferenciais-section {
+            padding: 80px 0;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+        .diferenciais-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        @media (max-width: 991px) {
+            .diferenciais-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .diferencial-card {
+            background: var(--bg-alt);
+            border-radius: var(--border-radius-lg);
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: var(--transition);
+        }
+        .diferencial-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--peach);
+        }
+        .diferencial-icon {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        .diferencial-card:hover .diferencial-icon {
+            transform: scale(1.15);
+        }
+        .diferencial-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: var(--primary) !important;
+            font-weight: 700 !important; /* Thick card title */
+        }
+        .diferencial-card p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Aprendizado Section */
+        .aprendizado-section {
+            padding: 80px 0;
+            background-color: var(--bg-alt);
+            position: relative;
+            overflow: hidden;
+        }
+        .cronãograma-list {
+            max-width: 800px;
+            margin: 40px auto 0;
+            position: relative;
+            z-index: 2;
+        }
+        .cronãograma-step {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            background: var(--bg-main);
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            align-items: flex-start;
+            transition: var(--transition);
+        }
+        .cronãograma-step:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--peach);
+        }
+        .step-num {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .step-info h3 {
+            font-size: 1.35rem;
+            margin-bottom: 8px;
+            color: var(--primary) !important;
+            font-weight: 700 !important; /* Thick step title */
+        }
+        .step-info p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Modalidades Text Section (Clean text-focused blocks, não image cards) */
+        .modalidades-section {
+            padding: 80px 0;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modalidades-text-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        @media (max-width: 768px) {
+            .modalidades-text-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+        
+        .modalidade-text-item {
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            background: var(--bg-alt);
+            border-left: 4px solid transparent;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .modalidade-text-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            background: #fff;
+        }
+        
+        .modalidade-text-item.item-blue:hover { border-left-color: #364ba3; }
+        .modalidade-text-item.item-coral:hover { border-left-color: #ff716e; }
+        .modalidade-text-item.item-red:hover { border-left-color: #a02e2e; }
+        .modalidade-text-item.item-lavender:hover { border-left-color: #7481d1; }
+        
+        .modalidade-text-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .modalidade-text-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        
+        .icon-blue { background-color: #364ba3; }
+        .icon-coral { background-color: #ff716e; }
+        .icon-red { background-color: #a02e2e; }
+        .icon-lavender { background-color: #7481d1; }
+        
+        .modalidade-text-item h3 {
+            font-size: 1.35rem;
+            color: var(--primary) !important;
+            font-weight: 700 !important;
+            margin: 0;
+        }
+        
+        .modalidade-text-item p {
+            color: var(--text-light);
+            font-size: 0.98rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Gallery Sections */
+        .gallery-section {
+            padding: 80px 0;
+            background-color: var(--bg-alt);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Generic slide styling for multi-view carousel */
+        .carousel-slide {
+            min-width: 33.333%;
+            padding: 15px;
+            box-sizing: border-box;
+            transition: transform 0.5s ease;
+        }
+        
+        @media (max-width: 991px) {
+            .carousel-slide {
+                min-width: 50%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-slide {
+                min-width: 100%;
+            }
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Gallery Carousel Items with Creative and Modern Effects */
+        .gallery-item-new {
+            height: 280px;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #000;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .gallery-item-new img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(15%) brightness(90%);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        /* Modern Glassmorphic Overlay with zoom icon */
+        .gallery-item-new::after {
+            content: '\f00e'; /* FontAwesome zoom-in icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10, 25, 47, 0.8), rgba(255, 113, 110, 0.35));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(2px);
+            z-index: 2;
+        }
+        
+        /* Hover Effects */
+        .gallery-item-new:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(255, 113, 110, 0.25), 0 0 15px rgba(255, 113, 110, 0.2);
+            border-color: rgba(255, 181, 131, 0.6);
+        }
+        
+        .gallery-item-new:hover img {
+            transform: scale(1.12);
+            filter: grayscale(0%) brightness(100%);
+        }
+        
+        .gallery-item-new:hover::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Carousel Navigation Buttons styling */
+        .carousel-nav-btn {
+            width: 52px;
+            height: 52px;
+            font-size: 1.1rem;
+            background: white;
+            color: var(--primary) !important;
+            border: 2px solid rgba(0,0,0,0.05);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .prev-btn-galeria-Dança:hover, .next-btn-galeria-Dança:hover {
+            background: #ff716e !important;
+            color: white !important;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(255, 113, 110, 0.45) !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .prev-btn-galeria-Dança { left: 5px !important; }
+        .next-btn-galeria-Dança { right: 5px !important; }
+        
+        .carousel-track-container {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 25, 47, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .lightbox.active .lightbox-img {
+            transform: scale(1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .lightbox-close:hover {
+            color: #ff716e;
+            transform: rotate(90deg);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-nav:hover {
+            background: #7481d1;
+            color: white !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-prev {
+            left: -80px;
+        }
+
+        .lightbox-next {
+            right: -80px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 1400px) {
+            .lightbox-prev { left: 10px; }
+            .lightbox-next { right: 10px; }
+            .lightbox-close { top: -40px; right: 0; }
+        }
+    
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- Navbar -->
+        <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-area" onclick="window.location.href='../emca.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.8rem; color: #1e293b; letter-spacing: 2px;">EMCA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Escola de Cultura e Artes</span>
+      </div>
+      
+      <nav class="nav-menu" style="display: flex; gap: 30px; align-items: center;">
+        <a href="../emca.html" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">In&iacute;cio</a>
+        <a href="../emca.html#sobre" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Sobre</a>
+        
+        <div class="nav-item-dropdown">
+            <a href="../emca.html#cursos" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s; display: flex; align-items: center; gap: 5px;">Cursos <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></a>
+            <div class="dropdown-menu">
+                <a href="./danca.html" class="dropdown-item">Ballet & Jazz</a>
+                <a href="./teatro.html" class="dropdown-item">Teatro</a>
+                <a href="./musica.html" class="dropdown-item">M&uacute;sica</a>
+                <a href="./circo.html" class="dropdown-item">Circo</a>
+                <a href="./desenho.html" class="dropdown-item">Desenho e Pintura</a>
+                </div>
+        </div>
+
+        <a href="../emca.html#contato" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Contato</a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="../../index.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: nãone; font-weight: 600; font-family: 'Rubik', sans-serif; transition: background 0.3s;">
+          <i data-lucide="map"></i> <span class="hide-mobile">Voltar ao </span>Mapa
+        </a>
+          <button class="hamburger" onclick="toggleMenu()" style="background: nãone; border: nãone; color: #1e293b; cursor: pointer; display: nãone;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="nãone" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MOBILE MENU -->
+    <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <div class="mobile-menu" id="mobile-menu">
+      <a href="../emca.html" class="nav-link" onclick="toggleMenu()">Início</a>
+      <a href="../emca.html#sobre" class="nav-link" onclick="toggleMenu()">Sobre</a>
+      <a href="../emca.html#cursos" class="nav-link" onclick="toggleMenu()">Cursos</a>
+      <a href="../emca.html#contato" class="nav-link" onclick="toggleMenu()">Contato</a>
+  </div>
+    
+    <script>
+      function toggleMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const overlay = document.getElementById("menu-overlay");
+      if (menu) {
+          menu.classList.toggle("open");
+          if(overlay) {
+              if(menu.classList.contains("open")) {
+                  overlay.classList.add("active");
+              } else {
+                  overlay.classList.remove("active");
+              }
+          }
+      }
+    }}
+    </script>
+
+    <main>
+        <!-- Hero Banner Section -->
+        <section class="course-hero">
+            <!-- Navigation Arrows -->
+            <button class="hero-arrow prev-arrow" onclick="prevHeroSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="hero-arrow next-arrow" onclick="nextHeroSlide()"><i class="fa-solid fa-chevron-right"></i></button>
+
+            <!-- Slide 1 -->
+            <div class="hero-bg-slide active">
+                <img class="img-desktop" src="../imagesemca/Alice_Ballet/bannerballet01.png" alt="Ballet Banner 1 Desktop">
+                <img class="img-mobile" src="../imagesemca/Alice_Ballet/bannerballet01celular.png" alt="Ballet Banner 1 Mobile">
+            </div>
+            
+            <!-- Slide 2 -->
+            <div class="hero-bg-slide">
+                <img class="img-desktop" src="../imagesemca/Alice_Ballet/bannerballet02.png" alt="Ballet Banner 2 Desktop">
+                <img class="img-mobile" src="../imagesemca/Alice_Ballet/bannerballet02celular.png" alt="Ballet Banner 2 Mobile">
+            </div>
+            
+            <!-- Slide 3 -->
+            <div class="hero-bg-slide">
+                <img class="img-desktop" src="../imagesemca/Alice_Ballet/bannerballet03.png" alt="Ballet Banner 3 Desktop">
+                <img class="img-mobile" src="../imagesemca/Alice_Ballet/bannerballet03celular.png" alt="Ballet Banner 3 Mobile">
+            </div>
+            
+            <!-- Dark Overlay for text readability -->
+            <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 100%); z-index: 2;"></div>
+
+            <div class="container" style="position: relative; z-index: 3;">
+                <div class="hero-text-wrapper">
+                    <!-- Text for Banner 1 -->
+                    <div class="hero-subtitle active" style="display: block;">
+                        <h2 class="hero-banner-title">A Arte do Ballet</h2>
+                        <p class="hero-banner-desc">Descubra a elegância, a disciplina e a magia da dança clássica</p>
+                    </div>
+                    
+                    <!-- Text for Banner 2 -->
+                    <div class="hero-subtitle" style="">
+                        <h2 class="hero-banner-title">Expressão e Movimento</h2>
+                        <p class="hero-banner-desc">Liberdade para sentir o ritmo e transformar emoções em arte</p>
+                    </div>
+
+                    <!-- Text for Banner 3 -->
+                    <div class="hero-subtitle" style="">
+                        <h2 class="hero-banner-title">Brilho no Palco</h2>
+                        <p class="hero-banner-desc">Onde a técnica encontra a paixão para criar momentos inesquecíveis</p>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                .course-hero {
+                    position: relative;
+                    width: 100%;
+                    height: 70vh;
+                    min-height: 550px;
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                }
+                .hero-bg-slide {
+                    position: absolute;
+                    inset: 0;
+                    opacity: 0;
+                    transition: opacity 1s ease-in-out;
+                    z-index: 1;
+                }
+                .hero-bg-slide.active {
+                    opacity: 1;
+                }
+                .hero-bg-slide img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: top center;
+                }
+                .img-mobile { display: none; }
+                .img-desktop { display: block; }
+                
+                @media (max-width: 768px) {
+                    .img-desktop { display: none; }
+                    .img-mobile { display: block; }
+                    .course-hero { height: 85vh; }
+                }
+
+                .hero-banner-title {
+                    font-family: 'Rubik', sans-serif !important;
+                    font-weight: 300 !important;
+                    font-size: clamp(2.5rem, 6vw, 4.5rem) !important;
+                    color: #fff !important;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    margin-bottom: 15px;
+                }
+                .hero-banner-desc {
+                    font-family: 'Rubik', sans-serif !important;
+                    font-weight: 300 !important;
+                    font-size: clamp(1.2rem, 3.5vw, 2.2rem) !important;
+                    color: #fff !important;
+                    font-style: italic;
+                    line-height: 1.4;
+                    max-width: 90%;
+                }
+
+                /* Modern Arrows */
+                .hero-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: rgba(255, 255, 255, 0.15);
+                    backdrop-filter: blur(5px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    color: white;
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    z-index: 10;
+                    transition: all 0.3s ease;
+                }
+                .hero-arrow:hover {
+                    background: #a02e2e;
+                    border-color: #a02e2e;
+                    transform: translateY(-50%) scale(1.1);
+                }
+                .prev-arrow { left: 20px; }
+                .next-arrow { right: 20px; }
+
+                @media (max-width: 768px) {
+                    .hero-arrow { width: 40px; height: 40px; font-size: 1.2rem; }
+                    .prev-arrow { left: 10px; }
+                    .next-arrow { right: 10px; }
+                }
+            </style>
+        </section>
+
+        <!-- Seção: Intro Ballet Clássico -->
+        <section class="minimalist-info reveal ballet-intro-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: var(--bg-alt);">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <div class="sparkle" style="top: 10%; left: 10%;"></div>
+                    <div class="sparkle" style="top: 80%; left: 15%; animation-delay: 0.5s;"></div>
+                    <div class="sparkle" style="top: 20%; right: 10%; animation-delay: 1s;"></div>
+                    <div class="sparkle" style="top: 70%; right: 5%; animation-delay: 1.5s;"></div>
+                    <img src="../imagesemca/Alice_Ballet/capasobre.png" alt="O que é a Dança?" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #1e293b; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Formação Técnica e Artística</span>
+                        Ballet Clássico
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        O Ballet Clássico é uma das modalidades mais tradicionais e completas da dança. Durante a formação, os alunos desenvolvem postura, coordenação motora, flexibilidade, disciplina, musicalidade e expressão artística. O curso segue uma metodologia progressiva, respeitando o desenvolvimento físico e técnico de cada faixa etária.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        As aulas são realizadas em turmas organizadas por idade e nível de aprendizado, proporcionando um acompanhamento adequado para cada etapa da formação. O curso pode ser concluído em até 10 anos, permitindo uma evolução sólida e consistente ao longo da trajetória do aluno.
+                    </p>
+                
+    </div>
+    <button class="carousel-btn prev-btn-danca" style="position: absolute; top: 50%; transform: translateY(-50%); left: 10px; width: 52px; height: 52px; background: white; color: var(--lavender); border: 2px solid rgba(255, 213, 201, 0.4); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); z-index: 10;"><i data-lucide="chevron-left" style="pointer-events: none; stroke: currentColor;"></i></button>
+    <button class="carousel-btn next-btn-danca" style="position: absolute; top: 50%; transform: translateY(-50%); right: 10px; width: 52px; height: 52px; background: white; color: var(--lavender); border: 2px solid rgba(255, 213, 201, 0.4); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); z-index: 10;"><i data-lucide="chevron-right" style="pointer-events: none; stroke: currentColor;"></i></button>
+</div>
+</div>
+</section>
+
+
+        <!-- Seção: Baby Class -->
+        <section class="minimalist-info reveal active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: #ffffff;">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <img src="../imagesemca/Alice_Ballet/capaballet3.png" alt="Baby Class Ballet" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Os Primeiros Passos</span>
+                        Baby Class
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        A fase Baby Class é destinada às crianças que estão iniciando sua jornada na dança. Nesta etapa, os alunos têm contato com os primeiros fundamentos do Ballet Clássico por meio de atividades lúdicas e educativas que estimulam a criatividade, a coordenação motora, o equilíbrio e a socialização.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 25px; font-family: 'Rubik', sans-serif;">
+                        Além do desenvolvimento físico, as aulas incentivam a concentração, a disciplina e a autoconfiança, criando uma base sólida para as próximas etapas da formação.
+                    </p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-child-reaching" style="margin-right: 5px;"></i> A partir de 5 anos</span>
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-calendar-days" style="margin-right: 5px;"></i> 2 aulas por semana</span>
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-clock" style="margin-right: 5px;"></i> 60 min/aula</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Seção: Preparatório -->
+        <section class="minimalist-info reveal active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: #ffffff;">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <img src="../imagesemca/Alice_Ballet/preparatorio.png" alt="Preparatório Ballet" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Transição e Base</span>
+                        Preparatório
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        O nível Preparatório representa uma importante etapa de transição dentro da formação clássica. Os alunos começam a aprofundar os conhecimentos técnicos adquiridos anteriormente, desenvolvendo maior consciência corporal, alinhamento postural, força muscular e precisão nos movimentos.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 25px; font-family: 'Rubik', sans-serif;">
+                        As atividades são planejadas para fortalecer as bases necessárias para os níveis mais avançados, sempre respeitando o ritmo de aprendizado de cada estudante.
+                    </p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-child-reaching" style="margin-right: 5px;"></i> 6 anos</span>
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-calendar-days" style="margin-right: 5px;"></i> 2 aulas por semana</span>
+                        <span style="background: #ffeef2; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem;"><i class="fa-solid fa-clock" style="margin-right: 5px;"></i> 60 min/aula</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Seção: Formação Clássica (4 Cards) -->
+        <section class="minimalist-info reveal ballet-cards-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: rgba(255, 113, 110, 0.05) !important;">
+            <!-- Background Decorations -->
+            <div style="position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: #ff716e; border-radius: 50%; opacity: 0.8; z-index: 1;"></div>
+            <div style="position: absolute; bottom: -80px; right: -40px; width: 250px; height: 250px; background: #ff716e; border-radius: 50%; opacity: 0.8; z-index: 1;"></div>
+            
+            <div class="container minimalist-container" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; position: relative; z-index: 2;">
+                
+                <div class="info-images-grid" style="flex: 1; min-width: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <img src="../imagesemca/Alice_Ballet/ballet1.jpg" alt="Ballet 1" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    <img src="../imagesemca/Alice_Ballet/ballet2.jpg" alt="Ballet 2" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    <img src="../imagesemca/Alice_Ballet/ballet3.jpg" alt="Ballet 3" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    <img src="../imagesemca/Alice_Ballet/ballet4.jpg" alt="Ballet 4" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Avançado</span>
+                        Formação Clássica
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        A partir dos 7 anos, os alunos ingressam na etapa de formação técnica continuada, onde passam a desenvolver com maior profundidade os princípios do Ballet Clássico. Nesta fase, são trabalhados elementos técnicos mais complexos, aperfeiçoamento da postura, musicalidade, interpretação artística e preparação para apresentações e eventos culturais.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 25px; font-family: 'Rubik', sans-serif;">
+                        O programa é estruturado para proporcionar uma formação completa, permitindo que os alunos evoluam gradativamente até os níveis mais avançados da modalidade.
+                    </p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <span style="background: #fff; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"><i class="fa-solid fa-child-reaching" style="margin-right: 5px;"></i> A partir de 7 anos</span>
+                        <span style="background: #fff; padding: 8px 15px; border-radius: 20px; color: #a02e2e; font-family: 'Rubik', sans-serif; font-weight: 500; font-size: 0.9rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05);"><i class="fa-solid fa-clock" style="margin-right: 5px;"></i> Até 10 anos de formação</span>
+                    </div>
+                    <p style="font-size: 0.95rem; color: #475569; font-family: 'Rubik', sans-serif;">
+                        <i class="fa-solid fa-chalkboard-user" style="color: #a02e2e; margin-right: 5px;"></i> <strong>Professores:</strong> Amanda Owada, Jessica Bortaliero, Lorena Piovezan e Lucas Queiroz.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Seção: Intro Jazz -->
+        <section class="minimalist-info reveal jazz-intro-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: var(--bg-alt);">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <div class="sparkle" style="top: 15%; left: 20%;"></div>
+                    <div class="sparkle" style="top: 85%; left: 10%; animation-delay: 0.6s;"></div>
+                    <div class="sparkle" style="top: 25%; right: 15%; animation-delay: 1.1s;"></div>
+                    <div class="sparkle" style="top: 65%; right: 10%; animation-delay: 1.4s;"></div>
+                    <div class="sparkle" style="top: 5%; left: 60%; animation-delay: 0.9s;"></div>
+                    <div class="sparkle" style="top: 55%; left: -5%; animation-delay: 1.3s;"></div>
+                    <div class="sparkle" style="top: 85%; right: 80%; animation-delay: 1.8s;"></div>
+                    <div class="sparkle" style="top: 45%; right: -10%; animation-delay: 0.4s;"></div>
+                    <img src="../imagesemca/Alice_Ballet/jazzcapa.png" alt="Jazz Dance" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Movimento, Expressão e Criatividade</span>
+                        Jazz Dance
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px; font-family: 'Rubik', sans-serif;">
+                        O Jazz Dance é uma modalidade dinâmica e envolvente que combina técnica, ritmo, expressão corporal e criatividade. As aulas estimulam o desenvolvimento da coordenação motora, flexibilidade, condicionamento físico e presença de palco, proporcionando aos alunos uma experiência artística completa.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; font-family: 'Rubik', sans-serif;">
+                        As turmas são organizadas por níveis de conhecimento, permitindo que cada aluno desenvolva suas habilidades de forma progressiva e segura. O curso pode ser concluído em até 4 anos, acompanhando a evolução técnica e artística dos participantes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Trajetória Jazz -->
+        <section class="minimalist-info reveal jazz-trajectory-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: rgba(255, 113, 110, 0.05);">
+            <!-- Background Decorations -->
+            <div style="position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: #ff716e; border-radius: 50%; opacity: 0.8; z-index: 1;"></div>
+            <div style="position: absolute; bottom: -80px; right: -40px; width: 250px; height: 250px; background: #ff716e; border-radius: 50%; opacity: 0.8; z-index: 1;"></div>
+            
+            <div class="container minimalist-container" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; position: relative; z-index: 2;">
+                
+                <!-- Left: Overlapping Images -->
+                <div class="info-image-overlap" style="flex: 1; min-width: 300px; position: relative; height: 450px;">
+                    <!-- Back Image -->
+                    <img src="../imagesemca/Alice_Ballet/jazz1.jpg" alt="Jazz 1" style="position: absolute; top: 0; right: 0; width: 75%; height: 350px; object-fit: cover; border-radius: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.15);">
+                    <!-- Front Image -->
+                    <img src="../imagesemca/Alice_Ballet/jazz2.jpg" alt="Jazz 2" style="position: absolute; bottom: 0; left: 0; width: 65%; height: 300px; object-fit: cover; border-radius: 15px; border: 8px solid white; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                </div>
+                
+                <!-- Right: Text Content -->
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #ff716e; font-size: 1rem; display: block; margin-bottom: 15px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700;">A Trajetória</span>
+                        Níveis do Jazz
+                    </h2>
+                    
+                    <h3 style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #a02e2e; margin-bottom: 10px; font-weight: 600;">Jazz Iniciante</h3>
+                    <p style="font-size: 1rem; color: #475569; line-height: 1.6; margin-bottom: 15px; font-family: 'Rubik', sans-serif;">
+                        Ideal para quem deseja dar os primeiros passos. Trabalhamos fundamentos técnicos básicos, consciência corporal e ritmo musical. O ambiente motivador permite que os alunos descubram sua expressão artística enquanto aprendem.
+                    </p>
+                    
+                    <h3 style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #a02e2e; margin-bottom: 10px; font-weight: 600;">Jazz Intermediário</h3>
+                    <p style="font-size: 1rem; color: #475569; line-height: 1.6; margin-bottom: 15px; font-family: 'Rubik', sans-serif;">
+                        Aprofundamento dos conhecimentos, desenvolvendo maior domínio técnico e capacidade interpretativa. Inclui exercícios mais elaborados e sequências coreográficas para fortalecer a técnica sem perder a expressividade.
+                    </p>
+                    
+                    <h3 style="font-family: 'Rubik', sans-serif; font-size: 1.3rem; color: #a02e2e; margin-bottom: 10px; font-weight: 600;">Jazz Avançado</h3>
+                    <p style="font-size: 1rem; color: #475569; line-height: 1.6; margin-bottom: 25px; font-family: 'Rubik', sans-serif;">
+                        Destinado aos alunos com experiência. Trabalha técnicas mais complexas, aprimoramento da performance de palco, interpretação artística e execução de coreografias com maior grau de dificuldade.
+                    </p>
+                    
+                    <!-- Badges -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px;">
+                        <span style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-user" style="color: #ff716e;"></i> A partir de 11 anos</span>
+                        <span style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-clock" style="color: #ff716e;"></i> Até 4 anos</span>
+                        <span style="background: #f8fafc; padding: 6px 12px; border-radius: 6px; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-chalkboard-user" style="color: #ff716e;"></i> Jessica e Lorena</span>
+                    </div>
+
+                    <!-- Button -->
+                    <a href="../emca.html#contato" style="display: inline-block; background: linear-gradient(135deg, #a081c1 0%, #ff716e 100%); color: white; padding: 15px 30px; border-radius: 30px; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(255, 113, 110, 0.3); text-decoration: none; transition: transform 0.3s ease;">
+                        Fazer Minha Matrícula
+                    </a>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Gallery -->
+        <section id="galeria" class="gallery-section" style="padding: 80px 5%; background-color: #fff;">
+            <div class="container minimalist-container" style="max-width: 1200px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 50px;">
+                    <h2 class="minimalist-title reveal reveal-up" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #1e293b !important; margin-bottom: 15px; line-height: 1.2;">Galeria de Fotos</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s; font-size: 1.1rem; color: #475569;">Momentos mágicos de nossos alunos em ação no curso de Dança.</p>
+                </div>
+                
+                
+<div class="carousel-container danca-carousel-container" style="position: relative; overflow: hidden; max-width: 1200px; margin: 0 auto; padding: 20px 0;">
+    <div class="danca-galeria-track" style="display: flex; gap: 30px; transition: transform 0.5s ease;">
+
+                    <div class="danca-galeria-item" onclick="openLightboxDança(0)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7394.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(1)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7449.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(2)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7466.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(3)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7522.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(4)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7675.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(5)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7834.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(6)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7857.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                    <div class="danca-galeria-item" onclick="openLightboxDança(7)" style="cursor: pointer; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 250px; flex: 0 0 calc(33.333% - 20px);">
+                        <img src="../imagesemca/Alice_Ballet/R6II7940.jpg" alt="Alice no País das Maravilhas" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div id="lightboxDança" class="lightbox" role="dialog" aria-modal="true">
+        <button class="lightbox-close" onclick="closeLightboxDança()" aria-label="Fechar">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="prevLightboxDança()" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="lightbox-content">
+            <img id="lightboxImgDança" class="lightbox-img" src="" alt="Foto Dança">
+        </div>
+        <button class="lightbox-nav lightbox-next" onclick="nextLightboxDança()" aria-label="Praxima"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="lightbox-counter" id="lightboxCounterDança">1 / 9</div>
+    </div>
+
+    <!-- Footer -->
+            <style>
+    .biblio-footer {
+        background: #000000;
+        color: #ffffff !important;
+        font-family: 'Rubik', sans-serif !important;
+        padding-top: 50px;
+        padding-bottom: 30px;
+        margin-top: 50px;
+        border: none;
+    }
+    .biblio-footer-wrapper {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 5%;
+    }
+    .biblio-footer .brand-col {
+        display: flex;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+    .biblio-footer .brand-col .logo-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #ffffff !important;
+        margin: 0;
+        padding: 0;
+    }
+    .biblio-footer .brand-col .logo-subtitle {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        color: rgba(255,255,255,0.9) !important;
+    }
+    .biblio-footer .footer-col h4 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #ffffff !important;
+    }
+    .biblio-footer .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .biblio-footer ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .biblio-footer ul li a {
+        color: #ffffff !important;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+    .biblio-footer ul li a:hover {
+        opacity: 0.8;
+    }
+    .biblio-footer .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        color: #ffffff !important;
+    }
+    .biblio-footer .contact-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .biblio-footer .bottom-bar {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.8) !important;
+        font-size: 0.9rem;
+    }
+    @media (max-width: 992px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 576px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+  
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <footer class="biblio-footer">
+    <div class="biblio-footer-wrapper">
+      <div class="footer-col brand-col">
+        <div class="logo-title">GAR&Ccedil;A</div>
+        <div class="logo-subtitle">Cidade de Culturas</div>
+        <p style="color: #ffffff !important; line-height: 1.6; margin: 0;">Espa&ccedil;os dedicados ao conhecimento, &agrave; arte e ao desenvolvimento de toda a nossa comunidade.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/secultgarca" target="_blank" style="color: #ffffff !important; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fa-brands fa-instagram" style="font-size: 1.2rem;"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Acesso Rápido</h4>
+        <ul>
+          <li><a href="../../index.html">In&iacute;cio</a></li>
+          <li><a href="../../emca/emca.html">EMCA</a></li>
+          <li><a href="../../biblioteca/biblioteca.html">Biblioteca</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i data-lucide="map-pin" style="flex-shrink: 0;"></i> 
+            <span>Rua Bar&atilde;o do Rio Branco, 131 - Centro<br>Gar&ccedil;a/SP</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="phone"></i> <span>(14) 3471-1616</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="mail"></i> <span>cultura@garca.sp.gov.br</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <p>&copy; 2026 Gar&ccedil;a Cidade de Culturas. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+    <script src="../emca.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to safely initialize carousels once script loads
+            const startCarousels = () => {
+                if (typeof window.initCarousel === 'function') {
+                    window.initCarousel('galeriaDançaCarousel', '.prev-btn-galeria-Dança', '.next-btn-galeria-Dança', 3, false);
+                } else if (typeof initCarousel === 'function') {
+                    initCarousel('galeriaDançaCarousel', '.prev-btn-galeria-Dança', '.next-btn-galeria-Dança', 3, false);
+                }
+            };
+            
+            // Short delay to ensure window object variables have bound correctly
+            setTimeout(startCarousels, 150);
+
+            // Hero Background Slide & Subtitle Carousel (Desktop & Mobile)
+            const slides = document.querySelectorAll('.hero-bg-slide');
+            const subtitles = document.querySelectorAll('.hero-subtitle');
+            
+            if (slides.length > 0 && subtitles.length > 0) {
+                let currentSlideIndex = 0;
+                let slideInterval;
+
+                function updateHeroSlide(newIndex) {
+                    slides[currentSlideIndex].classList.remove('active');
+                    subtitles[currentSlideIndex].classList.remove('active');
+                    subtitles[currentSlideIndex].style.display = 'none';
+
+                    currentSlideIndex = newIndex;
+
+                    slides[currentSlideIndex].classList.add('active');
+                    subtitles[currentSlideIndex].style.display = 'block';
+                    setTimeout(() => subtitles[currentSlideIndex].classList.add('active'), 50);
+                }
+
+                window.nextHeroSlide = function() {
+                    resetHeroInterval();
+                    updateHeroSlide((currentSlideIndex + 1) % slides.length);
+                };
+
+                window.prevHeroSlide = function() {
+                    resetHeroInterval();
+                    updateHeroSlide((currentSlideIndex - 1 + slides.length) % slides.length);
+                };
+
+                function resetHeroInterval() {
+                    clearInterval(slideInterval);
+                    slideInterval = setInterval(() => {
+                        updateHeroSlide((currentSlideIndex + 1) % slides.length);
+                    }, 6000);
+                }
+
+                resetHeroInterval();
+            }
+        });
+
+        // Lightbox functionality
+        const lightboxDança = document.getElementById('lightboxDança');
+        const lightboxImgDança = document.getElementById('lightboxImgDança');
+        const lightboxCounterDança = document.getElementById('lightboxCounterDança');
+        
+        const galleryImages = [
+            '../imagesemca/Alice_Ballet/R6II7394.jpg',
+            '../imagesemca/Alice_Ballet/R6II7449.jpg',
+            '../imagesemca/Alice_Ballet/R6II7466.jpg',
+            '../imagesemca/Alice_Ballet/R6II7522.jpg',
+            '../imagesemca/Alice_Ballet/R6II7675.jpg',
+            '../imagesemca/Alice_Ballet/R6II7834.jpg',
+            '../imagesemca/Alice_Ballet/R6II7857.jpg',
+            '../imagesemca/Alice_Ballet/R6II7940.jpg'
+        ];
+        
+        let currentImgIndex = 0;
+
+        function openLightboxDança(index) {
+            currentImgIndex = index;
+            lightboxImgDança.src = galleryImages[index];
+            lightboxCounterDança.textContent = `${index + 1} / ${galleryImages.length}`;
+            lightboxDança.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightboxDança() {
+            lightboxDança.classList.remove('active');
+            lightboxImgDança.src = '';
+            document.body.style.overflow = '';
+        }
+
+        function nextLightboxDança() {
+            currentImgIndex = (currentImgIndex + 1) % galleryImages.length;
+            lightboxImgDança.src = galleryImages[currentImgIndex];
+            lightboxCounterDança.textContent = `${currentImgIndex + 1} / ${galleryImages.length}`;
+        }
+
+        function prevLightboxDança() {
+            currentImgIndex = (currentImgIndex - 1 + galleryImages.length) % galleryImages.length;
+            lightboxImgDança.src = galleryImages[currentImgIndex];
+            lightboxCounterDança.textContent = `${currentImgIndex + 1} / ${galleryImages.length}`;
+        }
+
+        // Close lightbox when clicking outside the image
+        lightboxDança.addEventListener('click', (e) => {
+            if (e.target === lightboxDança) {
+                closeLightboxDança();
+            }
+        });
+
+        // Close with ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightboxDança.classList.contains('active')) {
+                closeLightboxDança();
+            }
+        });
+    </script>
+  <script>lucide.createIcons();</script>
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+</button>
+<style>
+    #backToTopBtn {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        background: #ff716e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 55px;
+        height: 55px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4);
+        transition: all 0.3s ease;
+    }
+    #backToTopBtn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(255, 113, 110, 0.6);
+        background: #fa5f5c;
+    }
+    #backToTopBtn.show {
+        display: flex;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+        #backToTopBtn {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+    }
+
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const backBtn = document.getElementById("backToTopBtn");
+        if (backBtn) {
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 400) {
+                    backBtn.classList.add("show");
+                } else {
+                    backBtn.classList.remove("show");
+                    backBtn.style.display = window.scrollY > 400 ? "flex" : "none";
+                }
+            });
+            backBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+    });
+</script>
+<!-- /BACK TO TOP BUTTON -->
+
+  <!-- VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const track = document.querySelector('.danca-galeria-track');
+        const prevBtn = document.querySelector('.prev-btn-danca');
+        const nextBtn = document.querySelector('.next-btn-danca');
+        if (!track || !prevBtn || !nextBtn) return;
+
+        let currentIndex = 0;
+        let itemsPerView = 3;
+
+        function updateItemsPerView() {
+            if (window.innerWidth <= 768) itemsPerView = 1;
+            else if (window.innerWidth <= 1024) itemsPerView = 2;
+            else itemsPerView = 3;
+            
+            const items = document.querySelectorAll('.danca-galeria-item');
+            items.forEach(item => {
+                item.style.flex = `0 0 calc(${100 / itemsPerView}% - ${(30 * (itemsPerView - 1)) / itemsPerView}px)`;
+            });
+            updateCarousel();
+        }
+
+        function updateCarousel() {
+            const items = document.querySelectorAll('.danca-galeria-item');
+            const maxIndex = Math.max(0, items.length - itemsPerView);
+            if (currentIndex > maxIndex) currentIndex = maxIndex;
+            
+            const itemWidth = items[0].offsetWidth;
+            const gap = 30;
+            track.style.transform = `translateX(-${currentIndex * (itemWidth + gap)}px)`;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            const items = document.querySelectorAll('.danca-galeria-item');
+            const maxIndex = Math.max(0, items.length - itemsPerView);
+            if (currentIndex < maxIndex) {
+                currentIndex++;
+                updateCarousel();
+            } else {
+                currentIndex = 0;
+                updateCarousel();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarousel();
+            } else {
+                const items = document.querySelectorAll('.danca-galeria-item');
+                currentIndex = Math.max(0, items.length - itemsPerView);
+                updateCarousel();
+            }
+        });
+
+        window.addEventListener('resize', updateItemsPerView);
+        updateItemsPerView();
+        
+        // Ensure icons are loaded for the new buttons
+        if(window.lucide) {
+            window.lucide.createIcons();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

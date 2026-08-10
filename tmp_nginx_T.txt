@@ -1,0 +1,373 @@
+# configuration file /etc/nginx/nginx.conf:
+
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+
+# configuration file /etc/nginx/mime.types:
+
+types {
+    text/html                                        html htm shtml;
+    text/css                                         css;
+    text/xml                                         xml;
+    image/gif                                        gif;
+    image/jpeg                                       jpeg jpg;
+    application/javascript                           js;
+    application/atom+xml                             atom;
+    application/rss+xml                              rss;
+
+    text/mathml                                      mml;
+    text/plain                                       txt;
+    text/vnd.sun.j2me.app-descriptor                 jad;
+    text/vnd.wap.wml                                 wml;
+    text/x-component                                 htc;
+
+    image/avif                                       avif;
+    image/png                                        png;
+    image/svg+xml                                    svg svgz;
+    image/tiff                                       tif tiff;
+    image/vnd.wap.wbmp                               wbmp;
+    image/webp                                       webp;
+    image/x-icon                                     ico;
+    image/x-jng                                      jng;
+    image/x-ms-bmp                                   bmp;
+
+    font/woff                                        woff;
+    font/woff2                                       woff2;
+
+    application/java-archive                         jar war ear;
+    application/json                                 json;
+    application/mac-binhex40                         hqx;
+    application/msword                               doc;
+    application/pdf                                  pdf;
+    application/postscript                           ps eps ai;
+    application/rtf                                  rtf;
+    application/vnd.apple.mpegurl                    m3u8;
+    application/vnd.google-earth.kml+xml             kml;
+    application/vnd.google-earth.kmz                 kmz;
+    application/vnd.ms-excel                         xls;
+    application/vnd.ms-fontobject                    eot;
+    application/vnd.ms-powerpoint                    ppt;
+    application/vnd.oasis.opendocument.graphics      odg;
+    application/vnd.oasis.opendocument.presentation  odp;
+    application/vnd.oasis.opendocument.spreadsheet   ods;
+    application/vnd.oasis.opendocument.text          odt;
+    application/vnd.openxmlformats-officedocument.presentationml.presentation
+                                                     pptx;
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+                                                     xlsx;
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document
+                                                     docx;
+    application/vnd.wap.wmlc                         wmlc;
+    application/wasm                                 wasm;
+    application/x-7z-compressed                      7z;
+    application/x-cocoa                              cco;
+    application/x-java-archive-diff                  jardiff;
+    application/x-java-jnlp-file                     jnlp;
+    application/x-makeself                           run;
+    application/x-perl                               pl pm;
+    application/x-pilot                              prc pdb;
+    application/x-rar-compressed                     rar;
+    application/x-redhat-package-manager             rpm;
+    application/x-sea                                sea;
+    application/x-shockwave-flash                    swf;
+    application/x-stuffit                            sit;
+    application/x-tcl                                tcl tk;
+    application/x-x509-ca-cert                       der pem crt;
+    application/x-xpinstall                          xpi;
+    application/xhtml+xml                            xhtml;
+    application/xspf+xml                             xspf;
+    application/zip                                  zip;
+
+    application/octet-stream                         bin exe dll;
+    application/octet-stream                         deb;
+    application/octet-stream                         dmg;
+    application/octet-stream                         iso img;
+    application/octet-stream                         msi msp msm;
+
+    audio/midi                                       mid midi kar;
+    audio/mpeg                                       mp3;
+    audio/ogg                                        ogg;
+    audio/x-m4a                                      m4a;
+    audio/x-realaudio                                ra;
+
+    video/3gpp                                       3gpp 3gp;
+    video/mp2t                                       ts;
+    video/mp4                                        mp4;
+    video/mpeg                                       mpeg mpg;
+    video/quicktime                                  mov;
+    video/webm                                       webm;
+    video/x-flv                                      flv;
+    video/x-m4v                                      m4v;
+    video/x-mng                                      mng;
+    video/x-ms-asf                                   asx asf;
+    video/x-ms-wmv                                   wmv;
+    video/x-msvideo                                  avi;
+}
+
+# configuration file /etc/nginx/conf.d/default.conf:
+# ==================================================
+# CONFIGURACAO NGINX - SERVIDOR PRODUCAO CORRIGIDO
+# ==================================================
+
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+server {
+  listen 80;
+  listen 443 ssl;
+  server_name api.garca.sp.gov.br localhost;
+
+  ssl_certificate     /etc/letsencrypt/live/api.garca.sp.gov.br/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/api.garca.sp.gov.br/privkey.pem;
+  ssl_protocols       TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+
+  # ROOT DO MEMORIAL SANTA FAUSTINA
+  root /opt/backend-public;
+
+  resolver 127.0.0.11 valid=30s ipv6=off;
+
+  # --------------------------------------------------
+  # LETS ENCRYPT ACME CHALLENGE (OBRIGATORIO)
+  # --------------------------------------------------
+  location ^~ /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+    default_type "text/plain";
+    try_files $uri =404;
+  }
+
+  # --------------------------------------------------
+  # REDIRECIONAMENTOS (Normalizar Legados para /garcapet/)
+  # --------------------------------------------------
+  rewrite ^/agendamentos$ /agendamentos/ permanent;
+  rewrite ^/servicos$ /servicos/ permanent;
+  rewrite ^/formularios$ /formularios/ permanent;
+  rewrite ^/iluminacao$ /iluminacao/ permanent;
+
+  # Compatibilidade SAMA sem alterar URL (evita tela vazia por prefixo /garcapet)
+  # Mantém rotas legadas como /pet/edit/:id funcionando diretamente.
+  location ~ ^/(pet|pets|arvore|arvores|sobre|castracao|zoologico|funcionalidade|denunciar|adotar|login|register|user/profile)(?:/.*)?$ {
+    root /opt/backend-public;
+    try_files $uri $uri/ /sama/index.html;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  # Perfil funciona melhor no caminho canônico com prefixo.
+  location = /user/profile {
+    return 302 /garcapet/user/profile;
+  }
+
+  # --------------------------------------------------
+  # GARCAPET (Ajuste de Rota e Estaticos)
+  # --------------------------------------------------
+  location = /garcapet {
+    return 301 /garcapet/;
+  }
+
+  location ^~ /garcapet/ {
+    root /opt/backend-public;
+    rewrite ^/garcapet/(.*)$ /sama/$1 break;
+    index index.html;
+    try_files $uri $uri/ /sama/index.html;
+    add_header X-Debug-Route "garcapet-fix" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  # Suporte para assets que pedem /sama/ ou /semit-a-pet/
+  location ^~ /sama/ {
+    root /opt/backend-public;
+    try_files $uri $uri/ =404;
+  }
+
+  location ^~ /semit-a-pet/ {
+    return 301 /garcapet/;
+  }
+
+  # --------------------------------------------------
+  # GARCA CIDADAO (Next.js + FastAPI)
+  # --------------------------------------------------
+  location ^~ /garca-cidadao-api/ {
+    rewrite ^/garca-cidadao-api/(.*) /$1 break;
+    proxy_pass         http://govcidadao-api:8000;
+    proxy_set_header   Host              $host;
+    proxy_set_header   X-Real-IP         $remote_addr;
+    proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header   X-Forwarded-Proto $scheme;
+  }
+
+  location ^~ /garca-cidadao {
+    proxy_pass         http://govcidadao-frontend:3000;
+    proxy_http_version 1.1;
+    proxy_set_header   Upgrade    $http_upgrade;
+    proxy_set_header   Connection $connection_upgrade;
+    proxy_set_header   Host       $host;
+    proxy_set_header   X-Real-IP  $remote_addr;
+    proxy_redirect     off;
+  }
+
+  # --------------------------------------------------
+  # BACKEND /api
+  # --------------------------------------------------
+  location /api/ {
+    proxy_pass http://api:5000/;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 25m;
+  }
+
+  # APIs de status e imagens
+  location = /health { proxy_pass http://api:5000/health; }
+  location = /readyz { proxy_pass http://api:5000/readyz; }
+  location = /stats  { proxy_pass http://api:5000/stats; }
+  location /images/  { proxy_pass http://api:5000/images/; }
+  location /images_semit_a_pet/ { proxy_pass http://api:5000/images_semit_a_pet/; }
+
+  # Dashboard técnico (compat: alguns acessos chegam com /br/)
+  location = /dashboard.html {
+    alias /opt/backend-public/dashboard.html;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+
+  location = /br/dashboard.html {
+    return 301 /dashboard.html;
+  }
+
+  # --------------------------------------------------
+  # MAPA TURISTICO
+  # --------------------------------------------------
+  # Compatibilidade: alguns acessos chegam com prefixo /br/.
+  # Redireciona para o caminho oficial sem prefixo.
+  location = /br/mapaturistico {
+    return 301 /mapaturistico/;
+  }
+
+  location ^~ /br/mapaturistico/ {
+    rewrite ^/br/mapaturistico/(.*)$ /mapaturistico/$1 permanent;
+  }
+
+  location = /mapaturistico {
+    return 301 /mapaturistico/;
+  }
+
+  location ^~ /mapaturistico/ {
+    proxy_pass http://api:5000/mapaturistico/;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  location = /vacinacao {
+    root /opt/backend-public;
+    try_files /vacinacao/index.html =404;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+  }
+  location = /vacinacao/ { return 302 /vacinacao; }
+  location = /garcapet/vacinacao { return 302 /vacinacao; }
+  location = /garcapet/vacinacao/ { return 302 /vacinacao; }
+
+  # --------------------------------------------------
+  # FLUTTER WEB (Agendamentos, Servicos, etc.)
+  # --------------------------------------------------
+  location ^~ /agendamentos/ {
+    alias /usr/share/nginx/html/agendamentos/;
+    index index.html;
+    try_files $uri $uri/ /agendamentos/index.html =404;
+  }
+
+  location ^~ /servicos/ {
+    alias /usr/share/nginx/html/servicos/;
+    index index.html;
+    try_files $uri $uri/ /servicos/index.html =404;
+  }
+
+  location ^~ /formularios/ {
+    alias /usr/share/nginx/html/formularios/;
+    index index.html;
+    if (!-e $request_filename) { rewrite ^/formularios/.*$ /formularios/index.html last; }
+  }
+
+  location ^~ /iluminacao/ {
+    alias /usr/share/nginx/html/iluminacao/;
+    index index.html;
+    try_files $uri $uri/ /iluminacao/index.html =404;
+  }
+
+  # --------------------------------------------------
+  # VOTACAO
+  # --------------------------------------------------
+  location = /votacao {
+    return 301 /votacao/;
+  }
+
+  location ^~ /votacao/ {
+    proxy_pass http://api:5000/votacao/;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        $connection_upgrade;
+    proxy_redirect off;
+  }
+
+  # --------------------------------------------------
+  # FRONTEND PRINCIPAL (MEMORIAL) NA RAIZ
+  # --------------------------------------------------
+  location / {
+    root /opt/backend-public;
+    index index.html;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # --------------------------------------------------
+  # HEADERS DE SEGURANCA
+  # --------------------------------------------------
+  add_header X-Content-Type-Options nosniff always;
+  add_header X-Frame-Options SAMEORIGIN always;
+  add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+  gzip on;
+  gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+  server_tokens off;
+}
+

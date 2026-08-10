@@ -1,0 +1,243 @@
+/* Complementos visuais — Calendário Escolar (base: EducationAdminPortal.module.css) */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.toolbarText h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--edu-blue-dark, #1c345c);
+}
+
+.toolbarText p {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--edu-text-muted, #5a6b80);
+}
+
+.filterCard {
+  padding: 1rem;
+  background: var(--edu-surface-alt, #eef3fa);
+  border: 1px solid var(--edu-border, #d4e0f0);
+  border-radius: 12px;
+}
+
+.filterGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.searchField {
+  grid-column: 1 / -1;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--edu-text-muted, #5a6b80);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--edu-border, #d4e0f0);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem 0.55rem 2.35rem;
+  font-size: 0.9rem;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: 2px solid rgba(52, 96, 164, 0.25);
+  border-color: var(--edu-blue-main, #3460a4);
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--edu-blue-dark, #1c345c);
+}
+
+.dateSlotsSection {
+  margin-top: 0.5rem;
+}
+
+.dateSlotsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.dateBlock {
+  border: 1px solid var(--edu-border, #d4e0f0);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+  background: #fafcff;
+}
+
+.dateBlockTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--edu-blue-dark, #1c345c);
+}
+
+.timeRow {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  margin-bottom: 0.5rem;
+}
+
+.timeRowActions {
+  padding-bottom: 12px;
+}
+
+.addLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  color: var(--edu-blue-main, #3460a4);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+.addLinkBtn:hover {
+  text-decoration: underline;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusInactive,
+.statusCompleted {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.statusCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.cellTitle {
+  font-weight: 600;
+  color: var(--edu-blue-dark, #1c345c);
+  margin-bottom: 0.2rem;
+}
+
+.cellDesc {
+  font-size: 0.82rem;
+  color: var(--edu-text-muted, #5a6b80);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.slotLines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--edu-text, #1a2840);
+}
+
+.slotLines li + li {
+  margin-top: 0.2rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--edu-text-muted, #5a6b80);
+  border: 1px dashed var(--edu-border, #d4e0f0);
+  border-radius: 10px;
+  background: #fff;
+}
+
+@media (max-width: 1100px) {
+  .filterGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .filterGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timeRow {
+    grid-template-columns: 1fr;
+  }
+
+  .timeRowActions {
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .filterGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.addLinkBtn:focus-visible {
+  outline: 2px solid rgba(52, 96, 164, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

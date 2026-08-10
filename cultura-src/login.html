@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Garça Cultural</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --primary: #ff4757;
+      --primary-hover: #ff6b81;
+      --bg-page: #f8fafc;
+      --bg-form: #ffffff;
+      --text-main: #0f172a;
+      --text-dim: #64748b;
+      --border-color: #e2e8f0;
+      --input-bg: #f1f5f9;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-page);
+      color: var(--text-main);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Subtle background elements for a modern feel */
+    .bg-circle-1 {
+      position: absolute;
+      top: -150px;
+      left: -150px;
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #ff475722, transparent);
+      border-radius: 50%;
+      filter: blur(60px);
+      z-index: 0;
+    }
+
+    .bg-circle-2 {
+      position: absolute;
+      bottom: -200px;
+      right: -100px;
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, #3742fa15, transparent);
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 1100px;
+      min-height: 650px;
+      display: flex;
+      background: var(--bg-form);
+      border-radius: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+      overflow: hidden;
+      margin: 20px;
+      position: relative;
+      z-index: 1;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .auth-image {
+      flex: 1.1;
+      background: url('modal_banner.png') center/cover;
+      position: relative;
+    }
+
+
+    .auth-form-wrapper {
+      flex: 1;
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--bg-form);
+    }
+
+    .auth-header {
+      margin-bottom: 35px;
+    }
+
+    .auth-header h3 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .auth-header p {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-group i, .input-group svg {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      width: 20px;
+      height: 20px;
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 16px 20px 16px 50px;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      background: var(--input-bg);
+      transition: all 0.3s ease;
+      outline: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input-group input::placeholder {
+      color: #94a3b8;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.1);
+    }
+
+    .input-group input:focus + i,
+    .input-group input:focus ~ svg {
+      color: var(--primary);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(255, 71, 87, 0.25);
+      position: relative;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: all 0.5s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      background: var(--primary-hover);
+      box-shadow: 0 12px 25px rgba(255, 71, 87, 0.35);
+    }
+
+    .btn-submit:hover::after {
+      left: 100%;
+    }
+
+    .auth-footer {
+      margin-top: 35px;
+      text-align: center;
+      font-size: 1rem;
+      color: var(--text-dim);
+    }
+
+    .auth-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s;
+      margin-left: 5px;
+    }
+
+    .auth-footer a:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    .back-home {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      color: var(--text-dim);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+      z-index: 10;
+      background: var(--bg-form);
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .back-home:hover {
+      color: var(--text-main);
+      transform: translateX(-5px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+    
+    #message-area {
+      display: none;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-success { 
+      background: #dcfce7; 
+      color: #166534; 
+      border: 1px solid #bbf7d0; 
+    }
+    
+    .msg-error { 
+      background: #fee2e2; 
+      color: #991b1b; 
+      border: 1px solid #fecaca; 
+    }
+
+    @media (max-width: 900px) {
+      .auth-container { flex-direction: column; height: auto; border-radius: 20px; }
+      .auth-image { min-height: 250px; flex: none; }
+      .auth-form-wrapper { padding: 40px 30px; }
+      .back-home { top: 15px; left: 15px; padding: 8px 16px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Decorative background elements -->
+  <div class="bg-circle-1"></div>
+  <div class="bg-circle-2"></div>
+
+  <a href="./index.html" class="back-home">
+    <i data-lucide="arrow-left"></i> Início
+  </a>
+
+  <div class="auth-container">
+    <div class="auth-image">
+    </div>
+    
+    <div class="auth-form-wrapper">
+      <div class="auth-header">
+        <h3>Bem-vindo de volta!</h3>
+        <p>Insira seus dados para continuar.</p>
+      </div>
+
+      <div id="message-area"></div>
+
+      <form id="loginForm">
+        <div class="input-group">
+          <i data-lucide="mail"></i>
+          <input type="email" id="email" placeholder="E-mail" required>
+        </div>
+        
+        <div class="input-group">
+          <i data-lucide="lock"></i>
+          <input type="password" id="senha" placeholder="Senha" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Entrar na Plataforma</button>
+      </form>
+
+      <div class="auth-footer">
+        Ainda não tem conta? <a href="./cadastro.html">Cadastre-se aqui</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      
+      const messageArea = document.getElementById('message-area');
+
+      try {
+        const response = await fetch('http://localhost:3000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, senha })
+        });
+
+        const data = await response.json();
+
+        messageArea.style.display = 'block';
+        if (response.ok) {
+          messageArea.className = 'msg-success';
+          messageArea.textContent = 'Login bem-sucedido! Redirecionando...';
+          
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          setTimeout(() => {
+            if (data.user.isAdmin) {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'painel_usuario.html';
+            }
+          }, 1500);
+        } else {
+          messageArea.className = 'msg-error';
+          messageArea.textContent = data.message || 'Erro ao fazer login.';
+        }
+      } catch (error) {
+        messageArea.style.display = 'block';
+        messageArea.className = 'msg-error';
+        messageArea.textContent = 'Erro ao conectar ao servidor. Verifique se o backend está rodando.';
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>

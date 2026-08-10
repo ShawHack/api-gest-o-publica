@@ -1,0 +1,26 @@
+const getToken = (req) => {
+  const authHeader = req.headers.authorization;
+  
+  // ✅ Validação robusta do cabeçalho Authorization
+  if (!authHeader) {
+    console.log('❌ Cabeçalho Authorization ausente');
+    return null;
+  }
+  
+  if (!authHeader.startsWith('Bearer ')) {
+    console.log('❌ Formato do cabeçalho Authorization incorreto. Esperado: "Bearer <token>"');
+    return null;
+  }
+  
+  const token = authHeader.split(' ')[1];
+  
+  if (!token) {
+    console.log('❌ Token ausente no cabeçalho Authorization');
+    return null;
+  }
+  
+  console.log('✅ Token extraído:', token.substring(0, 20) + '...'); // Log parcial por segurança
+  return token;
+};
+
+module.exports = getToken;

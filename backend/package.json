@@ -1,0 +1,45 @@
+{
+  "name": "semit",
+  "version": "1.0.0",
+  "description": "API SEMIT - backend principal",
+  "license": "MIT",
+  "author": "saulo.lima",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node ./node_modules/nodemon/bin/nodemon.js index.js",
+    "test": "NODE_ENV=test jest --runInBand --forceExit",
+    "test:coverage": "NODE_ENV=test jest --runInBand --forceExit --coverage",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "audit:deps": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "@sentry/node": "^9.47.1",
+    "bcrypt": "^6.0.0",
+    "cheerio": "^1.1.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.1.0",
+    "express-rate-limit": "^8.2.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.16.3",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.6",
+    "open-location-code": "^1.0.3",
+    "pdf-parse": "^1.1.1",
+    "redis": "^4.7.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.0.0"
+  }
+}

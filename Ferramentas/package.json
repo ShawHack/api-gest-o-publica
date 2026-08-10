@@ -1,0 +1,46 @@
+{
+  "name": "caixa_de_ferramentas_semit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint",
+    "test:smoke": "tsx scripts/smoke-convert.ts",
+    "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs','public/pdf.worker.min.mjs')\""
+  },
+  "dependencies": {
+    "docx": "^9.7.1",
+    "heic-convert": "^2.1.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.0",
+    "mongodb": "^6.12.0",
+    "muhammara": "^6.0.5",
+    "next": "16.2.12",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.2.108",
+    "pdfkit": "^0.19.1",
+    "pptxgenjs": "^4.0.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "sharp": "^0.35.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/heic-convert": "^2.1.1",
+    "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "tsx": "^4.23.5",
+    "typescript": "^5"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "sharp@0.35.3": true,
+    "muhammara@6.0.5": true
+  }
+}

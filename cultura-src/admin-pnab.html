@@ -1,0 +1,3842 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="cultura-api.js"></script>
+  <script src="/auth-refresh.js"></script>
+  <script>
+    (async function culturaPnabAdminGuard() {
+      if (!window.CulturaApi || !CulturaApi.getToken()) {
+        window.location.replace('login.html');
+        return;
+      }
+      const ok = await CulturaApi.isCulturaAdmin();
+      if (!ok) window.location.replace('login.html');
+    })();
+  </script>
+  <title>Painel Administrativo PNAB - SECULT</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --sidebar-bg: rgba(15, 23, 42, 0.95);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text-main: #0f172a;
+      --text-dim: #64748b;
+      --accent: linear-gradient(135deg, #ff716e 0%, #f43f5e 100%);
+      --accent-hover: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      --danger: #ef4444;
+      --border: #e2e8f0;
+      --border-focus: #ff716e;
+      --sidebar-width: 280px;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 40px -5px rgba(255, 113, 110, 0.15);
+      --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Rubik', sans-serif;
+    }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      background-image: 
+        radial-gradient(at 0% 0%, hsla(11,100%,75%,0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(348,100%,75%,0.15) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      box-shadow: 4px 0 25px rgba(0,0,0,0.15);
+      z-index: 100;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header {
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #ff716e;
+      letter-spacing: 2px;
+    }
+
+    .nav-menu {
+      margin-top: 25px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 8px;
+      padding: 0 15px;
+    }
+
+    .nav-item {
+      padding: 14px 20px;
+      color: #94a3b8;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      transition: var(--transition);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(5px);
+    }
+
+    .nav-item.active {
+      color: white;
+      background: linear-gradient(135deg, rgba(255,113,110,0.25), transparent);
+      border-left: 4px solid #ff716e;
+      border-radius: 0 12px 12px 0;
+      box-shadow: inset 0 0 20px rgba(255,113,110,0.05);
+    }
+
+    .nav-bottom {
+      padding: 25px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-header {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 25px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .top-header h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .btn-site {
+      background: white;
+      color: var(--text-main);
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      transition: var(--transition);
+      border: 1px solid #e2e8f0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-site:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+      border-color: #cbd5e1;
+    }
+
+    .content-area {
+      padding: 40px 50px;
+      flex: 1;
+    }
+
+    /* TABS */
+    .tab-pane {
+      display: none;
+      animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: #fee2e2;
+      color: #ff716e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .stat-info h3 {
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+
+    .stat-info p {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 35px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(255,255,255,0.8);
+      margin-bottom: 30px;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 12px;
+    }
+
+    /* TABLES */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      text-align: left;
+    }
+
+    .custom-table th {
+      padding: 16px 20px;
+      font-weight: 700;
+      color: var(--text-dim);
+      border-bottom: 2px solid #e2e8f0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .custom-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .custom-table tr:hover td {
+      background: rgba(248, 250, 252, 0.5);
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-slate { background: #f1f5f9; color: #475569; }
+
+    /* FORMS */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group input[type="datetime-local"],
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 18px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+      background: white;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px rgba(255, 113, 110, 0.15);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .sidebar-overlay.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #0f172a;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .menu-toggle:hover { border-color: #ff716e; color: #ff716e; }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .top-header h1 {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 15px rgba(244, 63, 94, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: var(--transition);
+    }
+
+    .upload-zone:hover {
+      border-color: #ff716e;
+      background: white;
+    }
+
+    .upload-zone i {
+      font-size: 2rem;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    /* MEDIA LIBRARY GRID */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .media-card {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+
+    .media-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-sm);
+      border-color: #ff716e;
+    }
+
+    .media-thumb {
+      height: 140px;
+      background: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #e2e8f0;
+    }
+
+    .media-thumb .thumb-fallback {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .media-thumb i {
+      width: 36px;
+      height: 36px;
+      color: #94a3b8;
+    }
+
+    .media-info {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .media-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .media-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    /* TABS INSIDE EDIT EDITOR */
+    .editor-tabs {
+      display: flex;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 25px;
+      gap: 10px;
+    }
+
+    .editor-tab-btn {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-weight: 700;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .editor-tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .editor-tab-btn.active {
+      color: #ff716e;
+      border-bottom-color: #ff716e;
+    }
+
+    .editor-pane {
+      display: none;
+    }
+
+    .editor-pane.active {
+      display: block;
+    }
+    .pnab-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .pnab-cat-card {
+      background: #e8eef5;
+      border-radius: 14px;
+      padding: 18px 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #d5dee8;
+      position: relative;
+      min-height: 170px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .pnab-cat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    }
+    .pnab-cat-card img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      margin-bottom: 12px;
+    }
+    .pnab-cat-card .cat-ico-fallback {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      color: #1d4ed8;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+    .pnab-cat-card h5 {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #334155;
+      line-height: 1.25;
+    }
+    .pnab-cat-card p {
+      margin: 6px 0 0;
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+    .pnab-cat-card .cat-bar {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 8px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1d4ed8, #facc15);
+    }
+    .pnab-cat-card .cat-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .pnab-year-chip {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: #0f172a;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .pnab-year-chip:hover {
+      border-color: #ff716e;
+      box-shadow: 0 6px 16px rgba(255, 113, 110, 0.15);
+    }
+    .pnab-year-chip small {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1100px) {
+      .top-header { padding: 18px 24px; }
+      .content-area { padding: 24px; }
+      .card { padding: 24px; }
+    }
+
+    @media (max-width: 992px) {
+      .menu-toggle { display: inline-flex; }
+
+      .sidebar {
+        transform: translateX(-105%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        width: min(var(--sidebar-width), 86vw);
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .top-header {
+        padding: 14px 16px;
+        gap: 10px;
+      }
+      .top-header h1 { font-size: 1.15rem; }
+      .btn-site {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+      }
+      .btn-site span { display: none; }
+
+      .content-area { padding: 16px; }
+      .card {
+        padding: 18px;
+        border-radius: 18px;
+        margin-bottom: 18px;
+      }
+      .card h3 {
+        font-size: 1.05rem;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+
+      .form-row { grid-template-columns: 1fr; }
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .stat-card { padding: 16px; gap: 12px; }
+      .stat-info h3 { font-size: 1.25rem; }
+
+      .editor-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        gap: 4px;
+        padding-bottom: 2px;
+      }
+      .editor-tab-btn {
+        padding: 10px 14px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .pnab-cat-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .media-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+
+      .custom-table th,
+      .custom-table td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+      }
+
+      #mediaSelectorModal > div,
+      #versionHistoryModal > div {
+        width: 96% !important;
+        max-width: 96% !important;
+        height: 90vh !important;
+        margin: 12px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .top-header h1 { font-size: 1rem; }
+      .form-group .btn,
+      form > .btn,
+      form > div > .btn-primary {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn.btn-sm {
+        width: auto;
+      }
+      .nav-bottom p { word-break: break-word; }
+      .pnab-year-chip { font-size: 1.1rem; padding: 14px 12px; }
+      .sidebar-header h2 { font-size: 1.45rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar { transition: none; }
+      .sidebar-overlay { transition: none; }
+      .tab-pane { animation: none; opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <button type="button" class="sidebar-overlay" id="sidebar-overlay" aria-label="Fechar menu" onclick="closeSidebar()"></button>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="admin-sidebar" aria-label="Menu administrativo PNAB">
+    <div class="sidebar-header" onclick="window.location.href='index.html'">
+      <h2>GARÇA</h2>
+      <span style="font-size: 0.85rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Cidade de Culturas</span>
+      <span style="font-size: 0.7rem; color: #64748b; font-weight: 600; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.1);">PAINEL PNAB</span>
+    </div>
+    
+    <nav class="nav-menu">
+      <a class="nav-item active" onclick="switchTab('overview', this)">
+        <i data-lucide="layout-dashboard"></i> Visão Geral
+      </a>
+      <a class="nav-item" onclick="switchTab('ciclos', this)">
+        <i data-lucide="git-branch"></i> Ciclos PNAB
+      </a>
+      <a class="nav-item" onclick="switchTab('anos', this)">
+        <i data-lucide="calendar"></i> Exercícios (Anos)
+      </a>
+      <a class="nav-item" onclick="switchTab('editais', this)">
+        <i data-lucide="layout-grid"></i> Serviços
+      </a>
+      <a class="nav-item" onclick="switchTab('midias', this)">
+        <i data-lucide="image"></i> Media Library
+      </a>
+      <a class="nav-item" onclick="switchTab('lixeira', this)">
+        <i data-lucide="trash-2"></i> Lixeira (Recycle Bin)
+      </a>
+      <a class="nav-item" onclick="switchTab('auditoria', this)">
+        <i data-lucide="history"></i> Auditoria Logs
+      </a>
+      <a class="nav-item" href="admin.html" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+        <i data-lucide="arrow-left"></i> Painel Geral
+      </a>
+    </nav>
+
+    <div class="nav-bottom">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #334155; display:flex; justify-content:center; align-items:center;">
+          P
+        </div>
+        <div>
+          <p style="font-weight: 600; font-size: 0.9rem;" id="user-display-name">Carregando...</p>
+          <p style="font-size: 0.8rem; color: #94a3b8;">Admin PNAB</p>
+        </div>
+      </div>
+      <a href="login.html" onclick="localStorage.removeItem('user')" style="color: #ef4444; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600;">
+        <i data-lucide="log-out"></i> Encerrar Sessão
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-controls="admin-sidebar" aria-expanded="false" onclick="toggleSidebar()">
+          <i data-lucide="menu"></i>
+        </button>
+        <h1 id="pageTitle">Módulo PNAB — Visão Geral</h1>
+      </div>
+      <a href="pnab.html" target="_blank" class="btn-site" title="Visualizar Portal">
+        <i data-lucide="external-link"></i> <span>Visualizar Portal</span>
+      </a>
+    </header>
+
+    <div class="content-area">
+
+      <!-- TAB: OVERVIEW -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#ede9fe; color:#6d28d9;"><i data-lucide="git-branch"></i></div>
+            <div class="stat-info">
+              <h3 id="stat-ciclos">0</h3>
+              <p>Ciclos PNAB</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i data-lucide="calendar"></i></div>
+            <div class="stat-info">
+              <h3 id="stat-years">0</h3>
+              <p>Exercícios (Anos)</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe; color:#1d4ed8;"><i data-lucide="file-signature"></i></div>
+            <div class="stat-info">
+              <h3 id="stat-editais">0</h3>
+              <p>Editais Ativos</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dcfce7; color:#15803d;"><i data-lucide="files"></i></div>
+            <div class="stat-info">
+              <h3 id="stat-docs">0</h3>
+              <p>Documentos Publicados</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#ffedd5; color:#c2410c;"><i data-lucide="download"></i></div>
+            <div class="stat-info">
+              <h3 id="stat-downloads">0</h3>
+              <p>Downloads Totais</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><i data-lucide="activity"></i> Atividades Recentes (Logs de Alteração)</h3>
+          <div style="overflow-x:auto;">
+            <table class="custom-table" id="table-overview-audit">
+              <thead>
+                <tr>
+                  <th>Usuário</th>
+                  <th>Ação</th>
+                  <th>Tipo</th>
+                  <th>Detalhes</th>
+                  <th>Data/Hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5">Carregando logs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: CICLOS -->
+      <section id="tab-ciclos" class="tab-pane">
+        <div class="form-row">
+          <div class="card">
+            <h3 id="cicloFormTitle"><i data-lucide="plus-circle"></i> Novo Ciclo PNAB</h3>
+            <p style="color:#64748b; font-size:0.9rem; margin:-8px 0 16px;">
+              Cada <strong>ciclo</strong> é a unidade principal (ex.: Ciclo 1 = 2023–2024). Ao criar, o sistema gera as áreas padrão (PAAR, Audiências, Editais, Inscrições, Seleção, Execução, Monitoramento, Prestação de Contas).
+            </p>
+            <form id="cicloForm">
+              <input type="hidden" id="ciclo-id">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Código do ciclo</label>
+                  <input type="number" id="ciclo-codigo" placeholder="1" min="1" required>
+                </div>
+                <div class="form-group">
+                  <label>Nome</label>
+                  <input type="text" id="ciclo-nome" placeholder="Ciclo 1" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Subtítulo</label>
+                <input type="text" id="ciclo-subtitulo" placeholder="Repasses 2023–2024">
+              </div>
+              <div class="form-group">
+                <label>Descrição pública</label>
+                <textarea id="ciclo-descricao" rows="4" placeholder="Texto do ciclo no portal"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Anos abrangidos (separados por vírgula)</label>
+                  <input type="text" id="ciclo-anos" placeholder="2023, 2024">
+                </div>
+                <div class="form-group">
+                  <label>Decreto / norma de referência</label>
+                  <input type="text" id="ciclo-decreto" placeholder="Decreto nº 12.409/2025">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Status</label>
+                  <select id="ciclo-status">
+                    <option value="planejamento">Planejamento</option>
+                    <option value="em_execucao">Em execução</option>
+                    <option value="monitoramento">Monitoramento</option>
+                    <option value="prestacao_contas">Prestação de contas</option>
+                    <option value="encerrado">Encerrado</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Ordem</label>
+                  <input type="number" id="ciclo-ordem" value="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Requisitos para o ciclo seguinte</label>
+                <textarea id="ciclo-requisitos" rows="3" placeholder="Ex.: executar ao menos 60% dos recursos e comprovar investimento próprio em cultura…"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Capa / Banner do ciclo</label>
+                <input type="text" id="ciclo-bannerUrl" placeholder="https://... ou /uploads/pnab/...">
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top:5px;" onclick="openMediaSelector('ciclo-bannerUrl')">Escolher da Biblioteca</button>
+                <small style="color:#64748b; display:block; margin-top:4px;">Pode colar o link ou escolher na biblioteca.</small>
+              </div>
+              <div class="form-group" id="ciclo-seed-wrap" style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="ciclo-seedAreas" checked style="transform:scale(1.2);">
+                <label style="margin:0;" for="ciclo-seedAreas">Ao criar, gerar áreas padrão automaticamente</label>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Ciclo</button>
+                <button type="button" class="btn btn-secondary" onclick="clearCicloForm()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3><i data-lucide="list"></i> Ciclos cadastrados</h3>
+            <div style="overflow-x:auto;">
+              <table class="custom-table" id="table-ciclos">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Anos</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="ciclo-drill-panel" style="margin-top:20px; display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+            <div>
+              <h3 style="margin:0;"><i data-lucide="folder-tree"></i> <span id="ciclo-drill-title">Ciclo</span></h3>
+              <p style="color:#64748b; font-size:0.9rem; margin:6px 0 0;">Fluxo: <strong>Ciclo → Ano → Categorias (cards) → PDFs</strong></p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeCicloDrillPanel()">Fechar</button>
+          </div>
+
+          <div id="ciclo-breadcrumb" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px; font-size:0.9rem;">
+            <span class="badge badge-blue" id="bc-ciclo">Ciclo</span>
+            <span>›</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="bc-ano" style="display:none;" onclick="backToCicloAnos()"></button>
+            <span id="bc-ano-sep" style="display:none;">›</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="bc-cat" style="display:none;" onclick="backToCicloCategorias()"></button>
+          </div>
+
+          <div id="drill-anos">
+            <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+              <h4 style="margin:0;">Anos deste ciclo</h4>
+              <form id="cicloAnoForm" style="display:flex; gap:8px; flex-wrap:wrap; align-items:end;">
+                <div class="form-group" style="margin:0; min-width:120px;">
+                  <label style="font-size:0.75rem;">Ano</label>
+                  <input type="text" id="ciclo-ano-nome" placeholder="2024" required style="padding:8px 10px;">
+                </div>
+                <div class="form-group" style="margin:0; min-width:180px;">
+                  <label style="font-size:0.75rem;">Descrição</label>
+                  <input type="text" id="ciclo-ano-desc" placeholder="Opcional" style="padding:8px 10px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Adicionar ano</button>
+              </form>
+            </div>
+            <div id="ciclo-anos-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px;"></div>
+          </div>
+
+          <div id="drill-categorias" style="display:none;">
+            <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+              <h4 style="margin:0;">Categorias de documentos (cards)</h4>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="seedCategoriasPadrao()">Gerar cards padrão</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="showNovaCategoriaForm()">Nova categoria</button>
+              </div>
+            </div>
+            <form id="categoriaForm" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:16px;">
+              <input type="hidden" id="cat-id">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Título do card</label>
+                  <input type="text" id="cat-titulo" placeholder="EDITAIS" required>
+                </div>
+                <div class="form-group">
+                  <label>Subtítulo</label>
+                  <input type="text" id="cat-subtitulo" placeholder="Histórico e Informes">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Ícone (URL da biblioteca)</label>
+                <input type="text" id="cat-iconeUrl" readonly style="background:#f1f5f9;" placeholder="/uploads/pnab/...">
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top:5px;" onclick="openMediaSelector('cat-iconeUrl')">Escolher ícone</button>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Ordem</label>
+                  <input type="number" id="cat-ordem" value="0">
+                </div>
+                <div class="form-group" style="display:flex; align-items:center; gap:10px; padding-top:22px;">
+                  <input type="checkbox" id="cat-publicado" style="transform:scale(1.2);">
+                  <label style="margin:0;" for="cat-publicado">Publicado no portal</label>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary">Salvar categoria</button>
+                <button type="button" class="btn btn-secondary" onclick="hideCategoriaForm()">Cancelar</button>
+              </div>
+            </form>
+            <div id="categorias-cards-grid" class="pnab-cat-grid"></div>
+          </div>
+
+          <div id="drill-docs" style="display:none;">
+            <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; align-items:center;">
+              <h4 style="margin:0;">PDFs — <span id="docs-cat-title">Categoria</span></h4>
+              <input type="search" id="docs-busca" placeholder="Buscar por título, tipo..." style="min-width:220px; padding:10px 12px; border-radius:10px; border:2px solid var(--border);">
+            </div>
+            <form id="docUploadForm" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:16px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Título do documento</label>
+                  <input type="text" id="cat-doc-titulo" placeholder="Ex.: Edital 01/2024" required>
+                </div>
+                <div class="form-group">
+                  <label>Tipo</label>
+                  <select id="cat-doc-tipo">
+                    <option value="Anexo">Anexo</option>
+                    <option value="Edital">Edital</option>
+                    <option value="Modelo">Modelo</option>
+                    <option value="Resultado">Resultado</option>
+                    <option value="Prestação de Contas">Prestação de Contas</option>
+                    <option value="PAAR">PAAR</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Arquivo (upload)</label>
+                <input type="file" id="cat-doc-file" accept="application/pdf,.pdf,image/*,.doc,.docx,.xls,.xlsx">
+                <small style="color:#64748b; display:block; margin-top:4px;">Opcional se você informar o link abaixo.</small>
+              </div>
+              <div class="form-group">
+                <label>Ou link do arquivo</label>
+                <input type="text" id="cat-doc-url" placeholder="https://... ou /uploads/pnab/...">
+                <small style="color:#64748b; display:block; margin-top:4px;">Use upload <strong>ou</strong> link (se ambos, o upload tem prioridade).</small>
+              </div>
+              <button type="submit" class="btn btn-primary">Cadastrar documento</button>
+            </form>
+            <div style="overflow-x:auto;">
+              <table class="custom-table" id="table-cat-docs">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: ANOS -->
+      <section id="tab-anos" class="tab-pane">
+        <div class="form-row">
+          <div class="card">
+            <h3 id="yearFormTitle"><i data-lucide="plus-circle"></i> Cadastrar Exercício (Ano)</h3>
+            <p style="color:#64748b; font-size:0.9rem; margin:-8px 0 16px;">No portal, cada ano mostra a <strong>capa (banner)</strong> e a <strong>descrição</strong>. Depois vêm os <strong>serviços</strong> (cards) com documentos.</p>
+            <form id="yearForm">
+              <input type="hidden" id="year-id">
+              <div class="form-group">
+                <label>Ano (Ex: 2025)</label>
+                <input type="text" id="year-nome" placeholder="2025" required>
+              </div>
+              <div class="form-group">
+                <label>Descrição (aparece no portal do exercício)</label>
+                <textarea id="year-descricao" placeholder="Texto público explicando o exercício PNAB deste ano" rows="4"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Status</label>
+                  <select id="year-status">
+                    <option value="ativo">Ativo</option>
+                    <option value="inativo">Inativo</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Ordem de Exibição</label>
+                  <input type="number" id="year-ordem" value="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Capa / Banner (imagem de topo do ano)</label>
+                <input type="text" id="year-bannerUrl" placeholder="/uploads/pnab/..." readonly style="background:#f1f5f9;">
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top:5px;" onclick="openMediaSelector('year-bannerUrl')">Escolher da Biblioteca</button>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Exercício</button>
+                <button type="button" class="btn btn-secondary" onclick="clearYearForm()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3><i data-lucide="list"></i> Exercícios Cadastrados</h3>
+            <div style="overflow-x:auto;">
+              <table class="custom-table" id="table-years">
+                <thead>
+                  <tr>
+                    <th>Ano</th>
+                    <th>Status</th>
+                    <th>Ordem</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: EDITAIS -->
+      <section id="tab-editais" class="tab-pane">
+        <!-- LIST OF EDITAIS -->
+        <div id="edital-list-view">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:15px; flex-wrap:wrap;">
+            <div style="display:flex; gap:10px; flex:1; min-width:280px;">
+              <input type="text" id="search-editais" placeholder="Buscar serviço..." style="flex:1; padding:10px 15px; border-radius:10px; border:2px solid var(--border); outline:none;">
+              <select id="filter-year-editais" style="padding:10px; border-radius:10px; border:2px solid var(--border);">
+                <option value="">Todos os anos</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="showCreateEditalForm()">
+              <i data-lucide="plus-circle"></i> Criar Serviço
+            </button>
+          </div>
+
+          <div class="card">
+            <h3><i data-lucide="layout-grid"></i> Serviços (cards do portal)</h3>
+            <div style="overflow-x:auto;">
+              <table class="custom-table" id="table-editais">
+                <thead>
+                  <tr>
+                    <th>Serviço</th>
+                    <th>Exercício</th>
+                    <th>Programa</th>
+                    <th>Status</th>
+                    <th>Workflow</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CREATE/EDIT EDITAL FORM -->
+        <div id="edital-editor-view" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h2 id="editorTitle">Cadastrar Novo Serviço</h2>
+            <button class="btn btn-secondary" onclick="backToEditaisList()"><i data-lucide="arrow-left"></i> Voltar à Lista</button>
+          </div>
+
+          <!-- EDITOR TABS -->
+          <div class="editor-tabs">
+            <button class="editor-tab-btn active" onclick="switchEditorTab('edital-geral', this)">Geral</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-documentos', this)">Documentos</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-cronograma', this)">Cronograma</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-comunicados', this)">Comunicados</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-faq', this)">FAQ</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-legislacao', this)">Legislação</button>
+            <button class="editor-tab-btn edital-linked" onclick="switchEditorTab('edital-noticias', this)">Notícias</button>
+          </div>
+
+          <!-- SUB-PANE: GENERAL -->
+          <div id="editor-edital-geral" class="editor-pane active">
+            <form id="editalForm">
+              <input type="hidden" id="ed-id">
+              <div class="card">
+                <div class="form-group">
+                  <label>Título do Serviço (card no portal)</label>
+                  <input type="text" id="ed-titulo" placeholder="Ex: Prestação de Contas — Chamada 01/2025" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Exercício (Ano)</label>
+                    <select id="ed-ano" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Programa</label>
+                    <select id="ed-programa" required>
+                      <option value="PNAB">PNAB</option>
+                      <option value="Lei Aldir Blanc">Lei Aldir Blanc</option>
+                      <option value="Cultura Viva">Cultura Viva</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Descrição do serviço</label>
+                  <textarea id="ed-descricao" placeholder="Texto do card / orientações do serviço" rows="6" required></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Status do Edital (Público)</label>
+                    <select id="ed-statusEdital">
+                      <option value="Aberto">Aberto</option>
+                      <option value="Em Análise">Em Análise</option>
+                      <option value="Resultado Preliminar">Resultado Preliminar</option>
+                      <option value="Finalizado">Finalizado</option>
+                      <option value="Prorrogado">Prorrogado</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Status do Fluxo (Workflow Interno)</label>
+                    <select id="ed-statusWorkflow">
+                      <option value="Em elaboração">Em elaboração</option>
+                      <option value="Rascunho">Rascunho</option>
+                      <option value="Aguardando revisão">Aguardando revisão</option>
+                      <option value="Publicado">Publicado</option>
+                      <option value="Arquivado">Arquivado</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Agendar Publicação</label>
+                    <input type="datetime-local" id="ed-dataPublicacao">
+                  </div>
+                  <div class="form-group">
+                    <label>Ordem</label>
+                    <input type="number" id="ed-ordem" value="0">
+                  </div>
+                </div>
+                <div class="form-row" style="align-items:center;">
+                  <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="ed-destacado" style="transform:scale(1.3);">
+                    <label style="margin:0;">Destacar Serviço na Página Inicial</label>
+                  </div>
+                  <div class="form-group">
+                    <label>Tags (Separadas por vírgula)</label>
+                    <input type="text" id="ed-tags" placeholder="audiovisual, fomento, edital">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Imagem de Capa (URL)</label>
+                  <input type="text" id="ed-imagemUrl" placeholder="/uploads/pnab/..." readonly style="background:#f1f5f9;">
+                  <button type="button" class="btn btn-secondary btn-sm" style="margin-top:5px;" onclick="openMediaSelector('ed-imagemUrl')">Escolher da Biblioteca</button>
+                </div>
+                <div class="form-group">
+                  <label>Observações Internas (Não aparecem no portal)</label>
+                  <textarea id="ed-observacoes" placeholder="Anotações para os revisores da SECULT..." rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Salvar Dados Gerais</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- SUB-PANE: DOCUMENTOS -->
+          <div id="editor-edital-documentos" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="docFormTitle"><i data-lucide="file-plus"></i> Adicionar Documento</h3>
+                <form id="documentForm">
+                  <input type="hidden" id="doc-id">
+                  <div class="form-group">
+                    <label>Título do Documento</label>
+                    <input type="text" id="doc-titulo" placeholder="Ex: Anexo I - Ficha de Inscrição" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Descrição</label>
+                    <input type="text" id="doc-descricao" placeholder="Opcional">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Tipo de Documento</label>
+                      <select id="doc-tipo">
+                        <option value="Edital">Edital Principal</option>
+                        <option value="Anexo">Anexo</option>
+                        <option value="Modelo">Modelo de Anexo</option>
+                        <option value="Errata">Errata</option>
+                        <option value="Resultado">Resultado</option>
+                        <option value="Ata">Ata de Reunião</option>
+                        <option value="Parecer">Parecer Técnico</option>
+                        <option value="Prestação de Contas">Prestação de Contas</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Versão</label>
+                      <input type="text" id="doc-versao" placeholder="1.0">
+                    </div>
+                  </div>
+                  <div class="form-group" id="doc-file-group">
+                    <label>Enviar Arquivo (PDF, Word, etc.)</label>
+                    <input type="file" id="doc-file">
+                    <small style="color:#64748b; display:block; margin-top:4px;">Opcional se você informar o link abaixo. Na edição, deixe vazio para manter o arquivo atual.</small>
+                  </div>
+                  <div class="form-group">
+                    <label>Ou link do arquivo</label>
+                    <input type="text" id="doc-arquivoUrl" placeholder="https://... ou /uploads/pnab/...">
+                    <small style="color:#64748b; display:block; margin-top:4px;">Use upload <strong>ou</strong> link (se ambos, o upload tem prioridade).</small>
+                  </div>
+                  <div class="form-group" id="doc-edit-notes" style="display:none;">
+                    <label>Nota de Alteração (Versão Histórica)</label>
+                    <input type="text" id="doc-desc-alteracao" placeholder="Ex: Corrigido erro de digitação na cláusula 4">
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Documento</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearDocumentForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="files"></i> Documentos Cadastrados</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-docs">
+                    <thead>
+                      <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Versão</th>
+                        <th>Downloads</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANE: CRONOGRAMA -->
+          <div id="editor-edital-cronograma" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="cronFormTitle"><i data-lucide="calendar"></i> Adicionar Evento / Cronograma</h3>
+                <form id="cronogramaForm">
+                  <input type="hidden" id="cron-id">
+                  <div class="form-group">
+                    <label>Data / Período (Ex: 10/08/2025 ou De 01 a 15/09)</label>
+                    <input type="text" id="cron-data" placeholder="15/08/2025" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Evento (Nome da Fase)</label>
+                    <input type="text" id="cron-evento" placeholder="Período de Inscrições" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Descrição do Evento</label>
+                    <textarea id="cron-descricao" placeholder="Opcional" rows="2"></textarea>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Status</label>
+                      <select id="cron-status">
+                        <option value="Agendado">Agendado</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Realizado">Realizado</option>
+                        <option value="Prorrogado">Prorrogado</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Ordem de Exibição</label>
+                      <input type="number" id="cron-ordem" value="0">
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Evento</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearCronForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="list"></i> Timeline do Edital</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-cron">
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Fase/Evento</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANE: COMUNICADOS -->
+          <div id="editor-edital-comunicados" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="comFormTitle"><i data-lucide="megaphone"></i> Novo Comunicado / Errata</h3>
+                <form id="comunicadoForm">
+                  <input type="hidden" id="com-id">
+                  <div class="form-group">
+                    <label>Título do Comunicado</label>
+                    <input type="text" id="com-titulo" placeholder="Ex: Prorrogação do prazo de recurso" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Conteúdo / Texto explicativo</label>
+                    <textarea id="com-descricao" placeholder="Escreva o aviso para os cidadãos..." rows="5" required></textarea>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Início da Exibição</label>
+                      <input type="date" id="com-dataInicio">
+                    </div>
+                    <div class="form-group">
+                      <label>Fim da Exibição (Opcional)</label>
+                      <input type="date" id="com-dataFim">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Status (Workflow)</label>
+                      <select id="com-statusWorkflow">
+                        <option value="Rascunho">Rascunho</option>
+                        <option value="Publicado">Publicado</option>
+                        <option value="Arquivado">Arquivado</option>
+                      </select>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-top:28px;">
+                      <input type="checkbox" id="com-fixado" style="transform:scale(1.2);">
+                      <label style="margin:0;">Fixar no topo</label>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Anexar Imagem Explicativa (Opcional)</label>
+                    <input type="file" id="com-file">
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Comunicado</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearComForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="megaphone"></i> Comunicados Ativos</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-comunicados">
+                    <thead>
+                      <tr>
+                        <th>Título</th>
+                        <th>Fixado</th>
+                        <th>Workflow</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANE: FAQ -->
+          <div id="editor-edital-faq" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="faqFormTitle"><i data-lucide="help-circle"></i> Adicionar Pergunta & Resposta</h3>
+                <form id="faqForm">
+                  <input type="hidden" id="faq-id">
+                  <div class="form-group">
+                    <label>Pergunta</label>
+                    <input type="text" id="faq-pergunta" placeholder="Ex: Quem pode concorrer como Pessoa Jurídica?" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Resposta</label>
+                    <textarea id="faq-resposta" placeholder="Resposta explicativa" rows="4" required></textarea>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Categoria</label>
+                      <input type="text" id="faq-categoria" placeholder="Inscrição, Recurso, Geral">
+                    </div>
+                    <div class="form-group">
+                      <label>Ordem</label>
+                      <input type="number" id="faq-ordem" value="0">
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Pergunta</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearFaqForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="help-circle"></i> Perguntas Frequentes do Edital</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-faq">
+                    <thead>
+                      <tr>
+                        <th>Pergunta</th>
+                        <th>Categoria</th>
+                        <th>Ordem</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANE: LEGISLAÇÃO -->
+          <div id="editor-edital-legislacao" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="legFormTitle"><i data-lucide="scale"></i> Vincular Legislação Oficial</h3>
+                <form id="legislacaoForm">
+                  <input type="hidden" id="leg-id">
+                  <div class="form-group">
+                    <label>Título / Nome Oficial</label>
+                    <input type="text" id="leg-titulo" placeholder="Ex: Decreto Municipal Nº 5.432/2024" required>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Tipo de Norma</label>
+                      <select id="leg-tipo">
+                        <option value="Lei">Lei</option>
+                        <option value="Decreto">Decreto</option>
+                        <option value="Portaria">Portaria</option>
+                        <option value="Resolução">Resolução</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Cartilha">Cartilha</option>
+                        <option value="Normativa">Normativa</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Link Oficial Externo</label>
+                      <input type="text" id="leg-linkOficial" placeholder="http://legislacao.garca.sp.gov.br/...">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Ou Enviar Arquivo Local (PDF)</label>
+                    <input type="file" id="leg-file">
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Legislação</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearLegForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="scale"></i> Normas Associadas</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-legislacao">
+                    <thead>
+                      <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-PANE: NOTÍCIAS -->
+          <div id="editor-edital-noticias" class="editor-pane">
+            <div class="form-row">
+              <div class="card">
+                <h3 id="noticiaFormTitle"><i data-lucide="newspaper"></i> Criar Notícia Associada</h3>
+                <form id="noticiaForm">
+                  <input type="hidden" id="not-id">
+                  <div class="form-group">
+                    <label>Título da Notícia</label>
+                    <input type="text" id="not-titulo" placeholder="Ex: Divulgado o resultado provisório da PNAB" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Resumo / Subtítulo</label>
+                    <input type="text" id="not-resumo" placeholder="Uma linha resumindo a publicação">
+                  </div>
+                  <div class="form-group">
+                    <label>Texto da Notícia</label>
+                    <textarea id="not-texto" placeholder="Escreva o texto completo da notícia..." rows="6" required></textarea>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Tags (separadas por vírgula)</label>
+                      <input type="text" id="not-tags" placeholder="resultado, pnab, audiovisual">
+                    </div>
+                    <div class="form-group">
+                      <label>Status (Workflow)</label>
+                      <select id="not-statusWorkflow">
+                        <option value="Rascunho">Rascunho</option>
+                        <option value="Publicado">Publicado</option>
+                        <option value="Arquivado">Arquivado</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Imagem de Destaque</label>
+                    <input type="file" id="not-file">
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Notícia</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearNoticiaForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card">
+                <h3><i data-lucide="newspaper"></i> Notícias Publicadas</h3>
+                <div style="overflow-x:auto;">
+                  <table class="custom-table" id="table-edital-noticias">
+                    <thead>
+                      <tr>
+                        <th>Título</th>
+                        <th>Workflow</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: MEDIA LIBRARY -->
+      <section id="tab-midias" class="tab-pane">
+        <div class="form-row" style="margin-bottom:30px;">
+          <div class="card">
+            <h3><i data-lucide="upload-cloud"></i> Enviar Arquivos (Upload Inteligente)</h3>
+            <form id="mediaUploadForm">
+              <div class="form-group">
+                <label>Categoria do Arquivo</label>
+                <select id="media-upload-cat">
+                  <option value="PDF">Documento PDF</option>
+                  <option value="Word">Documento Word (.doc, .docx)</option>
+                  <option value="Planilhas">Planilha (.xls, .xlsx, .ods)</option>
+                  <option value="ZIP">Compactado (.zip, .rar)</option>
+                  <option value="Imagem">Imagem (.png, .jpg, .webp)</option>
+                  <option value="Vídeo">Vídeo (.mp4)</option>
+                  <option value="Áudio">Áudio (.mp3)</option>
+                  <option value="SVG">Vetor (.svg)</option>
+                </select>
+              </div>
+              <div class="upload-zone" onclick="document.getElementById('library-file').click()">
+                <i data-lucide="file-up"></i>
+                <p>Clique ou arraste o arquivo aqui para enviar</p>
+                <span id="upload-filename-display" style="font-weight:700; color:#ea580c; display:block; margin-top:10px;"></span>
+                <input type="file" id="library-file" style="display:none;" onchange="document.getElementById('upload-filename-display').textContent = this.files[0] ? this.files[0].name : ''">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%; margin-top:15px;">Enviar para a Biblioteca</button>
+            </form>
+          </div>
+          <div class="card" style="flex:2;">
+            <h3><i data-lucide="search"></i> Buscar e Filtrar Arquivos</h3>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+              <input type="text" id="search-media" placeholder="Buscar por nome original..." style="flex:1; padding:10px 15px; border-radius:10px; border:2px solid var(--border); outline:none;">
+              <select id="filter-media-cat" style="padding:10px; border-radius:10px; border:2px solid var(--border);">
+                <option value="">Todas as categorias</option>
+                <option value="PDF">PDF</option>
+                <option value="Word">Word</option>
+                <option value="Planilhas">Planilhas</option>
+                <option value="ZIP">ZIP</option>
+                <option value="Imagem">Imagem</option>
+                <option value="Vídeo">Vídeo</option>
+              </select>
+            </div>
+            
+            <div class="media-grid" id="media-library-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: RECYCLE BIN -->
+      <section id="tab-lixeira" class="tab-pane">
+        <div class="card">
+          <h3><i data-lucide="trash-2"></i> Itens Removidos (Lixeira - Soft Delete)</h3>
+          <p style="color:var(--text-dim); margin-bottom:20px;">Os conteúdos listados aqui foram removidos das visualizações normais, mas podem ser restaurados a qualquer momento.</p>
+          <div style="overflow-x:auto;">
+            <table class="custom-table" id="table-lixeira">
+              <thead>
+                <tr>
+                  <th>Nome/Título</th>
+                  <th>Tipo do Conteúdo</th>
+                  <th>Origem/Detalhes</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4">Carregando lixeira...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: AUDITORIA -->
+      <section id="tab-auditoria" class="tab-pane">
+        <div class="card">
+          <h3><i data-lucide="history"></i> Logs de Auditoria do Módulo</h3>
+          <p style="color:var(--text-dim); margin-bottom:20px;">Histórico de todas as ações de criação, edição, duplicação, exclusão e restauração executadas na plataforma.</p>
+          <div style="overflow-x:auto;">
+            <table class="custom-table" id="table-auditoria">
+              <thead>
+                <tr>
+                  <th>Usuário</th>
+                  <th>E-mail</th>
+                  <th>Ação executada</th>
+                  <th>Tipo do Conteúdo</th>
+                  <th>Data e Hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5">Carregando logs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- REUSABLE MEDIA SELECTOR MODAL -->
+  <div id="mediaSelectorModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:20px; width:80%; max-width:800px; padding:30px; max-height:85vh; display:flex; flex-direction:column;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3>Escolher Arquivo da Biblioteca</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeMediaSelector()">Fechar</button>
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <input type="text" id="search-selector-media" placeholder="Buscar por nome..." style="flex:1; padding:8px 12px; border-radius:8px; border:2px solid var(--border); outline:none;">
+        <select id="filter-selector-media-cat" style="padding:8px; border-radius:8px; border:2px solid var(--border);">
+          <option value="">Todas as mídias</option>
+          <option value="Imagem">Imagem</option>
+          <option value="PDF">PDF</option>
+        </select>
+      </div>
+      <div class="media-grid" id="selector-media-grid" style="overflow-y:auto; flex:1; padding-bottom:10px;">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSIONING HISTORY MODAL FOR DOCUMENT -->
+  <div id="versionHistoryModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:20px; width:90%; max-width:700px; padding:30px; max-height:80vh; display:flex; flex-direction:column;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 id="versionModalTitle">Histórico de Versões do Documento</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeVersionModal()">Fechar</button>
+      </div>
+      <div style="overflow-y:auto; flex:1;">
+        <table class="custom-table" id="table-document-versions">
+          <thead>
+            <tr>
+              <th>Versão</th>
+              <th>Nota de Alteração</th>
+              <th>Enviado por</th>
+              <th>Data Envio</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    document.getElementById('user-display-name').textContent = currentUser.nome || currentUser.name || 'Administrador';
+
+    function getHeaders() {
+      return CulturaApi.authHeaders();
+    }
+    function getUploadHeaders() {
+      const headers = {};
+      const token = CulturaApi.getToken();
+      if (token) headers.Authorization = 'Bearer ' + token;
+      return headers;
+    }
+
+    // -------------------------------------------------------------------------
+    // TAB SWITCHING
+    // -------------------------------------------------------------------------
+    window.switchTab = function(tabName, element) {
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+
+      // Change Header Title
+      const titleMap = {
+        overview: 'Módulo PNAB — Visão Geral',
+        ciclos: 'Módulo PNAB — Ciclos de execução',
+        anos: 'Módulo PNAB — Exercícios (Anos)',
+        editais: 'Módulo PNAB — Serviços (cards)',
+        midias: 'Módulo PNAB — Biblioteca de Mídias',
+        lixeira: 'Módulo PNAB — Lixeira',
+        auditoria: 'Módulo PNAB — Auditoria do Sistema'
+      };
+      document.getElementById('pageTitle').textContent = titleMap[tabName] || 'Painel PNAB';
+
+      // Load specific tab data
+      if (tabName === 'overview') loadOverviewStats();
+      else if (tabName === 'ciclos') loadCiclos();
+      else if (tabName === 'anos') loadYears();
+      else if (tabName === 'editais') loadEditaisTab();
+      else if (tabName === 'midias') loadMediaLibrary();
+      else if (tabName === 'lixeira') loadRecycleBin();
+      else if (tabName === 'auditoria') loadAuditLogs();
+
+      closeSidebar();
+    };
+
+    window.toggleSidebar = function () {
+      const sidebar = document.getElementById('admin-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const toggle = document.getElementById('menu-toggle');
+      const open = !sidebar.classList.contains('open');
+      sidebar.classList.toggle('open', open);
+      overlay.classList.toggle('visible', open);
+      if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    window.closeSidebar = function () {
+      const sidebar = document.getElementById('admin-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const toggle = document.getElementById('menu-toggle');
+      if (!sidebar) return;
+      sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('visible');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    };
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 992) closeSidebar();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSidebar();
+    });
+
+    // -------------------------------------------------------------------------
+    // 1. OVERVIEW DATA
+    // -------------------------------------------------------------------------
+    async function loadOverviewStats() {
+      try {
+        const ciclosRes = await fetch('/api/pnab/ciclos');
+        const ciclos = await ciclosRes.json();
+        const statCiclos = document.getElementById('stat-ciclos');
+        if (statCiclos) statCiclos.textContent = Array.isArray(ciclos) ? ciclos.length : 0;
+
+        const yearsRes = await fetch('/api/pnab/anos');
+        const years = await yearsRes.json();
+        document.getElementById('stat-years').textContent = years.length;
+
+        const editRes = await fetch('/api/pnab/editais', { headers: getHeaders() });
+        const editais = await editRes.json();
+        document.getElementById('stat-editais').textContent = editais.length;
+
+        const docsRes = await fetch('/api/pnab/documentos');
+        const docs = await docsRes.json();
+        document.getElementById('stat-docs').textContent = docs.length;
+
+        let totalDls = 0;
+        docs.forEach(d => totalDls += (d.downloadsCount || 0));
+        document.getElementById('stat-downloads').textContent = totalDls;
+
+        // Render mini audit logs
+        const auditRes = await fetch('/api/pnab/auditoria', { headers: getHeaders() });
+        const audits = await auditRes.json();
+        const tbody = document.querySelector('#table-overview-audit tbody');
+        tbody.innerHTML = '';
+        
+        audits.slice(0, 5).forEach(log => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${log.userName}</strong></td>
+              <td><span class="badge ${log.action === 'CREATE' ? 'badge-green' : log.action === 'UPDATE' ? 'badge-blue' : 'badge-red'}">${log.action}</span></td>
+              <td>${log.contentType}</td>
+              <td>${log.details || ''}</td>
+              <td>${new Date(log.timestamp).toLocaleString('pt-BR')}</td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error('Erro no dashboard:', err);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 1b. CICLOS PNAB CRUD
+    // -------------------------------------------------------------------------
+    let ciclosList = [];
+    let currentCicloId = null;
+
+    const CICLO_STATUS_LABEL = {
+      planejamento: 'Planejamento',
+      em_execucao: 'Em execução',
+      monitoramento: 'Monitoramento',
+      prestacao_contas: 'Prestação de contas',
+      encerrado: 'Encerrado',
+    };
+
+    async function loadCiclos() {
+      try {
+        const res = await fetch('/api/pnab/ciclos');
+        ciclosList = await res.json();
+        const tbody = document.querySelector('#table-ciclos tbody');
+        tbody.innerHTML = '';
+
+        if (!ciclosList.length) {
+          tbody.innerHTML = '<tr><td colspan="5">Nenhum ciclo cadastrado. Use o formulário ao lado para criar o Ciclo 1, 2, 3…</td></tr>';
+          return;
+        }
+
+        ciclosList.forEach((c) => {
+          const anos = Array.isArray(c.anosAbrangidos) ? c.anosAbrangidos.join(', ') : '—';
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${c.codigo}</strong></td>
+              <td>
+                <strong>${c.nome || ''}</strong>
+                ${c.subtitulo ? `<div style="font-size:0.8rem;color:#64748b;">${c.subtitulo}</div>` : ''}
+              </td>
+              <td><span class="badge badge-blue">${CICLO_STATUS_LABEL[c.status] || c.status || '—'}</span></td>
+              <td>${anos || '—'}</td>
+              <td style="white-space:nowrap;">
+                <button class="btn btn-secondary btn-sm" onclick="editCiclo('${c._id}')" title="Editar"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-secondary btn-sm" onclick="openCicloDrill('${c._id}')" title="Anos, categorias e PDFs"><i data-lucide="folder-tree" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCiclo('${c._id}')" title="Excluir"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro ao carregar ciclos.', 'error');
+      }
+    }
+
+    document.getElementById('cicloForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('ciclo-id').value;
+      const body = {
+        codigo: Number(document.getElementById('ciclo-codigo').value),
+        nome: document.getElementById('ciclo-nome').value.trim(),
+        subtitulo: document.getElementById('ciclo-subtitulo').value.trim(),
+        descricao: document.getElementById('ciclo-descricao').value.trim(),
+        anosAbrangidos: document.getElementById('ciclo-anos').value,
+        decretoReferencia: document.getElementById('ciclo-decreto').value.trim(),
+        status: document.getElementById('ciclo-status').value,
+        ordem: Number(document.getElementById('ciclo-ordem').value) || 0,
+        requisitosProximoCiclo: document.getElementById('ciclo-requisitos').value.trim(),
+        bannerUrl: document.getElementById('ciclo-bannerUrl').value,
+        seedAreas: document.getElementById('ciclo-seedAreas').checked,
+      };
+
+      try {
+        const url = id ? `/api/pnab/ciclos/${id}` : '/api/pnab/ciclos';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: getHeaders(),
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          const msg = data.restored
+            ? 'Ciclo restaurado da lixeira e atualizado.'
+            : id
+              ? 'Ciclo atualizado.'
+              : 'Ciclo criado com áreas padrão.';
+          Swal.fire('Sucesso!', msg, 'success');
+          clearCicloForm();
+          loadCiclos();
+          if ((!id || data.restored) && data._id) openCicloDrill(data._id);
+        } else {
+          Swal.fire('Erro!', data.message || 'Não foi possível salvar o ciclo.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.editCiclo = function (id) {
+      const c = ciclosList.find((x) => x._id === id);
+      if (!c) return;
+      document.getElementById('cicloFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Ciclo';
+      document.getElementById('ciclo-id').value = c._id;
+      document.getElementById('ciclo-codigo').value = c.codigo;
+      document.getElementById('ciclo-codigo').disabled = true;
+      document.getElementById('ciclo-nome').value = c.nome || '';
+      document.getElementById('ciclo-subtitulo').value = c.subtitulo || '';
+      document.getElementById('ciclo-descricao').value = c.descricao || '';
+      document.getElementById('ciclo-anos').value = Array.isArray(c.anosAbrangidos) ? c.anosAbrangidos.join(', ') : '';
+      document.getElementById('ciclo-decreto').value = c.decretoReferencia || '';
+      document.getElementById('ciclo-status').value = c.status || 'planejamento';
+      document.getElementById('ciclo-ordem').value = c.ordem || 0;
+      document.getElementById('ciclo-requisitos').value = c.requisitosProximoCiclo || '';
+      document.getElementById('ciclo-bannerUrl').value = c.bannerUrl || '';
+      document.getElementById('ciclo-seed-wrap').style.display = 'none';
+      lucide.createIcons();
+    };
+
+    window.clearCicloForm = function () {
+      document.getElementById('cicloFormTitle').innerHTML = '<i data-lucide="plus-circle"></i> Novo Ciclo PNAB';
+      document.getElementById('ciclo-id').value = '';
+      document.getElementById('ciclo-codigo').value = '';
+      document.getElementById('ciclo-codigo').disabled = false;
+      document.getElementById('ciclo-nome').value = '';
+      document.getElementById('ciclo-subtitulo').value = '';
+      document.getElementById('ciclo-descricao').value = '';
+      document.getElementById('ciclo-anos').value = '';
+      document.getElementById('ciclo-decreto').value = '';
+      document.getElementById('ciclo-status').value = 'planejamento';
+      document.getElementById('ciclo-ordem').value = '0';
+      document.getElementById('ciclo-requisitos').value = '';
+      document.getElementById('ciclo-bannerUrl').value = '';
+      document.getElementById('ciclo-seedAreas').checked = true;
+      document.getElementById('ciclo-seed-wrap').style.display = 'flex';
+      lucide.createIcons();
+    };
+
+    window.deleteCiclo = async function (id) {
+      const conf = await Swal.fire({
+        title: 'Excluir Ciclo?',
+        text: 'O ciclo e suas áreas serão movidos para a lixeira lógica.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff716e',
+      });
+      if (!conf.isConfirmed) return;
+      try {
+        const res = await fetch(`/api/pnab/ciclos/${id}`, { method: 'DELETE', headers: getHeaders() });
+        if (res.ok) {
+          Swal.fire('Excluído!', 'Ciclo movido para a lixeira.', 'success');
+          if (currentCicloId === id) closeCicloDrillPanel();
+          loadCiclos();
+        } else {
+          const data = await res.json().catch(() => ({}));
+          Swal.fire('Erro!', data.message || 'Falha ao excluir.', 'error');
+        }
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao excluir.', 'error');
+      }
+    };
+
+    let currentAnoId = null;
+    let currentCategoriaId = null;
+    let cicloAnosList = [];
+    let categoriasList = [];
+    let catDocsList = [];
+
+    window.openCicloDrill = async function (id) {
+      currentCicloId = id;
+      currentAnoId = null;
+      currentCategoriaId = null;
+      const c = ciclosList.find((x) => x._id === id);
+      document.getElementById('ciclo-drill-panel').style.display = 'block';
+      document.getElementById('ciclo-drill-title').textContent = c ? `${c.nome}` : 'Ciclo';
+      document.getElementById('bc-ciclo').textContent = c ? `${c.nome} (#${c.codigo})` : 'Ciclo';
+      showDrillStep('anos');
+      await loadCicloAnos();
+      document.getElementById('ciclo-drill-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.closeCicloDrillPanel = function () {
+      currentCicloId = null;
+      currentAnoId = null;
+      currentCategoriaId = null;
+      document.getElementById('ciclo-drill-panel').style.display = 'none';
+    };
+
+    function showDrillStep(step) {
+      document.getElementById('drill-anos').style.display = step === 'anos' ? 'block' : 'none';
+      document.getElementById('drill-categorias').style.display = step === 'categorias' ? 'block' : 'none';
+      document.getElementById('drill-docs').style.display = step === 'docs' ? 'block' : 'none';
+      const anoBtn = document.getElementById('bc-ano');
+      const catBtn = document.getElementById('bc-cat');
+      const anoSep = document.getElementById('bc-ano-sep');
+      if (step === 'anos') {
+        anoBtn.style.display = 'none';
+        anoSep.style.display = 'none';
+        catBtn.style.display = 'none';
+      } else if (step === 'categorias') {
+        anoBtn.style.display = 'inline-flex';
+        anoSep.style.display = 'none';
+        catBtn.style.display = 'none';
+      } else {
+        anoBtn.style.display = 'inline-flex';
+        anoSep.style.display = 'inline';
+        catBtn.style.display = 'inline-flex';
+      }
+    }
+
+    async function loadCicloAnos() {
+      if (!currentCicloId) return;
+      try {
+        const res = await fetch(`/api/pnab/ciclos/${currentCicloId}/anos`, { headers: getHeaders() });
+        cicloAnosList = await res.json();
+        const grid = document.getElementById('ciclo-anos-grid');
+        grid.innerHTML = '';
+        if (!Array.isArray(cicloAnosList) || !cicloAnosList.length) {
+          grid.innerHTML = '<p style="color:#64748b;">Nenhum ano neste ciclo. Cadastre 2023, 2024…</p>';
+          return;
+        }
+        cicloAnosList.forEach((y) => {
+          grid.innerHTML += `
+            <div class="pnab-year-chip" onclick="openAnoCategorias('${y._id}')">
+              ${y.nome}
+              <small>${y.status || ''}</small>
+            </div>`;
+        });
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao carregar anos do ciclo.', 'error');
+      }
+    }
+
+    document.getElementById('cicloAnoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentCicloId) return;
+      const nome = document.getElementById('ciclo-ano-nome').value.trim();
+      const descricao = document.getElementById('ciclo-ano-desc').value.trim();
+      try {
+        const res = await fetch(`/api/pnab/ciclos/${currentCicloId}/anos`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ nome, descricao, status: 'ativo' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          document.getElementById('ciclo-ano-nome').value = '';
+          document.getElementById('ciclo-ano-desc').value = '';
+          Swal.fire('Sucesso!', `Ano ${data.nome} vinculado ao ciclo.`, 'success');
+          loadCicloAnos();
+        } else {
+          Swal.fire('Erro!', data.message || 'Falha ao adicionar ano.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.openAnoCategorias = async function (anoId) {
+      currentAnoId = anoId;
+      currentCategoriaId = null;
+      const y = cicloAnosList.find((x) => x._id === anoId);
+      document.getElementById('bc-ano').textContent = y ? `Ano ${y.nome}` : 'Ano';
+      hideCategoriaForm();
+      showDrillStep('categorias');
+      await loadCategorias();
+    };
+
+    window.backToCicloAnos = function () {
+      currentAnoId = null;
+      currentCategoriaId = null;
+      showDrillStep('anos');
+      loadCicloAnos();
+    };
+
+    window.backToCicloCategorias = function () {
+      currentCategoriaId = null;
+      showDrillStep('categorias');
+      loadCategorias();
+    };
+
+    async function loadCategorias() {
+      if (!currentCicloId || !currentAnoId) return;
+      try {
+        const res = await fetch(`/api/pnab/categorias?ciclo=${currentCicloId}&ano=${currentAnoId}`, {
+          headers: getHeaders(),
+        });
+        categoriasList = await res.json();
+        const grid = document.getElementById('categorias-cards-grid');
+        grid.innerHTML = '';
+        if (!Array.isArray(categoriasList) || !categoriasList.length) {
+          grid.innerHTML =
+            '<p style="color:#64748b;">Nenhuma categoria. Use “Gerar cards padrão” ou “Nova categoria”.</p>';
+          return;
+        }
+        categoriasList.forEach((cat) => {
+          const initial = (cat.titulo || '?').trim().charAt(0).toUpperCase();
+          const ico = cat.iconeUrl
+            ? `<img src="${cat.iconeUrl}" alt="">`
+            : `<div class="cat-ico-fallback">${initial}</div>`;
+          grid.innerHTML += `
+            <div class="pnab-cat-card" onclick="openCategoriaDocs('${cat._id}')">
+              <div class="cat-actions" onclick="event.stopPropagation()">
+                <button class="btn btn-secondary btn-sm" onclick="editCategoria('${cat._id}')" title="Editar">✎</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategoria('${cat._id}')" title="Excluir">×</button>
+              </div>
+              ${ico}
+              <h5>${cat.titulo || ''}</h5>
+              ${cat.subtitulo ? `<p>${cat.subtitulo}</p>` : ''}
+              <div class="cat-bar"></div>
+            </div>`;
+        });
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao carregar categorias.', 'error');
+      }
+    }
+
+    window.seedCategoriasPadrao = async function () {
+      if (!currentCicloId || !currentAnoId) return;
+      try {
+        const res = await fetch(
+          `/api/pnab/ciclos/${currentCicloId}/anos/${currentAnoId}/seed-categorias`,
+          { method: 'POST', headers: getHeaders() }
+        );
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          Swal.fire('Pronto!', data.message || 'Categorias criadas.', 'success');
+          loadCategorias();
+        } else {
+          Swal.fire('Erro!', data.message || 'Falha ao gerar categorias.', 'error');
+        }
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    };
+
+    window.showNovaCategoriaForm = function () {
+      document.getElementById('categoriaForm').style.display = 'block';
+      document.getElementById('cat-id').value = '';
+      document.getElementById('cat-titulo').value = '';
+      document.getElementById('cat-subtitulo').value = '';
+      document.getElementById('cat-iconeUrl').value = '';
+      document.getElementById('cat-ordem').value = '0';
+      document.getElementById('cat-publicado').checked = false;
+    };
+
+    window.hideCategoriaForm = function () {
+      document.getElementById('categoriaForm').style.display = 'none';
+    };
+
+    window.editCategoria = function (id) {
+      const cat = categoriasList.find((x) => x._id === id);
+      if (!cat) return;
+      document.getElementById('categoriaForm').style.display = 'block';
+      document.getElementById('cat-id').value = cat._id;
+      document.getElementById('cat-titulo').value = cat.titulo || '';
+      document.getElementById('cat-subtitulo').value = cat.subtitulo || '';
+      document.getElementById('cat-iconeUrl').value = cat.iconeUrl || '';
+      document.getElementById('cat-ordem').value = cat.ordem || 0;
+      document.getElementById('cat-publicado').checked = !!cat.publicado;
+    };
+
+    document.getElementById('categoriaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentCicloId || !currentAnoId) return;
+      const id = document.getElementById('cat-id').value;
+      const body = {
+        ciclo: currentCicloId,
+        ano: currentAnoId,
+        titulo: document.getElementById('cat-titulo').value.trim(),
+        subtitulo: document.getElementById('cat-subtitulo').value.trim(),
+        iconeUrl: document.getElementById('cat-iconeUrl').value,
+        ordem: Number(document.getElementById('cat-ordem').value) || 0,
+        publicado: document.getElementById('cat-publicado').checked,
+      };
+      try {
+        const res = await fetch(id ? `/api/pnab/categorias/${id}` : '/api/pnab/categorias', {
+          method: id ? 'PUT' : 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          hideCategoriaForm();
+          loadCategorias();
+          Swal.fire('Sucesso!', 'Categoria salva.', 'success');
+        } else {
+          Swal.fire('Erro!', data.message || 'Falha ao salvar.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.deleteCategoria = async function (id) {
+      const conf = await Swal.fire({
+        title: 'Excluir categoria?',
+        text: 'Será enviada à lixeira lógica.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff716e',
+      });
+      if (!conf.isConfirmed) return;
+      try {
+        const res = await fetch(`/api/pnab/categorias/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+        });
+        if (res.ok) loadCategorias();
+        else {
+          const data = await res.json().catch(() => ({}));
+          Swal.fire('Erro!', data.message || 'Falha ao excluir.', 'error');
+        }
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    };
+
+    window.openCategoriaDocs = async function (catId) {
+      currentCategoriaId = catId;
+      const cat = categoriasList.find((x) => x._id === catId);
+      document.getElementById('docs-cat-title').textContent = cat
+        ? `${cat.titulo}${cat.subtitulo ? ' — ' + cat.subtitulo : ''}`
+        : 'Categoria';
+      document.getElementById('bc-cat').textContent = cat ? cat.titulo : 'Categoria';
+      document.getElementById('docs-busca').value = '';
+      document.getElementById('cat-doc-titulo').value = '';
+      document.getElementById('cat-doc-file').value = '';
+      document.getElementById('cat-doc-url').value = '';
+      showDrillStep('docs');
+      await loadCategoriaDocs();
+    };
+
+    async function loadCategoriaDocs() {
+      if (!currentCategoriaId) return;
+      const busca = document.getElementById('docs-busca').value.trim();
+      let url = `/api/pnab/documentos?categoria=${currentCategoriaId}`;
+      if (busca) url += `&busca=${encodeURIComponent(busca)}`;
+      try {
+        const res = await fetch(url, { headers: getHeaders() });
+        catDocsList = await res.json();
+        const tbody = document.querySelector('#table-cat-docs tbody');
+        tbody.innerHTML = '';
+        if (!Array.isArray(catDocsList) || !catDocsList.length) {
+          tbody.innerHTML = '<tr><td colspan="4">Nenhum PDF nesta categoria.</td></tr>';
+          return;
+        }
+        catDocsList.forEach((d) => {
+          const when = d.dataCriacao ? new Date(d.dataCriacao).toLocaleString('pt-BR') : '—';
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${d.titulo || ''}</strong>${d.nomeOriginal ? `<div style="font-size:0.75rem;color:#64748b;">${d.nomeOriginal}</div>` : ''}</td>
+              <td>${d.tipo || '—'}</td>
+              <td>${when}</td>
+              <td style="white-space:nowrap;">
+                <a class="btn btn-secondary btn-sm" href="${d.arquivoUrl}" target="_blank" rel="noopener">Abrir</a>
+                <button class="btn btn-danger btn-sm" onclick="deleteCatDoc('${d._id}')">Excluir</button>
+              </td>
+            </tr>`;
+        });
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao carregar documentos.', 'error');
+      }
+    }
+
+    document.getElementById('docs-busca').addEventListener('input', () => {
+      clearTimeout(window.__pnabDocSearchT);
+      window.__pnabDocSearchT = setTimeout(loadCategoriaDocs, 280);
+    });
+
+    document.getElementById('docUploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentCategoriaId) return;
+      const fileInput = document.getElementById('cat-doc-file');
+      const file = fileInput.files && fileInput.files[0];
+      const link = (document.getElementById('cat-doc-url').value || '').trim();
+      if (!file && !link) {
+        Swal.fire('Atenção', 'Envie um arquivo ou informe o link do documento.', 'warning');
+        return;
+      }
+      if (link && !/^https?:\/\//i.test(link) && !link.startsWith('/')) {
+        Swal.fire('Atenção', 'O link deve começar com http(s):// ou /', 'warning');
+        return;
+      }
+      const fd = new FormData();
+      fd.append('categoria', currentCategoriaId);
+      fd.append('titulo', document.getElementById('cat-doc-titulo').value.trim());
+      fd.append('tipo', document.getElementById('cat-doc-tipo').value);
+      if (file) fd.append('file', file);
+      if (link) fd.append('arquivoUrl', link);
+      try {
+        const res = await fetch('/api/pnab/documentos', {
+          method: 'POST',
+          headers: getUploadHeaders(),
+          body: fd,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          document.getElementById('cat-doc-titulo').value = '';
+          fileInput.value = '';
+          document.getElementById('cat-doc-url').value = '';
+          Swal.fire('Sucesso!', 'Documento cadastrado.', 'success');
+          loadCategoriaDocs();
+        } else {
+          Swal.fire('Erro!', data.message || 'Falha ao cadastrar.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.deleteCatDoc = async function (id) {
+      const conf = await Swal.fire({
+        title: 'Excluir PDF?',
+        text: 'Será enviado à lixeira lógica.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff716e',
+      });
+      if (!conf.isConfirmed) return;
+      try {
+        const res = await fetch(`/api/pnab/documentos/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+        });
+        if (res.ok) loadCategoriaDocs();
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao excluir.', 'error');
+      }
+    };
+
+    // -------------------------------------------------------------------------
+    // 2. EXERCÍCIOS (ANOS) CRUD
+    // -------------------------------------------------------------------------
+    let yearsList = [];
+    async function loadYears() {
+      try {
+        const res = await fetch('/api/pnab/anos');
+        yearsList = await res.json();
+        const tbody = document.querySelector('#table-years tbody');
+        tbody.innerHTML = '';
+
+        yearsList.forEach(year => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${year.nome}</strong></td>
+              <td><span class="badge ${year.status === 'ativo' ? 'badge-green' : 'badge-red'}">${year.status}</span></td>
+              <td>${year.ordem}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editYear('${year._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteYear('${year._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro ao carregar exercícios.', 'error');
+      }
+    }
+
+    document.getElementById('yearForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('year-id').value;
+      const nome = document.getElementById('year-nome').value;
+      const descricao = document.getElementById('year-descricao').value;
+      const status = document.getElementById('year-status').value;
+      const ordem = document.getElementById('year-ordem').value;
+      const bannerUrl = document.getElementById('year-bannerUrl').value;
+
+      const body = { nome, descricao, status, ordem: Number(ordem), bannerUrl };
+
+      try {
+        const url = id ? `/api/pnab/anos/${id}` : '/api/pnab/anos';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: getHeaders(),
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          Swal.fire('Sucesso!', 'Exercício salvo com sucesso!', 'success');
+          clearYearForm();
+          loadYears();
+        } else {
+          const data = await res.json();
+          Swal.fire('Erro!', data.message || 'Erro ao processar dados.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.editYear = function(id) {
+      const year = yearsList.find(y => y._id === id);
+      if (!year) return;
+
+      document.getElementById('yearFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Exercício';
+      document.getElementById('year-id').value = year._id;
+      document.getElementById('year-nome').value = year.nome;
+      document.getElementById('year-nome').disabled = true; // cannot rename key year
+      document.getElementById('year-descricao').value = year.descricao || '';
+      document.getElementById('year-status').value = year.status;
+      document.getElementById('year-ordem').value = year.ordem;
+      document.getElementById('year-bannerUrl').value = year.bannerUrl || '';
+      lucide.createIcons();
+    };
+
+    window.deleteYear = async function(id) {
+      const confirmation = await Swal.fire({
+        title: 'Excluir Exercício?',
+        text: 'Isso moverá o ano para a lixeira.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff716e'
+      });
+      if (!confirmation.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/anos/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders()
+        });
+        if (res.ok) {
+          Swal.fire('Deletado!', 'Exercício movido para a lixeira.', 'success');
+          loadYears();
+        }
+      } catch (e) {
+        Swal.fire('Erro!', 'Erro ao excluir.', 'error');
+      }
+    };
+
+    window.clearYearForm = function() {
+      document.getElementById('yearFormTitle').innerHTML = '<i data-lucide="plus-circle"></i> Cadastrar Exercício (Ano)';
+      document.getElementById('year-id').value = '';
+      document.getElementById('year-nome').value = '';
+      document.getElementById('year-nome').disabled = false;
+      document.getElementById('year-descricao').value = '';
+      document.getElementById('year-status').value = 'ativo';
+      document.getElementById('year-ordem').value = '0';
+      document.getElementById('year-bannerUrl').value = '';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 3. EDITAIS MANAGEMENT
+    // -------------------------------------------------------------------------
+    let editaisList = [];
+    let currentEditalId = null;
+
+    async function loadEditaisTab() {
+      // populate select years filter & select years editor
+      try {
+        const yRes = await fetch('/api/pnab/anos');
+        const years = await yRes.json();
+        
+        const filterSelect = document.getElementById('filter-year-editais');
+        const editorSelect = document.getElementById('ed-ano');
+
+        filterSelect.innerHTML = '<option value="">Todos os anos</option>';
+        editorSelect.innerHTML = '';
+
+        years.forEach(y => {
+          filterSelect.innerHTML += `<option value="${y._id}">${y.nome}</option>`;
+          editorSelect.innerHTML += `<option value="${y._id}">${y.nome}</option>`;
+        });
+
+        loadEditais();
+      } catch(e) {}
+    }
+
+    async function loadEditais() {
+      const search = document.getElementById('search-editais').value;
+      const year = document.getElementById('filter-year-editais').value;
+      
+      let url = '/api/pnab/editais?';
+      if (search) url += `busca=${encodeURIComponent(search)}&`;
+      if (year) url += `ano=${year}&`;
+
+      try {
+        // Send user ID to bypass filters on the backend
+        const res = await fetch(url, { headers: getHeaders() });
+        editaisList = await res.json();
+
+        const tbody = document.querySelector('#table-editais tbody');
+        tbody.innerHTML = '';
+
+        if(editaisList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">Nenhum edital encontrado.</td></tr>';
+          return;
+        }
+
+        editaisList.forEach(ed => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${ed.titulo}</strong></td>
+              <td>${ed.ano ? ed.ano.nome : '--'}</td>
+              <td>${ed.programa}</td>
+              <td><span class="badge badge-slate">${ed.statusEdital}</span></td>
+              <td><span class="badge ${ed.statusWorkflow === 'Publicado' ? 'badge-green' : ed.statusWorkflow === 'Arquivado' ? 'badge-red' : 'badge-orange'}">${ed.statusWorkflow}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="manageEdital('${ed._id}')" title="Gerenciar Conteúdos"><i data-lucide="settings" style="width:14px;"></i></button>
+                <button class="btn btn-secondary btn-sm" onclick="duplicateEdital('${ed._id}')" title="Duplicar Estrutura"><i data-lucide="copy" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEdital('${ed._id}')" title="Excluir"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro ao carregar editais.', 'error');
+      }
+    }
+
+    document.getElementById('search-editais').addEventListener('input', loadEditais);
+    document.getElementById('filter-year-editais').addEventListener('change', loadEditais);
+
+    window.showCreateEditalForm = function() {
+      currentEditalId = null;
+      document.getElementById('edital-list-view').style.display = 'none';
+      document.getElementById('edital-editor-view').style.display = 'block';
+      document.getElementById('editorTitle').textContent = 'Cadastrar Novo Serviço';
+      
+      // Hide other tabs buttons as the edital is not created yet
+      document.querySelectorAll('.edital-linked').forEach(btn => btn.style.display = 'none');
+      switchEditorTab('edital-geral', document.querySelector('.editor-tab-btn'));
+      
+      clearEditalForm();
+    };
+
+    window.manageEdital = function(id) {
+      currentEditalId = id;
+      const ed = editaisList.find(e => e._id === id);
+      if (!ed) return;
+
+      document.getElementById('edital-list-view').style.display = 'none';
+      document.getElementById('edital-editor-view').style.display = 'block';
+      document.getElementById('editorTitle').textContent = `Gerenciar Serviço: ${ed.titulo}`;
+      
+      // Show other tabs buttons
+      document.querySelectorAll('.edital-linked').forEach(btn => btn.style.display = 'block');
+
+      // Populate general tab fields
+      document.getElementById('ed-id').value = ed._id;
+      document.getElementById('ed-titulo').value = ed.titulo;
+      document.getElementById('ed-ano').value = ed.ano ? ed.ano._id : '';
+      document.getElementById('ed-programa').value = ed.programa;
+      document.getElementById('ed-descricao').value = ed.descricao;
+      document.getElementById('ed-statusEdital').value = ed.statusEdital;
+      document.getElementById('ed-statusWorkflow').value = ed.statusWorkflow;
+      document.getElementById('ed-ordem').value = ed.ordem;
+      document.getElementById('ed-destacado').checked = ed.destacado === true;
+      document.getElementById('ed-tags').value = ed.tags ? ed.tags.join(', ') : '';
+      document.getElementById('ed-imagemUrl').value = ed.imagemUrl || '';
+      document.getElementById('ed-observacoes').value = ed.observacoes || '';
+      
+      if(ed.dataPublicacao) {
+        const localDate = new Date(ed.dataPublicacao).toISOString().slice(0, 16);
+        document.getElementById('ed-dataPublicacao').value = localDate;
+      } else {
+        document.getElementById('ed-dataPublicacao').value = '';
+      }
+
+      switchEditorTab('edital-geral', document.querySelector('.editor-tab-btn'));
+    };
+
+    window.backToEditaisList = function() {
+      document.getElementById('edital-list-view').style.display = 'block';
+      document.getElementById('edital-editor-view').style.display = 'none';
+      loadEditais();
+    };
+
+    window.switchEditorTab = function(subPane, btn) {
+      document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById(`editor-${subPane}`).classList.add('active');
+
+      // Load sub tab contents
+      if (subPane === 'edital-documentos') loadEditalDocuments();
+      else if (subPane === 'edital-cronograma') loadEditalTimeline();
+      else if (subPane === 'edital-comunicados') loadEditalComunicados();
+      else if (subPane === 'edital-faq') loadEditalFaq();
+      else if (subPane === 'edital-legislacao') loadEditalLegislacao();
+      else if (subPane === 'edital-noticias') loadEditalNoticias();
+    };
+
+    document.getElementById('editalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('ed-id').value;
+      const anoId = document.getElementById('ed-ano').value;
+      const anoSelect = document.getElementById('ed-ano');
+      const anoNome = anoSelect.options[anoSelect.selectedIndex].text;
+
+      const formData = new FormData();
+      formData.append('titulo', document.getElementById('ed-titulo').value);
+      formData.append('ano', anoId);
+      formData.append('anoName', anoNome);
+      formData.append('programa', document.getElementById('ed-programa').value);
+      formData.append('descricao', document.getElementById('ed-descricao').value);
+      formData.append('statusEdital', document.getElementById('ed-statusEdital').value);
+      formData.append('statusWorkflow', document.getElementById('ed-statusWorkflow').value);
+      formData.append('ordem', document.getElementById('ed-ordem').value);
+      formData.append('destacado', document.getElementById('ed-destacado').checked);
+      formData.append('tags', document.getElementById('ed-tags').value);
+      formData.append('observacoes', document.getElementById('ed-observacoes').value);
+      formData.append('imagemUrl', document.getElementById('ed-imagemUrl').value);
+      
+      const pub = document.getElementById('ed-dataPublicacao').value;
+      if (pub) formData.append('dataPublicacao', pub);
+
+      try {
+        const url = id ? `/api/pnab/editais/${id}` : '/api/pnab/editais';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: getUploadHeaders(),
+          body: formData
+        });
+
+        if (res.ok) {
+          const saved = await res.json();
+          Swal.fire('Sucesso!', 'Serviço salvo!', 'success');
+          
+          if (!id) {
+            // New edital, unlock other tabs
+            manageEdital(saved._id);
+          } else {
+            loadEditais();
+          }
+        } else {
+          const err = await res.json();
+          Swal.fire('Erro!', err.message || 'Falha ao salvar.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro na comunicação.', 'error');
+      }
+    });
+
+    window.duplicateEdital = async function(id) {
+      const confirmation = await Swal.fire({
+        title: 'Duplicar Serviço?',
+        text: 'Isto criará uma cópia idêntica deste edital e de suas perguntas/cronogramas em modo rascunho.',
+        icon: 'question',
+        showCancelButton: true
+      });
+      if(!confirmation.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/editais/${id}/duplicate`, {
+          method: 'POST',
+          headers: getHeaders()
+        });
+        if(res.ok) {
+          Swal.fire('Duplicado!', 'Estrutura duplicada com sucesso.', 'success');
+          loadEditais();
+        }
+      } catch(e) {
+        Swal.fire('Erro!', 'Erro ao duplicar.', 'error');
+      }
+    };
+
+    window.deleteEdital = async function(id) {
+      const confirmation = await Swal.fire({
+        title: 'Excluir Serviço?',
+        text: 'O edital e seus documentos serão movidos para a lixeira.',
+        icon: 'warning',
+        showCancelButton: true
+      });
+      if(!confirmation.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/editais/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders()
+        });
+        if(res.ok) {
+          Swal.fire('Excluído!', 'Serviço enviado à lixeira.', 'success');
+          loadEditais();
+        }
+      } catch(e) {
+        Swal.fire('Erro!', 'Falha ao excluir.', 'error');
+      }
+    };
+
+    function clearEditalForm() {
+      document.getElementById('ed-id').value = '';
+      document.getElementById('ed-titulo').value = '';
+      document.getElementById('ed-descricao').value = '';
+      document.getElementById('ed-statusEdital').value = 'Aberto';
+      document.getElementById('ed-statusWorkflow').value = 'Rascunho';
+      document.getElementById('ed-ordem').value = '0';
+      document.getElementById('ed-destacado').checked = false;
+      document.getElementById('ed-tags').value = '';
+      document.getElementById('ed-imagemUrl').value = '';
+      document.getElementById('ed-observacoes').value = '';
+      document.getElementById('ed-dataPublicacao').value = '';
+    }
+
+    // -------------------------------------------------------------------------
+    // 3.1. SUB-TABS: DOCUMENTS CRUD & VERSIONS
+    // -------------------------------------------------------------------------
+    let editalDocs = [];
+    async function loadEditalDocuments() {
+      try {
+        const res = await fetch(`/api/pnab/documentos?edital=${currentEditalId}`);
+        editalDocs = await res.json();
+
+        const tbody = document.querySelector('#table-edital-docs tbody');
+        tbody.innerHTML = '';
+
+        editalDocs.forEach(doc => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${doc.titulo}</strong></td>
+              <td>${doc.tipo}</td>
+              <td>v${doc.versao}</td>
+              <td>${doc.downloadsCount || 0}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editDocument('${doc._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-secondary btn-sm" onclick="showDocumentVersions('${doc._id}')" title="Histórico de Versões"><i data-lucide="history" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteDocument('${doc._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('documentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('doc-id').value;
+      const formData = new FormData();
+      formData.append('edital', currentEditalId);
+      formData.append('titulo', document.getElementById('doc-titulo').value);
+      formData.append('descricao', document.getElementById('doc-descricao').value);
+      formData.append('tipo', document.getElementById('doc-tipo').value);
+      formData.append('versao', document.getElementById('doc-versao').value);
+      
+      if(id) {
+        formData.append('descricaoAlteracao', document.getElementById('doc-desc-alteracao').value);
+      }
+
+      const fileInput = document.getElementById('doc-file');
+      const link = (document.getElementById('doc-arquivoUrl').value || '').trim();
+      const hasFile = fileInput.files && fileInput.files.length > 0;
+      if (!id && !hasFile && !link) {
+        Swal.fire('Atenção', 'Envie um arquivo ou informe o link do documento.', 'warning');
+        return;
+      }
+      if (link && !/^https?:\/\//i.test(link) && !link.startsWith('/')) {
+        Swal.fire('Atenção', 'O link deve começar com http(s):// ou /', 'warning');
+        return;
+      }
+      if (hasFile) formData.append('arquivo', fileInput.files[0]);
+      // Em edição, só envia link se mudou (evita versão nova ao só salvar metadados)
+      if (!id && link) {
+        formData.append('arquivoUrl', link);
+      } else if (id && link) {
+        const current = (editalDocs.find((d) => d._id === id) || {}).arquivoUrl || '';
+        if (link !== current) formData.append('arquivoUrl', link);
+      }
+
+      try {
+        const url = id ? `/api/pnab/documentos/${id}` : '/api/pnab/documentos';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: getUploadHeaders(),
+          body: formData
+        });
+
+        if (res.ok) {
+          Swal.fire('Sucesso!', 'Documento processado!', 'success');
+          clearDocumentForm();
+          loadEditalDocuments();
+        } else {
+          const err = await res.json();
+          Swal.fire('Erro!', err.message || 'Falha ao processar arquivo.', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Erro!', 'Erro no processamento.', 'error');
+      }
+    });
+
+    window.editDocument = function(id) {
+      const doc = editalDocs.find(d => d._id === id);
+      if(!doc) return;
+
+      document.getElementById('docFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Documento';
+      document.getElementById('doc-id').value = doc._id;
+      document.getElementById('doc-titulo').value = doc.titulo;
+      document.getElementById('doc-descricao').value = doc.descricao || '';
+      document.getElementById('doc-tipo').value = doc.tipo;
+      document.getElementById('doc-versao').value = doc.versao;
+      document.getElementById('doc-arquivoUrl').value = doc.arquivoUrl || '';
+      
+      // Requirement: file input not required on editing, show change note field
+      document.getElementById('doc-file').required = false;
+      document.getElementById('doc-edit-notes').style.display = 'block';
+      lucide.createIcons();
+    };
+
+    window.deleteDocument = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir Documento?', text: 'Será enviado à lixeira.', icon: 'warning', showCancelButton:true });
+      if(!conf.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/documentos/${id}`, { method: 'DELETE', headers: getHeaders() });
+        if(res.ok) {
+          Swal.fire('Excluído!', 'Documento na lixeira.', 'success');
+          loadEditalDocuments();
+        }
+      } catch(e) {}
+    };
+
+    window.clearDocumentForm = function() {
+      document.getElementById('docFormTitle').innerHTML = '<i data-lucide="file-plus"></i> Adicionar Documento';
+      document.getElementById('doc-id').value = '';
+      document.getElementById('doc-titulo').value = '';
+      document.getElementById('doc-descricao').value = '';
+      document.getElementById('doc-tipo').value = 'Anexo';
+      document.getElementById('doc-versao').value = '1.0';
+      document.getElementById('doc-file').value = '';
+      document.getElementById('doc-file').required = false;
+      document.getElementById('doc-arquivoUrl').value = '';
+      document.getElementById('doc-edit-notes').style.display = 'none';
+      document.getElementById('doc-desc-alteracao').value = '';
+      lucide.createIcons();
+    };
+
+    // Document History and Version restore
+    let activeHistoryDocId = null;
+    window.showDocumentVersions = async function(id) {
+      activeHistoryDocId = id;
+      const doc = editalDocs.find(d => d._id === id);
+      if(!doc) return;
+
+      document.getElementById('versionModalTitle').textContent = `Versões de: ${doc.titulo}`;
+      const tbody = document.querySelector('#table-document-versions tbody');
+      tbody.innerHTML = '';
+
+      if(!doc.historicoVersoes || doc.historicoVersoes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">Sem versões anteriores salvas.</td></tr>';
+      } else {
+        doc.historicoVersoes.forEach((v, index) => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>v${v.versao}</strong></td>
+              <td>${v.descricaoAlteracao || '--'}</td>
+              <td>${v.publicadoPor || '--'}</td>
+              <td>${new Date(v.dataUpload).toLocaleString('pt-BR')}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="restoreDocumentVersion(${index})">Restaurar esta</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      document.getElementById('versionHistoryModal').style.display = 'flex';
+    };
+
+    window.closeVersionModal = function() {
+      document.getElementById('versionHistoryModal').style.display = 'none';
+    };
+
+    window.restoreDocumentVersion = async function(index) {
+      const conf = await Swal.fire({
+        title: 'Restaurar Versão?',
+        text: 'Isto substituirá o arquivo ativo atual por este arquivo histórico e arquivará o atual.',
+        icon: 'warning',
+        showCancelButton: true
+      });
+      if(!conf.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/documentos/${activeHistoryDocId}/restore-version`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ versaoIndex: index })
+        });
+        if(res.ok) {
+          Swal.fire('Restaurado!', 'Versão antiga ativa!', 'success');
+          closeVersionModal();
+          loadEditalDocuments();
+        }
+      } catch(e) {}
+    };
+
+    // -------------------------------------------------------------------------
+    // 3.2. SUB-TABS: CRONOGRAMA TIMELINE CRUD
+    // -------------------------------------------------------------------------
+    let editalCron = [];
+    async function loadEditalTimeline() {
+      try {
+        const res = await fetch(`/api/pnab/cronogramas?edital=${currentEditalId}`);
+        editalCron = await res.json();
+
+        const tbody = document.querySelector('#table-edital-cron tbody');
+        tbody.innerHTML = '';
+
+        editalCron.forEach(item => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${item.data}</td>
+              <td><strong>${item.evento}</strong></td>
+              <td><span class="badge ${item.status === 'Realizado' ? 'badge-green' : item.status === 'Em Andamento' ? 'badge-blue' : 'badge-slate'}">${item.status}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editCron('${item._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCron('${item._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('cronogramaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('cron-id').value;
+      const body = {
+        edital: currentEditalId,
+        data: document.getElementById('cron-data').value,
+        evento: document.getElementById('cron-evento').value,
+        descricao: document.getElementById('cron-descricao').value,
+        status: document.getElementById('cron-status').value,
+        ordem: Number(document.getElementById('cron-ordem').value)
+      };
+
+      try {
+        const url = id ? `/api/pnab/cronogramas/${id}` : '/api/pnab/cronogramas';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: getHeaders(),
+          body: JSON.stringify(body)
+        });
+
+        if(res.ok) {
+          Swal.fire('Sucesso!', 'Evento salvo!', 'success');
+          clearCronForm();
+          loadEditalTimeline();
+        }
+      } catch(e) {}
+    });
+
+    window.editCron = function(id) {
+      const item = editalCron.find(c => c._id === id);
+      if(!item) return;
+
+      document.getElementById('cronFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Evento';
+      document.getElementById('cron-id').value = item._id;
+      document.getElementById('cron-data').value = item.data;
+      document.getElementById('cron-evento').value = item.evento;
+      document.getElementById('cron-descricao').value = item.descricao || '';
+      document.getElementById('cron-status').value = item.status;
+      document.getElementById('cron-ordem').value = item.ordem;
+      lucide.createIcons();
+    };
+
+    window.deleteCron = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir Item?', text: 'Mover para lixeira?', icon: 'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+
+      try {
+        await fetch(`/api/pnab/cronogramas/${id}`, { method: 'DELETE', headers: getHeaders() });
+        loadEditalTimeline();
+      } catch(e) {}
+    };
+
+    window.clearCronForm = function() {
+      document.getElementById('cronFormTitle').innerHTML = '<i data-lucide="calendar"></i> Adicionar Evento / Cronograma';
+      document.getElementById('cron-id').value = '';
+      document.getElementById('cron-data').value = '';
+      document.getElementById('cron-evento').value = '';
+      document.getElementById('cron-descricao').value = '';
+      document.getElementById('cron-status').value = 'Agendado';
+      document.getElementById('cron-ordem').value = '0';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 3.3. SUB-TABS: COMUNICADOS CRUD
+    // -------------------------------------------------------------------------
+    let editalComs = [];
+    async function loadEditalComunicados() {
+      try {
+        const res = await fetch(`/api/pnab/comunicados?edital=${currentEditalId}`);
+        editalComs = await res.json();
+
+        const tbody = document.querySelector('#table-edital-comunicados tbody');
+        tbody.innerHTML = '';
+
+        editalComs.forEach(item => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${item.titulo}</strong></td>
+              <td>${item.fixado ? 'Sim 📌' : 'Não'}</td>
+              <td><span class="badge ${item.statusWorkflow === 'Publicado' ? 'badge-green' : 'badge-orange'}">${item.statusWorkflow}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editCom('${item._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCom('${item._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('comunicadoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('com-id').value;
+
+      const formData = new FormData();
+      formData.append('edital', currentEditalId);
+      formData.append('titulo', document.getElementById('com-titulo').value);
+      formData.append('descricao', document.getElementById('com-descricao').value);
+      formData.append('dataInicioExibicao', document.getElementById('com-dataInicio').value);
+      formData.append('dataFimExibicao', document.getElementById('com-dataFim').value);
+      formData.append('statusWorkflow', document.getElementById('com-statusWorkflow').value);
+      formData.append('fixado', document.getElementById('com-fixado').checked);
+
+      const file = document.getElementById('com-file');
+      if(file.files.length > 0) {
+        formData.append('imagem', file.files[0]);
+      }
+
+      try {
+        const url = id ? `/api/pnab/comunicados/${id}` : '/api/pnab/comunicados';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, { method, headers: getUploadHeaders(), body: formData });
+        if(res.ok) {
+          Swal.fire('Salvo!', 'Comunicado registrado.', 'success');
+          clearComForm();
+          loadEditalComunicados();
+        }
+      } catch(e) {}
+    });
+
+    window.editCom = function(id) {
+      const item = editalComs.find(c => c._id === id);
+      if(!item) return;
+
+      document.getElementById('comFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Comunicado';
+      document.getElementById('com-id').value = item._id;
+      document.getElementById('com-titulo').value = item.titulo;
+      document.getElementById('com-descricao').value = item.descricao;
+      document.getElementById('com-statusWorkflow').value = item.statusWorkflow;
+      document.getElementById('com-fixado').checked = item.fixado === true;
+
+      if(item.dataInicioExibicao) document.getElementById('com-dataInicio').value = new Date(item.dataInicioExibicao).toISOString().split('T')[0];
+      if(item.dataFimExibicao) document.getElementById('com-dataFim').value = new Date(item.dataFimExibicao).toISOString().split('T')[0];
+
+      lucide.createIcons();
+    };
+
+    window.deleteCom = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir Comunicado?', text: 'Isto enviará à lixeira.', icon:'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+      try {
+        await fetch(`/api/pnab/comunicados/${id}`, { method: 'DELETE', headers: getHeaders() });
+        loadEditalComunicados();
+      } catch(e) {}
+    };
+
+    window.clearComForm = function() {
+      document.getElementById('comFormTitle').innerHTML = '<i data-lucide="megaphone"></i> Novo Comunicado / Errata';
+      document.getElementById('com-id').value = '';
+      document.getElementById('com-titulo').value = '';
+      document.getElementById('com-descricao').value = '';
+      document.getElementById('com-dataInicio').value = '';
+      document.getElementById('com-dataFim').value = '';
+      document.getElementById('com-statusWorkflow').value = 'Rascunho';
+      document.getElementById('com-fixado').checked = false;
+      document.getElementById('com-file').value = '';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 3.4. SUB-TABS: FAQ CRUD
+    // -------------------------------------------------------------------------
+    let editalFaqs = [];
+    async function loadEditalFaq() {
+      try {
+        const res = await fetch(`/api/pnab/faq?edital=${currentEditalId}`);
+        editalFaqs = await res.json();
+        const tbody = document.querySelector('#table-edital-faq tbody');
+        tbody.innerHTML = '';
+
+        editalFaqs.forEach(faq => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${faq.pergunta}</strong></td>
+              <td>${faq.categoria || 'Geral'}</td>
+              <td>${faq.ordem}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editFaq('${faq._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteFaq('${faq._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('faqForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('faq-id').value;
+      const body = {
+        edital: currentEditalId,
+        pergunta: document.getElementById('faq-pergunta').value,
+        resposta: document.getElementById('faq-resposta').value,
+        ordem: Number(document.getElementById('faq-ordem').value),
+        categoria: document.getElementById('faq-categoria').value
+      };
+
+      try {
+        const url = id ? `/api/pnab/faq/${id}` : '/api/pnab/faq';
+        const method = id ? 'PUT' : 'POST';
+        await fetch(url, { method, headers: getHeaders(), body: JSON.stringify(body) });
+        clearFaqForm();
+        loadEditalFaq();
+      } catch(e) {}
+    });
+
+    window.editFaq = function(id) {
+      const faq = editalFaqs.find(f => f._id === id);
+      if(!faq) return;
+
+      document.getElementById('faqFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar FAQ';
+      document.getElementById('faq-id').value = faq._id;
+      document.getElementById('faq-pergunta').value = faq.pergunta;
+      document.getElementById('faq-resposta').value = faq.resposta;
+      document.getElementById('faq-ordem').value = faq.ordem;
+      document.getElementById('faq-categoria').value = faq.categoria || '';
+      lucide.createIcons();
+    };
+
+    window.deleteFaq = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir FAQ?', text: 'Será movido à lixeira.', icon:'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+      try {
+        await fetch(`/api/pnab/faq/${id}`, { method: 'DELETE', headers: getHeaders() });
+        loadEditalFaq();
+      } catch(e) {}
+    };
+
+    window.clearFaqForm = function() {
+      document.getElementById('faqFormTitle').innerHTML = '<i data-lucide="help-circle"></i> Adicionar Pergunta & Resposta';
+      document.getElementById('faq-id').value = '';
+      document.getElementById('faq-pergunta').value = '';
+      document.getElementById('faq-resposta').value = '';
+      document.getElementById('faq-ordem').value = '0';
+      document.getElementById('faq-categoria').value = '';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 3.5. SUB-TABS: LEGISLACAO CRUD
+    // -------------------------------------------------------------------------
+    let editalLegs = [];
+    async function loadEditalLegislacao() {
+      try {
+        const res = await fetch(`/api/pnab/legislacao?edital=${currentEditalId}`);
+        editalLegs = await res.json();
+        const tbody = document.querySelector('#table-edital-legislacao tbody');
+        tbody.innerHTML = '';
+
+        editalLegs.forEach(leg => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${leg.titulo}</strong></td>
+              <td>${leg.tipo}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editLeg('${leg._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteLeg('${leg._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('legislacaoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('leg-id').value;
+
+      const formData = new FormData();
+      formData.append('edital', currentEditalId);
+      formData.append('titulo', document.getElementById('leg-titulo').value);
+      formData.append('tipo', document.getElementById('leg-tipo').value);
+      formData.append('linkOficial', document.getElementById('leg-linkOficial').value);
+
+      const file = document.getElementById('leg-file');
+      if(file.files.length > 0) {
+        formData.append('arquivo', file.files[0]);
+      }
+
+      try {
+        const url = id ? `/api/pnab/legislacao/${id}` : '/api/pnab/legislacao';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, { method, headers: getUploadHeaders(), body: formData });
+        if(res.ok) {
+          Swal.fire('Salvo!', 'Legislação vinculada com sucesso.', 'success');
+          clearLegForm();
+          loadEditalLegislacao();
+        }
+      } catch(e) {}
+    });
+
+    window.editLeg = function(id) {
+      const leg = editalLegs.find(l => l._id === id);
+      if(!leg) return;
+
+      document.getElementById('legFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Legislação';
+      document.getElementById('leg-id').value = leg._id;
+      document.getElementById('leg-titulo').value = leg.titulo;
+      document.getElementById('leg-tipo').value = leg.tipo;
+      document.getElementById('leg-linkOficial').value = leg.linkOficial || '';
+      lucide.createIcons();
+    };
+
+    window.deleteLeg = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir Legislação?', text: 'Mover para lixeira?', icon: 'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+      try {
+        await fetch(`/api/pnab/legislacao/${id}`, { method: 'DELETE', headers: getHeaders() });
+        loadEditalLegislacao();
+      } catch(e) {}
+    };
+
+    window.clearLegForm = function() {
+      document.getElementById('legFormTitle').innerHTML = '<i data-lucide="scale"></i> Vincular Legislação Oficial';
+      document.getElementById('leg-id').value = '';
+      document.getElementById('leg-titulo').value = '';
+      document.getElementById('leg-tipo').value = 'Lei';
+      document.getElementById('leg-linkOficial').value = '';
+      document.getElementById('leg-file').value = '';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 3.6. SUB-TABS: NOTÍCIAS CRUD
+    // -------------------------------------------------------------------------
+    let editalNots = [];
+    async function loadEditalNoticias() {
+      try {
+        const res = await fetch(`/api/pnab/noticias?edital=${currentEditalId}`);
+        editalNots = await res.json();
+        const tbody = document.querySelector('#table-edital-noticias tbody');
+        tbody.innerHTML = '';
+
+        editalNots.forEach(not => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${not.titulo}</strong></td>
+              <td><span class="badge ${not.statusWorkflow === 'Publicado' ? 'badge-green' : 'badge-orange'}">${not.statusWorkflow}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="editNoticia('${not._id}')"><i data-lucide="edit-3" style="width:14px;"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteNoticia('${not._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    document.getElementById('noticiaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('not-id').value;
+
+      const formData = new FormData();
+      formData.append('edital', currentEditalId);
+      formData.append('titulo', document.getElementById('not-titulo').value);
+      formData.append('resumo', document.getElementById('not-resumo').value);
+      formData.append('texto', document.getElementById('not-texto').value);
+      formData.append('tags', document.getElementById('not-tags').value);
+      formData.append('statusWorkflow', document.getElementById('not-statusWorkflow').value);
+
+      const file = document.getElementById('not-file');
+      if(file.files.length > 0) {
+        formData.append('imagem', file.files[0]);
+      }
+
+      try {
+        const url = id ? `/api/pnab/noticias/${id}` : '/api/pnab/noticias';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, { method, headers: getUploadHeaders(), body: formData });
+        if(res.ok) {
+          Swal.fire('Salvo!', 'Notícia associada!', 'success');
+          clearNoticiaForm();
+          loadEditalNoticias();
+        }
+      } catch(e) {}
+    });
+
+    window.editNoticia = function(id) {
+      const not = editalNots.find(n => n._id === id);
+      if(!not) return;
+
+      document.getElementById('noticiaFormTitle').innerHTML = '<i data-lucide="edit-3"></i> Editar Notícia';
+      document.getElementById('not-id').value = not._id;
+      document.getElementById('not-titulo').value = not.titulo;
+      document.getElementById('not-resumo').value = not.resumo || '';
+      document.getElementById('not-texto').value = not.texto;
+      document.getElementById('not-tags').value = not.tags ? not.tags.join(', ') : '';
+      document.getElementById('not-statusWorkflow').value = not.statusWorkflow;
+      lucide.createIcons();
+    };
+
+    window.deleteNoticia = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir Notícia?', text: 'Enviar à lixeira?', icon:'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+      try {
+        await fetch(`/api/pnab/noticias/${id}`, { method: 'DELETE', headers: getHeaders() });
+        loadEditalNoticias();
+      } catch(e) {}
+    };
+
+    window.clearNoticiaForm = function() {
+      document.getElementById('noticiaFormTitle').innerHTML = '<i data-lucide="newspaper"></i> Criar Notícia Associada';
+      document.getElementById('not-id').value = '';
+      document.getElementById('not-titulo').value = '';
+      document.getElementById('not-resumo').value = '';
+      document.getElementById('not-texto').value = '';
+      document.getElementById('not-tags').value = '';
+      document.getElementById('not-statusWorkflow').value = 'Rascunho';
+      document.getElementById('not-file').value = '';
+      lucide.createIcons();
+    };
+
+    // -------------------------------------------------------------------------
+    // 4. MEDIA LIBRARY & UPLOADS
+    // -------------------------------------------------------------------------
+    let libraryFiles = [];
+
+    async function loadMediaLibrary() {
+      try {
+        const res = await fetch('/api/pnab/midias', { headers: getHeaders() });
+        libraryFiles = await res.json();
+        renderMediaLibrary();
+      } catch(e) {}
+    }
+
+    function renderMediaLibrary() {
+      const search = document.getElementById('search-media').value.toLowerCase();
+      const cat = document.getElementById('filter-media-cat').value;
+      const container = document.getElementById('media-library-container');
+      container.innerHTML = '';
+
+      const filtered = libraryFiles.filter(item => {
+        const matchesSearch = item.originalName.toLowerCase().includes(search);
+        const matchesCat = !cat || item.categoria === cat;
+        return matchesSearch && matchesCat;
+      });
+
+      if(filtered.length === 0) {
+        container.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-dim);">Nenhum arquivo na biblioteca.</p>';
+        return;
+      }
+
+      filtered.forEach(file => {
+        const isImg = ['Imagem', 'SVG'].includes(file.categoria) ||
+          (file.mimeType && String(file.mimeType).startsWith('image/'));
+        const safeUrl = String(file.url || '').replace(/"/g, '&quot;');
+        const safeName = String(file.originalName || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+        const safeUrlJs = String(file.url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        container.innerHTML += `
+          <div class="media-card">
+            <div class="media-thumb">
+              ${isImg
+                ? `<img src="${safeUrl}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                   <div class="thumb-fallback" style="display:none;"><i data-lucide="image-off"></i> Sem prévia</div>`
+                : `<div class="thumb-fallback"><i data-lucide="file"></i>${safeName.split('.').pop() || file.categoria}</div>`}
+            </div>
+            <div class="media-info">
+              <span class="media-name" title="${safeName}">${safeName}</span>
+              <span style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:10px;">${(file.sizeBytes / 1024).toFixed(1)} KB | ${file.categoria}</span>
+              <div class="media-actions">
+                <button class="btn btn-secondary btn-sm" style="flex:1; padding:5px;" onclick="copyMediaUrl('${safeUrlJs}')">Copiar Link</button>
+                <button class="btn btn-danger btn-sm" style="padding:5px;" onclick="deleteMediaFile('${file._id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    document.getElementById('search-media').addEventListener('input', renderMediaLibrary);
+    document.getElementById('filter-media-cat').addEventListener('change', renderMediaLibrary);
+
+    document.getElementById('mediaUploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('library-file');
+      if(fileInput.files.length === 0) {
+        Swal.fire('Erro!', 'Escolha um arquivo.', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('arquivo', fileInput.files[0]);
+      formData.append('categoria', document.getElementById('media-upload-cat').value);
+      formData.append('anoName', 'geral');
+      formData.append('editalTitle', 'geral');
+
+      try {
+        const res = await fetch('/api/pnab/midias', {
+          method: 'POST',
+          headers: getUploadHeaders(),
+          body: formData
+        });
+        if(res.ok) {
+          Swal.fire('Sucesso!', 'Arquivo indexado e carregado!', 'success');
+          document.getElementById('library-file').value = '';
+          document.getElementById('upload-filename-display').textContent = '';
+          loadMediaLibrary();
+        } else {
+          Swal.fire('Erro!', 'Erro ao carregar arquivo.', 'error');
+        }
+      } catch(e) {}
+    });
+
+    window.copyMediaUrl = function(url) {
+      navigator.clipboard.writeText(url);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Link copiado!',
+        showConfirmButton: false,
+        timer: 1500
+      });
+    };
+
+    window.deleteMediaFile = async function(id) {
+      const conf = await Swal.fire({ title: 'Excluir da biblioteca?', text: 'Isto removerá o arquivo apenas do indexador, mantendo o arquivo no disco se usado por documentos ativos.', icon: 'warning', showCancelButton: true });
+      if(!conf.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/api/pnab/midias/${id}`, { method: 'DELETE', headers: getHeaders() });
+        if(res.ok) {
+          loadMediaLibrary();
+        }
+      } catch(e) {}
+    };
+
+    // -------------------------------------------------------------------------
+    // 4.1. REUSABLE MEDIA SELECTOR
+    // -------------------------------------------------------------------------
+    let activeSelectorInputId = null;
+
+    window.openMediaSelector = function(inputId) {
+      activeSelectorInputId = inputId;
+      document.getElementById('mediaSelectorModal').style.display = 'flex';
+      renderSelectorMedia();
+    };
+
+    window.closeMediaSelector = function() {
+      document.getElementById('mediaSelectorModal').style.display = 'none';
+    };
+
+    async function renderSelectorMedia() {
+      const search = document.getElementById('search-selector-media').value.toLowerCase();
+      const cat = document.getElementById('filter-selector-media-cat').value;
+      const grid = document.getElementById('selector-media-grid');
+      grid.innerHTML = '';
+
+      if (libraryFiles.length === 0) {
+        // Load files if not loaded
+        const res = await fetch('/api/pnab/midias', { headers: getHeaders() });
+        libraryFiles = await res.json();
+      }
+
+      const filtered = libraryFiles.filter(item => {
+        const matchesSearch = item.originalName.toLowerCase().includes(search);
+        const matchesCat = !cat || item.categoria === cat;
+        return matchesSearch && matchesCat;
+      });
+
+      filtered.forEach(file => {
+        const isImg = ['Imagem', 'SVG'].includes(file.categoria) ||
+          (file.mimeType && String(file.mimeType).startsWith('image/'));
+        const safeUrl = String(file.url || '').replace(/"/g, '&quot;');
+        const safeName = String(file.originalName || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/"/g, '&quot;');
+        const safeUrlJs = String(file.url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        grid.innerHTML += `
+          <div class="media-card" onclick="selectMedia('${safeUrlJs}')" style="cursor:pointer; border:1px solid #e2e8f0;">
+            <div class="media-thumb" style="height:90px;">
+              ${isImg
+                ? `<img src="${safeUrl}" alt="${safeName}" loading="lazy">`
+                : `<div class="thumb-fallback"><i data-lucide="file" style="width:28px;"></i></div>`}
+            </div>
+            <div style="padding:8px; font-size:0.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${safeName}
+            </div>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    document.getElementById('search-selector-media').addEventListener('input', renderSelectorMedia);
+    document.getElementById('filter-selector-media-cat').addEventListener('change', renderSelectorMedia);
+
+    window.selectMedia = function(url) {
+      document.getElementById(activeSelectorInputId).value = url;
+      closeMediaSelector();
+    };
+
+    // -------------------------------------------------------------------------
+    // 5. LIXEIRA (RECYCLE BIN)
+    // -------------------------------------------------------------------------
+    let trashList = [];
+
+    async function loadRecycleBin() {
+      try {
+        const res = await fetch('/api/pnab/lixeira', { headers: getHeaders() });
+        trashList = await res.json();
+        
+        const tbody = document.querySelector('#table-lixeira tbody');
+        tbody.innerHTML = '';
+
+        if(trashList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">A lixeira está vazia.</td></tr>';
+          return;
+        }
+
+        trashList.forEach(item => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${item.nome}</strong></td>
+              <td><span class="badge badge-slate">${item.tipo}</span></td>
+              <td>${item.details || ''}</td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="restoreTrashItem('${item.id}', '${item.tipo}')"><i data-lucide="rotate-ccw" style="width:14px;"></i> Restaurar</button>
+              </td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    window.restoreTrashItem = async function(id, tipo) {
+      try {
+        const res = await fetch(`/api/pnab/lixeira/${id}/restore`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ tipo })
+        });
+        if(res.ok) {
+          Swal.fire('Restaurado!', 'Item retornado ao estado ativo com sucesso.', 'success');
+          loadRecycleBin();
+        }
+      } catch(e) {}
+    };
+
+    // -------------------------------------------------------------------------
+    // 6. AUDITORIA LOGS
+    // -------------------------------------------------------------------------
+    async function loadAuditLogs() {
+      try {
+        const res = await fetch('/api/pnab/auditoria', { headers: getHeaders() });
+        const list = await res.json();
+
+        const tbody = document.querySelector('#table-auditoria tbody');
+        tbody.innerHTML = '';
+
+        if(list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">Sem logs de auditoria no sistema.</td></tr>';
+          return;
+        }
+
+        list.forEach(log => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${log.userName}</strong></td>
+              <td>${log.userEmail || '--'}</td>
+              <td><span class="badge ${log.action === 'CREATE' ? 'badge-green' : log.action === 'UPDATE' ? 'badge-blue' : log.action === 'DELETE' ? 'badge-red' : 'badge-orange'}">${log.action}</span></td>
+              <td>${log.contentType}</td>
+              <td>${new Date(log.timestamp).toLocaleString('pt-BR')}</td>
+            </tr>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {}
+    }
+
+    // Load initial stats
+    loadOverviewStats();
+  </script>
+</body>
+</html>

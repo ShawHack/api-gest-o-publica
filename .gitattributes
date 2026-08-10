@@ -1,0 +1,3 @@
+# Git LFS desativado neste ramo para permitir push sem blobs em falta no servidor.
+# Ficheiros que antes eram LFS podem estar no disco como "pointer" (texto); substituir
+# por binarios reais a partir de backup ou rebuild antes de deploy de assets.

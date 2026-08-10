@@ -1,0 +1,382 @@
+.form_container{
+  max-width: 760px;
+  margin: 0 auto;
+  background-color: #FFF;
+  border-radius: 15px;
+  padding: 24px;
+}
+
+/* Mensagem de validação de email persistente */
+.validation_message {
+  background: linear-gradient(135deg, #364ba3 0%, #7481d1 100%);
+  color: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(54, 75, 163, 0.3);
+  border: 2px solid #ed9756;
+}
+
+.validation_message h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.3rem;
+  color: #ffffff !important;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.validation_message p {
+  margin: 8px 0;
+  line-height: 1.6;
+  color: #ffffff !important;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.validation_message p:first-of-type {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.dismiss_button {
+  background: #ed9756;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.3s ease;
+}
+
+.dismiss_button:hover {
+  background: #d68642;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(237, 151, 86, 0.4);
+}
+
+/* Título */
+.form_container h2{
+  font-family: 'Cinzel', serif;
+  margin-top: 16px;
+  margin-bottom: 20px;
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  font-size: 30px;
+  text-align: center;
+}
+
+/* FORM em grid: 2 colunas */
+.form_container form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+
+/* Campos de texto */
+.form_container input[type="text"],
+.form_container input[type="email"],
+.form_container input[type="password"],
+.form_container input[type="tel"] {
+  width: 100%;
+  padding: 0.8em 1em;
+  border: 2px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Foco */
+.form_container input:focus {
+  border-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  box-shadow: 0 0 5px rgba(237, 151, 86, 0.5); /* Identidade Visual Garça - Laranja */
+}
+
+/* Labels */
+.form_container label {
+  font-weight: bold;
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  display: block;
+  margin-bottom: 0; /* espaçamento controlado pelo gap */
+}
+
+/* Wrapper de cada campo */
+.form_control {
+  display: flex;
+  flex-direction: column;
+  gap: .4em; /* distância uniforme entre label, input e erro */
+}
+
+/* Zera margins internas vindas do componente Input */
+.form_control > * {
+  margin-bottom: 0 !important;
+}
+
+/* Classe utilitária pros mascarados (IMaskInput) */
+.input {
+  width: 100%;
+  padding: 0.8em 1em;
+  border: 2px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.input:focus {
+  border-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  box-shadow: 0 0 5px rgba(237, 151, 86, 0.5); /* Identidade Visual Garça - Laranja */
+}
+
+/* Erro: borda vermelha */
+.inputError {
+  border: 2px solid #e63946 !important;
+  box-shadow: 0 0 5px rgba(230, 57, 70, 0.5);
+}
+
+/* Mensagem de erro */
+.errorMessage {
+  display: block;
+  color: #e63946;
+  font-size: 0.9rem;
+  margin: 0;          /* colada no campo */
+  line-height: 1.2;
+}
+
+/* Botão ocupa duas colunas */
+.form_container input[type='submit']{
+  border-radius: 8px;
+  background-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  color: #FFF;
+  border: none;
+  min-width: 100px;
+  min-height: 2.75em;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  grid-column: 1 / -1; /* span duas colunas */
+}
+.form_container input[type='submit']:hover{
+  background-color: #ffb583; /* Identidade Visual Garça - Laranja Claro */
+}
+
+.form_container p{
+  margin-top: 1em;
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Prévia de imagem (outros forms) */
+.preview_sepultado_image{
+  display: flex;
+  justify-content: center;
+  margin: 1em;
+}
+.preview_sepultado_image img{
+  width: 100px;
+  height: 100px;
+  margin-left: 1em;
+}
+
+/* Responsivo: 1 coluna */
+@media (max-width: 640px){
+  .form_container{ padding: 16px; }
+  .form_container form{ grid-template-columns: 1fr; }
+  .form_container input[type='submit']{ grid-column: auto; }
+}
+/* Select e Textarea com o mesmo visual dos inputs */
+.form_container select,
+.form_container textarea {
+  width: 100%;
+  padding: 0.8em 1em;
+  border: 2px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form_container select:focus,
+.form_container textarea:focus {
+  border-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  box-shadow: 0 0 5px rgba(237, 151, 86, 0.5); /* Identidade Visual Garça - Laranja */
+}
+
+/* Altura padrão maior para textarea */
+.form_container textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+/* 1) Estiliza number e file exatamente como os demais */
+.form_container input[type="number"],
+.form_container input[type="file"] {
+  width: 100%;
+  padding: 0.8em 1em;
+  border: 2px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background: #fff;
+}
+
+/* Foco */
+.form_container input[type="number"]:focus,
+.form_container input[type="file"]:focus {
+  border-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  box-shadow: 0 0 5px rgba(237, 151, 86, 0.5); /* Identidade Visual Garça - Laranja */
+}
+
+/* 2) Remove setinhas do number (cross-browser) */
+.form_container input[type="number"]::-webkit-outer-spin-button,
+.form_container input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.form_container input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* 3) Botão do input file (fica com cara de botão do tema) */
+.form_container input[type="file"]::file-selector-button {
+  margin-right: 0.8em;
+  padding: 0.55em 0.9em;
+  border: none;
+  border-radius: 6px;
+  background-color: #ed9756; /* Identidade Visual Garça - Laranja */
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.form_container input[type="file"]::file-selector-button:hover {
+  background-color: #ffb583; /* Identidade Visual Garça - Laranja Claro */
+}
+
+/* 4) Erro (borda vermelha) funciona também para number/file */
+.inputError {
+  border: 2px solid #e63946 !important;
+  box-shadow: 0 0 5px rgba(230, 57, 70, 0.5);
+}
+/* ocupa a linha inteira da grid (duas colunas) */
+.full_row {
+  grid-column: 1 / -1;
+}
+/* ocupa a linha inteira (duas colunas) */
+.full_row {
+  grid-column: 1 / -1;
+}
+
+/* bloco do avatar no topo, centralizado e com largura controlada */
+.avatar_wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.avatar {
+  width: 148px;           /* ajuste fino */
+  height: 148px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  box-shadow: 0 2px 10px rgba(54, 75, 163, 0.2); /* Identidade Visual Garça */
+  background: #f7f9fb;
+}
+
+/* afunila um pouco a largura de um bloco grande (ex.: input file) */
+.centered_narrow {
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+/* --- Olhinho (mostrar/ocultar senha) --- */
+.password_wrap {
+  position: relative;
+}
+
+/* dá espaço pro botão dentro do input */
+.password_input {
+  padding-right: 2.5rem;
+}
+
+/* botão do olhinho */
+.toggle_eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.toggle_eye:hover {
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+}
+
+/* acessibilidade: foco visível */
+.toggle_eye:focus-visible {
+  outline: 2px solid #ed9756; /* Identidade Visual Garça - Laranja */
+  border-radius: 6px;
+}
+/* === Termos de Uso: bloco colapsável (<details>) e link "ver termos" === */
+.form_container details {
+  border: 1px solid #e7eef2;
+  border-radius: 8px;
+  padding: .6rem .8rem;
+  background: #f9fcfd;
+}
+
+.form_container details > summary {
+  cursor: pointer;
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  font-weight: 700;
+  outline: none;
+}
+.form_container details[open] {
+  background: #f3f9fb;
+}
+
+/* Link estilizado dentro do label do checkbox ("Termos de Uso") */
+.form_container .terms_link {
+  color: #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Checkbox + label em linha com clique confortável */
+.form_container .terms_row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.form_container .terms_row label {
+  cursor: pointer;
+}
+
+/* Botão desabilitado (se optar em setar disabled até aceitar termos) */
+.form_container input[type='submit'][disabled] {
+  background-color: #d4c4a8; /* Identidade Visual Garça - Laranja Claro Desabilitado */
+  cursor: not-allowed;
+  opacity: .8;
+}
+
+/* (Opcional) melhorar contraste do foco em inputs e summary */
+.form_container :focus-visible {
+  outline: 2px solid #ed9756; /* Identidade Visual Garça - Laranja */
+  outline-offset: 2px;
+}

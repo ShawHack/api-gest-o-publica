@@ -1,0 +1,214 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    # Sem porta no host em produção (acesso só pela rede `stack`).
+    # Para debug local: descomente → "127.0.0.1:27019:27017"
+    volumes:
+      - mongo-data:/data/db
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+    networks: [ stack ]
+    healthcheck:
+      test: [ "CMD-SHELL", "mongosh --eval 'db.runCommand({ ping: 1 })'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks: [ stack ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build: ./backend
+    container_name: api
+    # Produção: só localhost no host (nginx expõe HTTPS). Evita bypass HTTP direto.
+    ports:
+      - "127.0.0.1:5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - UPLOAD_DIR=/data/apicemiterio
+      - MONGODB_URI=mongodb://mongo:27017/apicemiterio?replicaSet=rs0
+      - REDIS_URL=redis://redis:6379
+    dns:
+      - "10.15.25.1"
+      - "10.15.25.254"
+    volumes:
+      - apicemiterio_data:/data/apicemiterio
+      - ./backend/public:/app/public:ro
+      - ./backend/private:/app/private:ro
+      - ./mapaturistico/public:/mapaturistico-public:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+    healthcheck:
+      test: [ "CMD-SHELL", "node -e \"require('http').get('http://localhost:5000/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # Garça Cidadão — mesma rede `stack` que o nginx (evita 502: upstream não resolvido).
+  govcidadao-api:
+    build:
+      context: ./GovCidadao
+      dockerfile: Dockerfile
+    container_name: govcidadao-api
+    environment:
+      APP_NAME: GovCidadao API
+      APP_VERSION: 1.0.0
+      MONGO_URI: mongodb://mongo:27017/?replicaSet=rs0
+      MONGO_DB: govcidadao
+      # Usa GOVCIDADAO_JWT_SECRET se definido; senão JWT_SECRET do .env na raiz (mesmo repositório).
+      JWT_SECRET: ${GOVCIDADAO_JWT_SECRET:-${JWT_SECRET}}
+      EXTERNAL_USER_DB: apicemiterio
+      EXTERNAL_USER_COLLECTION: users
+      EXTERNAL_MONGO_URI: ${EXTERNAL_MONGO_URI:-mongodb://mongo:27017/apicemiterio?replicaSet=rs0}
+      AUDIT_DB: apicemiterio
+      AUDIT_COLLECTION: auditlogs
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:8000/health').getcode()==200 else sys.exit(1)\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 25s
+
+  email-worker:
+    build: ./backend
+    container_name: email-worker
+    command: ["node", "scripts/email-queue-worker.js"]
+    env_file:
+      - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+
+  job-worker:
+    build: ./backend
+    container_name: job-worker
+    command: ["node", "scripts/job-queue-worker.js"]
+    env_file:
+      - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=mongodb://mongo:27017/apicemiterio?replicaSet=rs0
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+
+  govcidadao-frontend:
+    build:
+      context: ./GovCidadao/frontend
+      dockerfile: Dockerfile
+    container_name: govcidadao-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: /garca-cidadao-api
+    depends_on:
+      govcidadao-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+
+  ferramentas:
+    build:
+      context: ./Ferramentas
+      dockerfile: Dockerfile
+    container_name: ferramentas
+    environment:
+      SOFFICE_PATH: /usr/bin/soffice
+      MONGODB_URI: mongodb://mongo:27017/apicemiterio?replicaSet=rs0
+      API_INTERNAL_URL: http://api:5000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [ stack ]
+    mem_limit: 2g
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    depends_on:
+      api:
+        condition: service_healthy
+      govcidadao-api:
+        condition: service_healthy
+      govcidadao-frontend:
+        condition: service_started
+      ferramentas:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443" # HTTPS
+      - "8080:8080"
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/public:/opt/backend-public:ro
+      - apicemiterio_data:/data/apicemiterio:ro
+      - letsencrypt:/etc/letsencrypt # certificados
+      - certbot-www:/var/www/certbot # webroot ACME
+    restart: unless-stopped
+    networks: [ stack ]
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done"
+    depends_on:
+      - nginx
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    restart: unless-stopped
+    networks: [ stack ]
+
+volumes:
+  mongo-data:
+  redis-data:
+  apicemiterio_data:
+  letsencrypt:
+  certbot-www:
+
+
+networks:
+  stack:
+    driver: bridge

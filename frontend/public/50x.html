@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erro no servidor - Prefeitura de Garça</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #364ba3 0%, #2c3e50 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .error-container {
+      background: white;
+      border-radius: 16px;
+      padding: 48px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .error-icon {
+      font-size: 80px;
+      margin-bottom: 16px;
+    }
+    
+    .error-code {
+      font-size: 72px;
+      font-weight: bold;
+      color: #a02e2e;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    
+    .error-title {
+      font-size: 24px;
+      color: #364ba3;
+      margin-bottom: 16px;
+    }
+    
+    .error-message {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    
+    .error-btn {
+      display: inline-block;
+      background: #364ba3;
+      color: white;
+      padding: 14px 32px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(54, 75, 163, 0.4);
+      margin: 8px;
+    }
+    
+    .error-btn:hover {
+      background: #2c3e8a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(54, 75, 163, 0.5);
+    }
+    
+    .error-btn.secondary {
+      background: #ed9756;
+      box-shadow: 0 4px 15px rgba(237, 151, 86, 0.4);
+    }
+    
+    .error-btn.secondary:hover {
+      background: #d4823f;
+      box-shadow: 0 6px 20px rgba(237, 151, 86, 0.5);
+    }
+    
+    .footer-text {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .tips {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    
+    .tips-title {
+      font-weight: 600;
+      color: #364ba3;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    
+    .tips ul {
+      margin-left: 20px;
+      color: #666;
+      font-size: 13px;
+    }
+    
+    .tips li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-icon">⚠️</div>
+    <div class="error-code">500</div>
+    <h1 class="error-title">Erro no servidor</h1>
+    <p class="error-message">
+      Desculpe, ocorreu um erro inesperado. Nossa equipe já foi notificada e está trabalhando para resolver.
+    </p>
+    
+    <div class="tips">
+      <p class="tips-title">💡 O que você pode fazer:</p>
+      <ul>
+        <li>Aguarde alguns instantes e tente novamente</li>
+        <li>Limpe o cache do navegador</li>
+        <li>Se o problema persistir, entre em contato conosco</li>
+      </ul>
+    </div>
+    
+    <div>
+      <a href="/" class="error-btn">← Voltar ao Início</a>
+      <a href="javascript:location.reload()" class="error-btn secondary">Tentar Novamente</a>
+    </div>
+    
+    <p class="footer-text">Prefeitura Municipal de Garça - SEMIT</p>
+  </div>
+</body>
+</html>
+

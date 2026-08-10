@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Garça Cultural</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-page: #fdfbfb;
+      --text-main: #1e293b;
+      --text-dim: #64748b;
+      --accent-coral: #ff716e;
+      --accent-coral-hover: #e65c00;
+      --accent-gradient: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Rubik', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+    .auth-container {
+      width: 100%;
+      max-width: 1100px;
+      min-height: 650px;
+      display: flex;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin: 20px;
+    }
+    .auth-image {
+      flex: 1;
+      background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15)), url('modal_banner.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      color: white;
+      text-align: center;
+      position: relative;
+    }
+    .auth-form-wrapper {
+      flex: 1;
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .auth-header {
+      margin-bottom: 30px;
+    }
+    .auth-header h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .auth-header p {
+      color: var(--text-dim);
+      font-size: 1rem;
+      margin-top: 5px;
+    }
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    .input-group i, .input-group svg {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-coral);
+      width: 22px;
+      height: 22px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 16px 20px 16px 50px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      background: #f8fafc;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    .input-group input:focus {
+      border-color: var(--accent-coral);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(255, 113, 110, 0.15);
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    .checkbox-group input {
+      margin-top: 4px;
+      accent-color: var(--accent-coral);
+    }
+    .checkbox-group label {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent-gradient);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 20px rgba(255, 113, 110, 0.25);
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 25px rgba(255, 113, 110, 0.4);
+    }
+    .auth-footer {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--text-dim);
+    }
+    .auth-footer a {
+      color: var(--accent-coral);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+    .auth-footer a:hover {
+      color: var(--accent-coral-hover);
+      text-decoration: underline;
+    }
+    .back-home {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      color: var(--text-dim);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .back-home:hover {
+      color: var(--accent-coral);
+      transform: translateX(-5px);
+    }
+    
+    #message-area {
+      display: none;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .msg-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .msg-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    @media (max-width: 768px) {
+      .auth-container { flex-direction: column; }
+      .auth-image { 
+        display: block; 
+        width: 100%; 
+        min-height: 300px; 
+        flex: none; 
+      }
+      .auth-form-wrapper { padding: 40px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="./index.html" class="back-home">
+    <i data-lucide="arrow-left"></i> Voltar ao Início
+  </a>
+
+  <div class="auth-container">
+    <div class="auth-image">
+      <!-- Imagem limpa sem texto sobrescrito -->
+    </div>
+    
+    <div class="auth-form-wrapper">
+      <div class="auth-header">
+        <h3>Criar Conta</h3>
+        <p>Cadastre-se para ter acesso exclusivo.</p>
+      </div>
+
+      <div id="message-area"></div>
+
+      <form id="registerForm">
+        <div class="input-group">
+          <i data-lucide="user"></i>
+          <input type="text" id="nome" placeholder="Nome Completo" required>
+        </div>
+        
+        <div class="input-group">
+          <i data-lucide="mail"></i>
+          <input type="email" id="email" placeholder="E-mail" required>
+        </div>
+        
+        <div class="input-group">
+          <i data-lucide="lock"></i>
+          <input type="password" id="senha" placeholder="Senha" required minlength="6">
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="receberNotificacoes" checked>
+          <label for="receberNotificacoes">Quero receber notificações, avisos e informações sobre eventos culturais.</label>
+        </div>
+
+        <button type="submit" class="btn-submit">Cadastrar</button>
+      </form>
+
+      <div class="auth-footer">
+        Já possui uma conta? <a href="./login.html">Faça login aqui</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const nome = document.getElementById('nome').value;
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const receberNotificacoes = document.getElementById('receberNotificacoes').checked;
+      
+      const messageArea = document.getElementById('message-area');
+
+      try {
+        // Envia requisição para a API local (rodando na porta 3000)
+        const response = await fetch('http://localhost:3000/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nome, email, senha, receberNotificacoes })
+        });
+
+        const data = await response.json();
+
+        messageArea.style.display = 'block';
+        if (response.ok) {
+          messageArea.className = 'msg-success';
+          messageArea.textContent = 'Cadastro realizado com sucesso! Redirecionando para login...';
+          document.getElementById('registerForm').reset();
+          
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        } else {
+          messageArea.className = 'msg-error';
+          messageArea.textContent = data.message || 'Erro ao realizar o cadastro.';
+        }
+      } catch (error) {
+        messageArea.style.display = 'block';
+        messageArea.className = 'msg-error';
+        messageArea.textContent = 'Erro ao conectar ao servidor. Verifique se o backend está rodando.';
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>

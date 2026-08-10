@@ -1,0 +1,1629 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso de Circo - EMCA</title>
+    <link class="favicon" rel="icon" href="../../logo.jpg" type="image/jpeg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800;900&family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../emca.css">
+    
+    <style>
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff0000, 0 0 15px #ff0000;
+            z-index: 4;
+            animation: twinkle 2s infinite alternate;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* Override all backgrounds to white */
+        body, .page-emca, section, article, .minimalist-info, .course-info-section, .diferenciais-section, .aprendizado-section, .modalidades-section, .gallery-section, .cronograma-step, .course-sidebar, .modalidade-text-item, .minimalist-container {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+        .page-emca::before, .page-emca::after {
+            display: none !important;
+        }
+
+        /* Bold, creative titles using Rubik 900 (Extra Thick) and smooth color transitions */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Rubik', sans-serif !important;
+            font-weight: 700 !important; /* Extremely thick font! */
+            color: #a02e2e !important;
+            text-shadow: none !important; /* Completely remove any neon/glow text-shadows */
+            -webkit-text-fill-color: initial !important;
+            background: none !important;
+        }
+
+        /* Completely remove hover neon glow on h2 and all headers */
+        .section-header:hover h2, 
+        .course-details:hover h2, 
+        .section-header h2:hover,
+        h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
+            text-shadow: none !important;
+        }
+
+        /* Section Headings with solid color */
+        .section-header h2, .course-details h2 {
+            font-size: 2.6rem;
+            font-weight: 700 !important; /* Extra thick */
+            color: #a02e2e !important;
+            margin-bottom: 15px;
+            display: inline-block;
+            letter-spacing: -1px;
+            position: relative;
+            text-shadow: none !important;
+        }
+        
+        .section-header h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #a02e2e;
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
+        
+        .course-details h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #a02e2e;
+            margin: 12px 0 0;
+            border-radius: 2px;
+        }
+
+        /* Custom Scroll Reveal Animations (Left, Right, Scale, Up) */
+        .reveal.reveal-left {
+            opacity: 0;
+            transform: translateX(-100px) translateY(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-right {
+            opacity: 0;
+            transform: translateX(100px) translateY(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-up {
+            opacity: 0;
+            transform: translateY(60px) translateX(0);
+            transition: all 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .reveal.reveal-scale {
+            opacity: 0;
+            transform: scale(0.3) translateY(0); /* starts very small for a popup effect */
+            transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1); /* bouncy pop effect */
+        }
+        
+        .reveal.reveal-left.active,
+        .reveal.reveal-right.active,
+        .reveal.reveal-up.active,
+        .reveal.reveal-scale.active {
+            opacity: 1;
+            transform: translateX(0) translateY(0) scale(1);
+        }
+
+        .course-hero { margin-top: 0;
+            height: 60vh;
+            min-height: 450px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align content to the left of viewport */
+            color: var(--text-inverse);
+            transition: all 0.5s ease;
+        }
+
+        /* Desktop Carousel Background Slides */
+        .hero-bg-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1;
+        }
+
+        .hero-bg-slide.active {
+            opacity: 1;
+        }
+        
+        .course-hero .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align items to the left */
+            text-align: left;
+            z-index: 2; /* Keep above slides */
+        }
+
+        .hero-text-wrapper {
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .typewriter-title {
+            color: #fff !important;
+            font-family: 'Rubik', sans-serif !important;
+            font-weight: 700 !important; /* Thick */
+            font-size: 3.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+            overflow: hidden;
+            border-right: 4px solid var(--peach);
+            white-space: nãowrap;
+            width: 0; /* starts hidden */
+            letter-spacing: -1px;
+            animation: 
+              typing 2s steps(15, end) 0.5s forwards,
+              blink-caret 0.75s step-end infinite alternate,
+              remove-cursor 0.5s step-end 3.5s forwards;
+        }
+        
+        /* Multiple Hero Subtitles */
+        .hero-subtitle {
+            display: none;
+            opacity: 0;
+            font-family: 'Rubik', sans-serif;
+            font-weight: 300;
+            font-size: 1.25rem;
+            color: #fff;
+            line-height: 1.6;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+        
+        .hero-subtitle.active {
+            display: block;
+            opacity: 1;
+            animation: fadeInSimple 0.8s ease-out forwards;
+        }
+        
+        /* First subtitle initial page load animation */
+        .fade-in-subtitle {
+            display: block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1.2s ease-out 2.2s forwards;
+        }
+
+        @keyframes fadeInSimple {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-bg-slide {
+                display: none !important; /* Hide slide carousel on mobile */
+            }
+            .course-hero {
+                background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../imagesemca/circo/capacelular1.png') !important;
+                height: 520px;
+                justify-content: center; /* Center align on mobile */
+                background-size: cover;
+                background-position: center;
+            }
+            .course-hero .container {
+                align-items: center;
+                text-align: center;
+                padding: 0 20px;
+            }
+            .hero-text-wrapper {
+                align-items: center;
+            }
+            .typewriter-title {
+                font-size: 2.2rem;
+                margin-bottom: 15px;
+                animation: 
+                  typing 2s steps(15, end) 0.5s forwards,
+                  blink-caret 0.75s step-end infinite alternate,
+                  remove-cursor 0.5s step-end 3.5s forwards;
+            }
+            .fade-in-subtitle {
+                font-size: 1rem;
+            }
+            /* Show only first subtitle on mobile */
+            #subtitle-2 {
+                display: none !important;
+            }
+            .section-header h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Custom buttons for Circo page */
+        .btn-coral {
+            background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4) !important;
+            transition: all 0.4s ease !important;
+            font-weight: 700 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-coral:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 25px rgba(255, 113, 110, 0.6) !important;
+            background: linear-gradient(135deg, #ff8e8c 0%, #ff716e 100%) !important;
+        }
+
+        .btn-lavender {
+            background: linear-gradient(135deg, #7481d1 0%, #909ce0 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(116, 129, 209, 0.4) !important;
+            transition: all 0.4s ease !important;
+            font-weight: 700 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-lavender:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 25px rgba(116, 129, 209, 0.6) !important;
+            background: linear-gradient(135deg, #909ce0 0%, #7481d1 100%) !important;
+        }
+
+        .course-info-section {
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--bg-alt);
+        }
+        
+        .course-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .course-details p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+        
+        .course-sidebar {
+            background-color: var(--bg-main);
+            padding: 30px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.03);
+            height: fit-content;
+        }
+        
+        .info-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .info-list li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+        
+        .info-list i {
+            font-size: 1.3rem;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .schedule-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        
+        .schedule-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        /* Decorative floating circus icons with creative colored settings */
+        .circus-decor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            user-select: none;
+        }
+        
+        .circus-decor-1 { top: 8%; left: 3%; }
+        .circus-decor-2 { top: 28%; right: 4%; }
+        .circus-decor-3 { top: 12%; left: 4%; }
+        .circus-decor-4 { top: 48%; right: 3%; }
+        .circus-decor-5 { top: 15%; left: 3%; }
+        .circus-decor-6 { top: 58%; right: 4%; }
+        .circus-decor-7 { top: 22%; left: 5%; }
+        .circus-decor-8 { top: 62%; right: 5%; }
+        .circus-decor-9 { top: 18%; left: 4%; }
+        .circus-decor-10 { top: 68%; right: 4%; }
+
+        .float-animation-1 { animation: float-slow 8s ease-in-out infinite; display: inline-block; }
+        .float-animation-2 { animation: float-reverse 10s ease-in-out infinite 1s; display: inline-block; }
+        .float-animation-3 { animation: float-slow 9s ease-in-out infinite 2s; display: inline-block; }
+        .float-animation-4 { animation: float-reverse 7s ease-in-out infinite 0.5s; display: inline-block; }
+        .float-animation-5 { animation: float-slow 7.5s ease-in-out infinite 1.5s; display: inline-block; }
+        .float-animation-6 { animation: float-reverse 11s ease-in-out infinite 0.7s; display: inline-block; }
+
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            50% { transform: translateY(-18px) rotate(18deg) scale(1.1); }
+        }
+
+        @keyframes float-reverse {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1.1); }
+            50% { transform: translateY(20px) rotate(-20deg) scale(0.95); }
+        }
+
+        /* Diferenciais Section */
+        .diferenciais-section {
+            padding: 80px 0;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+        .diferenciais-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        @media (max-width: 991px) {
+            .diferenciais-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .diferencial-card {
+            background: var(--bg-alt);
+            border-radius: var(--border-radius-lg);
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: var(--transition);
+        }
+        .diferencial-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--peach);
+        }
+        .diferencial-icon {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        .diferencial-card:hover .diferencial-icon {
+            transform: scale(1.15);
+        }
+        .diferencial-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: var(--primary) !important;
+            font-weight: 700 !important; /* Thick card title */
+        }
+        .diferencial-card p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Aprendizado Section */
+        .aprendizado-section {
+            padding: 80px 0;
+            background-color: var(--bg-alt);
+            position: relative;
+            overflow: hidden;
+        }
+        .cronãograma-list {
+            max-width: 800px;
+            margin: 40px auto 0;
+            position: relative;
+            z-index: 2;
+        }
+        .cronãograma-step {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            background: var(--bg-main);
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            align-items: flex-start;
+            transition: var(--transition);
+        }
+        .cronãograma-step:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--peach);
+        }
+        .step-num {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .step-info h3 {
+            font-size: 1.35rem;
+            margin-bottom: 8px;
+            color: var(--primary) !important;
+            font-weight: 700 !important; /* Thick step title */
+        }
+        .step-info p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Modalidades Text Section (Clean text-focused blocks, não image cards) */
+        .modalidades-section {
+            padding: 80px 0;
+            background-color: var(--bg-main);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modalidades-text-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        @media (max-width: 768px) {
+            .modalidades-text-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+        
+        .modalidade-text-item {
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            background: var(--bg-alt);
+            border-left: 4px solid transparent;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .modalidade-text-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            background: #fff;
+        }
+        
+        .modalidade-text-item.item-blue:hover { border-left-color: #364ba3; }
+        .modalidade-text-item.item-coral:hover { border-left-color: #ff716e; }
+        .modalidade-text-item.item-red:hover { border-left-color: #a02e2e; }
+        .modalidade-text-item.item-lavender:hover { border-left-color: #7481d1; }
+        
+        .modalidade-text-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .modalidade-text-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        
+        .icon-blue { background-color: #364ba3; }
+        .icon-coral { background-color: #ff716e; }
+        .icon-red { background-color: #a02e2e; }
+        .icon-lavender { background-color: #7481d1; }
+        
+        .modalidade-text-item h3 {
+            font-size: 1.35rem;
+            color: var(--primary) !important;
+            font-weight: 700 !important;
+            margin: 0;
+        }
+        
+        .modalidade-text-item p {
+            color: var(--text-light);
+            font-size: 0.98rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Gallery Sections */
+        .gallery-section {
+            padding: 80px 0;
+            background-color: var(--bg-alt);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Generic slide styling for multi-view carousel */
+        .carousel-slide {
+            min-width: 33.333%;
+            padding: 15px;
+            box-sizing: border-box;
+            transition: transform 0.5s ease;
+        }
+        
+        @media (max-width: 991px) {
+            .carousel-slide {
+                min-width: 50%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .carousel-slide {
+                min-width: 100%;
+            }
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Gallery Carousel Items with Creative and Modern Effects */
+        .gallery-item-new {
+            height: 280px;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #000;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .gallery-item-new img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(15%) brightness(90%);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        /* Modern Glassmorphic Overlay with zoom icon */
+        .gallery-item-new::after {
+            content: '\f00e'; /* FontAwesome zoom-in icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10, 25, 47, 0.8), rgba(255, 113, 110, 0.35));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(2px);
+            z-index: 2;
+        }
+        
+        /* Hover Effects */
+        .gallery-item-new:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(255, 113, 110, 0.25), 0 0 15px rgba(116, 129, 209, 0.2);
+            border-color: rgba(255, 181, 131, 0.6);
+        }
+        
+        .gallery-item-new:hover img {
+            transform: scale(1.12);
+            filter: grayscale(0%) brightness(100%);
+        }
+        
+        .gallery-item-new:hover::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Carousel Navigation Buttons styling */
+        .carousel-nav-btn {
+            width: 52px;
+            height: 52px;
+            font-size: 1.1rem;
+            background: white;
+            color: var(--primary) !important;
+            border: 2px solid rgba(0,0,0,0.05);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .prev-btn-galeria-circo:hover, .next-btn-galeria-circo:hover {
+            background: #ff716e !important;
+            color: white !important;
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(255, 113, 110, 0.45) !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .prev-btn-galeria-circo { left: 5px !important; }
+        .next-btn-galeria-circo { right: 5px !important; }
+        
+        .carousel-track-container {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 25, 47, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .lightbox.active .lightbox-img {
+            transform: scale(1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .lightbox-close:hover {
+            color: #ff716e;
+            transform: rotate(90deg);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-nav:hover {
+            background: #7481d1;
+            color: white !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-prev {
+            left: -80px;
+        }
+
+        .lightbox-next {
+            right: -80px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 1400px) {
+            .lightbox-prev { left: 10px; }
+            .lightbox-next { right: 10px; }
+            .lightbox-close { top: -40px; right: 0; }
+        }
+    
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- Navbar -->
+        <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-area" onclick="window.location.href='../emca.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.8rem; color: #1e293b; letter-spacing: 2px;">EMCA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Escola de Cultura e Artes</span>
+      </div>
+      
+      <nav class="nav-menu" style="display: flex; gap: 30px; align-items: center;">
+        <a href="../emca.html" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">In&iacute;cio</a>
+        <a href="../emca.html#sobre" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Sobre</a>
+        
+        <div class="nav-item-dropdown">
+            <a href="../emca.html#cursos" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s; display: flex; align-items: center; gap: 5px;">Cursos <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></a>
+            <div class="dropdown-menu">
+                <a href="./danca.html" class="dropdown-item">Ballet & Jazz</a>
+                <a href="./teatro.html" class="dropdown-item">Teatro</a>
+                <a href="./musica.html" class="dropdown-item">M&uacute;sica</a>
+                <a href="./circo.html" class="dropdown-item">Circo</a>
+                <a href="./desenho.html" class="dropdown-item">Desenho e Pintura</a>
+                </div>
+        </div>
+
+        <a href="../emca.html#contato" class="nav-link" style="color: #475569; text-decoration: nãone; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Contato</a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="../../index.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: nãone; font-weight: 600; font-family: 'Rubik', sans-serif; transition: background 0.3s;">
+          <i data-lucide="map"></i> <span class="hide-mobile">Voltar ao </span>Mapa
+        </a>
+          <button class="hamburger" onclick="toggleMenu()" style="background: nãone; border: nãone; color: #1e293b; cursor: pointer; display: nãone;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="nãone" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MOBILE MENU -->
+    <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <div class="mobile-menu" id="mobile-menu">
+      <a href="../emca.html" class="nav-link" onclick="toggleMenu()">Início</a>
+      <a href="../emca.html#sobre" class="nav-link" onclick="toggleMenu()">Sobre</a>
+      <a href="../emca.html#cursos" class="nav-link" onclick="toggleMenu()">Cursos</a>
+      <a href="../emca.html#contato" class="nav-link" onclick="toggleMenu()">Contato</a>
+  </div>
+    
+    <script>
+      function toggleMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const overlay = document.getElementById("menu-overlay");
+      if (menu) {
+          menu.classList.toggle("open");
+          if(overlay) {
+              if(menu.classList.contains("open")) {
+                  overlay.classList.add("active");
+              } else {
+                  overlay.classList.remove("active");
+              }
+          }
+      }
+    }}
+    </script>
+
+    <main>
+
+        <!-- Seção Minimalista com Imagem e Texto lado a lado -->
+        <section class="minimalist-info reveal ballet-intro-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: var(--bg-alt);">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <div class="sparkle" style="top: 10%; left: 10%;"></div>
+                    <div class="sparkle" style="top: 80%; left: 15%; animation-delay: 0.5s;"></div>
+                    <div class="sparkle" style="top: 20%; right: 10%; animation-delay: 1s;"></div>
+                    <div class="sparkle" style="top: 70%; right: 5%; animation-delay: 1.5s;"></div>
+                    <div class="sparkle" style="top: -5%; left: 50%; animation-delay: 0.8s;"></div>
+                    <div class="sparkle" style="top: 50%; left: -10%; animation-delay: 1.2s;"></div>
+                    <div class="sparkle" style="top: 90%; left: 80%; animation-delay: 1.7s;"></div>
+                    <div class="sparkle" style="top: 40%; right: -5%; animation-delay: 0.3s;"></div>
+                    <img src="../imagesemca/Circo/capacirco.png" alt="O que é o Circo?" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">A Magia do Picadeiro</span>
+                        O que é o Circo?
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px;">
+                        O Circo é a arte de desafiar a gravidade, explorar os limites do corpo e criar o extraordinário. Na EMCA, oferecemos um espaço onde a tradição circense se mistura com a expressividade moderna, criando apresentações mágicas.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8;">
+                        Ensinamos muito mais do que acrobacias e malabares. Nosso objetivo é moldar artistas completos, extremamente confiantes e criativos, capazes de arrancar sorrisos e suspiros do público sob as lonas.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Nova Seção com Imagem capacirco2 -->
+        <section class="minimalist-info reveal ballet-intro-section active" style="position: relative; overflow: hidden; padding: 100px 5%; background-color: var(--bg-alt);">
+            <div class="container minimalist-container" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                
+                <div class="info-image" style="flex: 1; min-width: 300px; position: relative;">
+                    <div class="sparkle" style="top: 15%; left: 20%;"></div>
+                    <div class="sparkle" style="top: 85%; left: 10%; animation-delay: 0.6s;"></div>
+                    <div class="sparkle" style="top: 25%; right: 15%; animation-delay: 1.1s;"></div>
+                    <div class="sparkle" style="top: 65%; right: 10%; animation-delay: 1.4s;"></div>
+                    <div class="sparkle" style="top: 5%; left: 60%; animation-delay: 0.9s;"></div>
+                    <div class="sparkle" style="top: 55%; left: -5%; animation-delay: 1.3s;"></div>
+                    <div class="sparkle" style="top: 85%; right: 80%; animation-delay: 1.8s;"></div>
+                    <div class="sparkle" style="top: 45%; right: -10%; animation-delay: 0.4s;"></div>
+                    <img src="../imagesemca/Circo/capacirco2.png" alt="Acrobacias e Malabares" style="width: 100%; max-width: 600px; position: relative; z-index: 2;">
+                </div>
+                
+                <div class="info-text" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h2 class="minimalist-title" style="font-family: 'Rubik', sans-serif !important; font-weight: 700 !important; font-size: 2.5rem; color: #a02e2e; margin-bottom: 25px; line-height: 1.2;">
+                        <span style="color: #a02e2e; font-size: 1.2rem; display: block; margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Acrobacias e Malabares</span>
+                        A Arte em Movimento
+                    </h2>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8; margin-bottom: 20px;">
+                        Desenvolva flexibilidade, equilíbrio e expressão artística com o curso mais dinâmico da EMCA. Aprenda acrobacias, malabarismo e a magia do picadeiro em um ambiente lúdico e seguro.
+                    </p>
+                    <p style="font-size: 1.1rem; color: #475569; line-height: 1.8;">
+                        Seja você um iniciante ou alguém com experiência, nosso curso é desenhado para ajudar a descobrir novos talentos e paixões.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Course Info -->
+        <section id="sobre" class="course-info-section">
+            <!-- Animated emerging circus decorations -->
+            <div class="circus-decor circus-decor-1 reveal reveal-scale">
+                <i class="fa-solid fa-ticket float-animation-1" style="color: rgba(116, 129, 209, 0.25); font-size: 3.5rem;"></i>
+            </div>
+            <div class="circus-decor circus-decor-2 reveal reveal-scale">
+                <i class="fa-solid fa-hat-wizard float-animation-2" style="color: rgba(160, 46, 46, 0.25); font-size: 4rem;"></i>
+            </div>
+            
+            <div class="container course-grid">
+                <div class="course-details">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up">Sobre o Curso</h2>
+                    <p class="reveal reveal-up" style="line-height: 1.8; color: #475569; font-size: 1.1rem; margin-bottom: 20px;">O curso de Circo da EMCA oferece uma experiência artística e educativa, voltada ao desenvolvimento das habilidades motoras, equilíbrio, força, coordenação e expressão corporal. Durante as aulas, os alunos exploram o universo circense de forma lúdica e criativa, aprendendo desde técnicas básicas até práticas mais avançadas.</p>
+                    <p class="reveal reveal-up" style="line-height: 1.8; color: #475569; font-size: 1.1rem;">Em um ambiente seguro, acolhedor e preparado para as atividades, os professores incentivam o trabalho em equipe, a confiança, a disciplina e a superação de desafios pessoais, proporcionando aprendizado e diversão ao mesmo tempo.</p>
+                    
+                    <!-- Heading reveal-up added -->
+                    <h3 class="reveal reveal-up" style="margin: 35px 0 20px; font-weight: 700 !important; color: #ff716e !important; font-size: 1.5rem;">O que você vai aprender?</h3>
+                    <ul class="reveal reveal-up" style="list-style: none; padding-left: 0; color: #475569; margin-bottom: 35px; font-size: 1.05rem;">
+                        <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; background: #fffaf9; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #ff716e;">
+                            <i class="fa-solid fa-person-falling" style="color: #ff716e; margin-top: 3px; font-size: 1.1rem;"></i>
+                            <div><strong>Acrobacias de solo</strong> &mdash; rolamentos, estrelas e movimentos acrobáticos básicos</div>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; background: #f8f9ff; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #7481d1;">
+                            <i class="fa-solid fa-bowling-ball" style="color: #7481d1; margin-top: 3px; font-size: 1.1rem;"></i>
+                            <div><strong>Malabarismo</strong> &mdash; uso de bolinhas, clavas e aros</div>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; background: #f6f7fc; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #364ba3;">
+                            <i class="fa-solid fa-scale-balanced" style="color: #364ba3; margin-top: 3px; font-size: 1.1rem;"></i>
+                            <div><strong>Técnicas de equilíbrio</strong> &mdash; perna de pau, rola-bola e coordenação motora</div>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; background: #fff5f5; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #a02e2e;">
+                            <i class="fa-solid fa-masks-theater" style="color: #a02e2e; margin-top: 3px; font-size: 1.1rem;"></i>
+                            <div><strong>Expressão corporal e palhaçaria</strong> &mdash; desenvolvimento da criatividade cênica</div>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; background: #fffcf8; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #ffb583;">
+                            <i class="fa-solid fa-ribbon" style="color: #ffb583; margin-top: 3px; font-size: 1.1rem;"></i>
+                            <div><strong>Iniciação aos aparelhos aéreos</strong> &mdash; tecido e lira, com total segurança</div>
+                        </li>
+                    </ul>
+
+                    <!-- "Técnicas Trabalhadas" added creatively here -->
+                    <h3 class="reveal reveal-up" style="margin: 35px 0 15px; font-weight: 700 !important; color: #ff716e !important; font-size: 1.3rem;">Técnicas Trabalhadas</h3>
+                    <p class="reveal reveal-up" style="color: #475569; margin-bottom: 15px;">Entre as atividades desenvolvidas ao longo do curso, destacam-se:</p>
+                    <div class="reveal reveal-up" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px;">
+                        <span style="background: rgba(255, 113, 110, 0.1); color: #ff716e; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Cambalhota</span>
+                        <span style="background: rgba(116, 129, 209, 0.1); color: #7481d1; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Perna de pau</span>
+                        <span style="background: rgba(54, 75, 163, 0.1); color: #364ba3; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Bolinhas de malabares</span>
+                        <span style="background: rgba(160, 46, 46, 0.1); color: #a02e2e; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Clavas</span>
+                        <span style="background: rgba(255, 181, 131, 0.15); color: #ff8e4b; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Aparelhos aéreos</span>
+                    </div>
+                </div>
+                
+                <div class="course-sidebar reveal reveal-right" style="z-index: 2; background-color: #ffffff; padding: 35px 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); height: fit-content;">
+                    <h3 style="font-size: 1.4rem; color: #1e293b !important; margin-bottom: 25px; font-weight: 700 !important; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">Detalhes do Curso</h3>
+                    
+                    <ul class="info-list" style="margin-bottom: 35px;">
+                        <li style="margin-bottom: 18px;"><i class="fa-solid fa-user-group" style="color: #7481d1; width: 30px; font-size: 1.2rem;"></i> <span style="color: #475569; font-weight: 500;">Idade:</span> <span style="color: #64748b; margin-left: 5px;">A partir de 7 anos</span></li>
+                        <li style="margin-bottom: 18px;"><i class="fa-solid fa-clock" style="color: #ff716e; width: 30px; font-size: 1.2rem;"></i> <span style="color: #475569; font-weight: 500;">Duração:</span> <span style="color: #64748b; margin-left: 5px;">Aprox. 3 anos</span></li>
+                        <li style="margin-bottom: 18px;"><i class="fa-solid fa-user-tie" style="color: #364ba3; width: 30px; font-size: 1.2rem;"></i> <span style="color: #475569; font-weight: 500;">Profª:</span> <span style="color: #64748b; margin-left: 5px;">Bruna Manchini</span></li>
+                        <li style="margin-bottom: 18px;"><i class="fa-solid fa-calendar-days" style="color: #ffb583; width: 30px; font-size: 1.2rem;"></i> <span style="color: #475569; font-weight: 500;">Aulas:</span> <span style="color: #64748b; margin-left: 5px;">2x por semana (1h)</span></li>
+                        <li style="margin-bottom: 0;"><i class="fa-solid fa-tag" style="color: #10b981; width: 30px; font-size: 1.2rem;"></i> <span style="color: #475569; font-weight: 500;">Custo:</span> <span style="color: #10b981; margin-left: 5px; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 12px;">100% Gratuito</span></li>
+                    </ul>
+                    
+                    <div class="schedule-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                        <h4 class="reveal reveal-up" style="color: #334155 !important; font-weight: 700 !important; margin-bottom: 10px; font-size: 1.1rem;">Organização das Turmas</h4>
+                        <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin-bottom: 15px;">Turmas coletivas organizadas de acordo com a faixa etária e o nível de aprendizagem (Infantil e Juvenil).</p>
+                        <div class="schedule-item" style="border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; margin-bottom: 8px;">
+                            <span style="color: #475569; font-weight: 500; font-size: 0.95rem;">Aulas</span>
+                            <span style="color: #64748b; font-size: 0.95rem;">Coletivas</span>
+                        </div>
+                        <div class="schedule-item" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+                            <span style="color: #475569; font-weight: 500; font-size: 0.95rem;">Carga Horária</span>
+                            <span style="color: #64748b; font-size: 0.95rem;">1h por aula</span>
+                        </div>
+                    </div>
+                    
+                    <a href="https://wa.me/5514997983759?text=Ol%C3%A1!%20Gostaria%20de%20tirar%20algumas%20d%C3%BAvidas%20sobre%20o%20Curso%20de%20Circo%20da%20EMCA." target="_blank" class="btn btn-coral" style="width: 100%; border-radius: 30px; font-size: 1.1rem; padding: 14px 20px;">
+                        <i class="fa-brands fa-whatsapp" style="font-size: 1.3rem;"></i> Dúvidas / Matrícula
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Course Highlight Banner (Moved below Course Info / What you will learn) -->
+        <section id="matricula" class="course-highlight-banner reveal reveal-up" style="margin: 60px auto; padding: 40px; background: linear-gradient(135deg, #fffaf9 0%, #fff0f0 100%); border-radius: 20px; box-shadow: 0 10px 30px rgba(160, 46, 46, 0.05); border: 1px solid rgba(160, 46, 46, 0.1); max-width: 1200px;">
+            <div class="container course-highlight-content" style="display: flex; justify-content: space-between; align-items: center; gap: 40px; padding: 0;">
+                <div class="course-highlight-text" style="flex: 1;">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up" style="color: #a02e2e !important; font-weight: 800 !important; font-size: 2rem; margin-bottom: 15px;">Matrículas e Informações</h2>
+                    <p style="color: #475569; font-size: 1.1rem; line-height: 1.6; margin: 0;">As vagas para o curso de Circo são limitadas e organizadas por faixa etária. As aulas acontecem às <strong>segundas e quartas</strong> ou <strong>terças e quintas</strong> no período da tarde. Fale com a equipe da EMCA para consultar turmas abertas e períodos de inscrições.</p>
+                </div>
+                <a href="https://wa.me/5514997983759?text=Ol%C3%A1!%20Gostaria%20de%20me%20inscrever%20no%20Curso%20de%20Circo%20da%20EMCA.%20Poderiam%20me%20enviar%20mais%20detalhes%20sobre%20as%20matr%C3%ADculas%3F" target="_blank" class="btn btn-coral" style="padding: 16px 32px; font-size: 1.15rem; border-radius: 50px; white-space: nowrap; box-shadow: 0 8px 20px rgba(255, 113, 110, 0.3);">
+                    <i class="fa-brands fa-whatsapp"></i> Quero participar
+                </a>
+            </div>
+        </section>
+
+        <!-- Section: Diferenciais -->
+        <section id="servicos" class="diferenciais-section" style="padding: 80px 0; background: transparent;">
+            <div class="circus-decor circus-decor-3 reveal reveal-scale">
+                <i class="fa-solid fa-tent float-animation-3" style="color: rgba(54, 75, 163, 0.15); font-size: 4.5rem;"></i>
+            </div>
+            <div class="circus-decor circus-decor-4 reveal reveal-scale">
+                <i class="fa-solid fa-bullhorn float-animation-4" style="color: rgba(255, 113, 110, 0.15); font-size: 3.8rem;"></i>
+            </div>
+            
+            <div class="container">
+                <div class="section-header" style="text-align: center; margin-bottom: 60px;">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up" style="color: #a02e2e !important; font-size: 2.8rem;">Diferenciais Pedagógicos</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s; color: #64748b; font-size: 1.2rem; margin-top: 10px;">Por que praticar artes circenses na EMCA?</p>
+                </div>
+                <div class="diferenciais-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+                    <div class="diferencial-card reveal reveal-left" style="background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%); padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.2); border: none; text-align: center; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 50px rgba(255, 113, 110, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.2)'">
+                        <h3 style="color: #ffffff !important; font-size: 1.4rem; font-weight: 700 !important; margin-bottom: 15px;">Desenvolvimento Integral</h3>
+                        <p style="color: #fff0f0; line-height: 1.7; font-size: 1.05rem;">Acrobacias e malabares melhoram a postura corporal, força muscular, flexibilidade e coordenação psicomotora de forma saudável, segura e estimulante.</p>
+                    </div>
+                    <div class="diferencial-card reveal reveal-scale" style="background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%); padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.2); border: none; text-align: center; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 50px rgba(255, 113, 110, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.2)'">
+                        <h3 style="color: #ffffff !important; font-size: 1.4rem; font-weight: 700 !important; margin-bottom: 15px;">Superação de Desafios</h3>
+                        <p style="color: #fff0f0; line-height: 1.7; font-size: 1.05rem;">Cada nova figura acrobática ou truque vencido ensina resiliência, foco e autoconfiança, refletindo positivamente nas atividades acadêmicas dos alunos.</p>
+                    </div>
+                    <div class="diferencial-card reveal reveal-right" style="background: linear-gradient(135deg, #ff716e 0%, #ff8e8c 100%); padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(255, 113, 110, 0.2); border: none; text-align: center; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 50px rgba(255, 113, 110, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 40px rgba(255, 113, 110, 0.2)'">
+                        <h3 style="color: #ffffff !important; font-size: 1.4rem; font-weight: 700 !important; margin-bottom: 15px;">Trabalho em Equipe</h3>
+                        <p style="color: #fff0f0; line-height: 1.7; font-size: 1.05rem;">A segurança e o sucesso das acrobacias dependem diretamente da confiança mútua, empatia e senso de responsabilidade compartilhada entre toda a turma.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Aprendizado -->
+        <section class="aprendizado-section">
+            <div class="circus-decor circus-decor-5 reveal reveal-scale">
+                <i class="fa-solid fa-face-laugh-beam float-animation-5" style="color: rgba(255, 181, 131, 0.25); font-size: 4.2rem;"></i>
+            </div>
+            <div class="circus-decor circus-decor-6 reveal reveal-scale">
+                <i class="fa-solid fa-fire-flame-curved float-animation-6" style="color: rgba(160, 46, 46, 0.25); font-size: 3.5rem;"></i>
+            </div>
+            
+            <div class="container">
+                <div class="section-header">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up">Etapas do Nosso Programa</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s;">Um cronãograma estruturado para guiar o alunão desde os primeiros passos ata o espetaculo.</p>
+                </div>
+                <div class="cronãograma-list">
+                    <div class="cronãograma-step reveal reveal-left">
+                        <div class="step-num" style="background-color: #364ba3;">1</div>
+                        <div class="step-info">
+                            <h3>Nível Iniciante: Iniciação e Solo (Meses 1 a 6)</h3>
+                            <p>Foco nãos fundamentos fasicos basicos: rolamentos, estrelas, flexibilidade geral e coordenaaao motora inicial atravas de malabares com bolinhas de areia.</p>
+                        </div>
+                    </div>
+                    <div class="cronãograma-step reveal reveal-right">
+                        <div class="step-num" style="background-color: #ff716e;">2</div>
+                        <div class="step-info">
+                            <h3>Nível Intermediario: Aparelhos e Equilabrio (Meses 7 a 12)</h3>
+                            <p>Introduaao segura a aparelhos suspensos de baixa altura (lira e tecido), perna de pau classica, equilabrio em rola-bola e monãociclo inicial.</p>
+                        </div>
+                    </div>
+                    <div class="cronãograma-step reveal reveal-left">
+                        <div class="step-num" style="background-color: #a02e2e;">3</div>
+                        <div class="step-info">
+                            <h3>Nível Avançado: Criação e Espetaculo (Meses 13 a 24)</h3>
+                            <p>Aprimoramento tacnico aareo, criaaao de esquetes de palhaçaria e improvisação teatral circense, e ensaios gerais para os grandes festivais anuais da EMCA.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Modalidades Praticadas (Clean text-focused blocks, não image cards) -->
+        <section class="modalidades-section">
+            <div class="circus-decor circus-decor-7 reveal reveal-scale">
+                <i class="fa-solid fa-wand-magic-sparkles float-animation-1" style="color: rgba(0, 0, 0, 0.15); font-size: 3.6rem;"></i>
+            </div>
+            <div class="circus-decor circus-decor-8 reveal reveal-scale">
+                <i class="fa-solid fa-star float-animation-2" style="color: rgba(255, 181, 131, 0.25); font-size: 3.8rem;"></i>
+            </div>
+            
+            <div class="container">
+                <div class="section-header">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up">Modalidades Praticadas</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s;">Explore as principais artes e tacnicas ensinadas não curso de Circo.</p>
+                </div>
+                
+                <div class="modalidades-text-grid">
+                    <!-- Item 1 -->
+                    <div class="modalidade-text-item item-blue reveal reveal-left">
+                        <div class="modalidade-text-header">
+                            <span class="modalidade-text-icon icon-blue"><i class="fa-solid fa-ribbon"></i></span>
+                            <h3>Acrobacias Aareas</h3>
+                        </div>
+                        <p>Treinamento com aparelhos suspensos (tecido acrobatico, lira e trapazio). Desenvolve foraa muscular profunda, flexibilidade geral, senso de equilabrio tridimensional e consciancia corporal sob supervisao de professores especializados.</p>
+                    </div>
+                    
+                    <!-- Item 2 -->
+                    <div class="modalidade-text-item item-coral reveal reveal-right">
+                        <div class="modalidade-text-header">
+                            <span class="modalidade-text-icon icon-coral"><i class="fa-solid fa-hands"></i></span>
+                            <h3>Malabarismo e Manipulaaao</h3>
+                        </div>
+                        <p>Pratica de manipulaaao e arremesso de objetos (bolinhas, clavas, aros e equilabrio de pratos chineses). Estimula o foco mental rapido, reflexos motores avanaados e coordenaaao viso-motora fina.</p>
+                    </div>
+                    
+                    <!-- Item 3 -->
+                    <div class="modalidade-text-item item-red reveal reveal-left">
+                        <div class="modalidade-text-header">
+                            <span class="modalidade-text-icon icon-red"><i class="fa-solid fa-child-reaching"></i></span>
+                            <h3>Acrobacias de Solo</h3>
+                        </div>
+                        <p>Exercacios dinamicos não solo (rolamentos, estrelas, pontes, saltos acrobaticos e contorcionismo basico). Excelente fundaaao corporal para foraa do core, flexibilidade geral e agilidade espacial.</p>
+                    </div>
+                    
+                    <!-- Item 4 -->
+                    <div class="modalidade-text-item item-lavender reveal reveal-right">
+                        <div class="modalidade-text-header">
+                            <span class="modalidade-text-icon icon-lavender"><i class="fa-solid fa-face-grin-tears"></i></span>
+                            <h3>Palhaaaria e Clown</h3>
+                        </div>
+                        <p>Introduaao artastica ao palhaao classico e teatral, com dinamicas de improviso coletivo, expressao camica e inteligancia interpessoal. Estimula a autoconfianaa de forma ladica.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Carousel 2: Gallery -->
+        <section id="galeria" class="gallery-section">
+            <div class="circus-decor circus-decor-9 reveal reveal-scale">
+                <i class="fa-solid fa-masks-theater float-animation-3" style="color: rgba(54, 75, 163, 0.25); font-size: 4rem;"></i>
+            </div>
+            <div class="circus-decor circus-decor-10 reveal reveal-scale">
+                <i class="fa-solid fa-trophy float-animation-4" style="color: rgba(116, 129, 209, 0.25); font-size: 3.5rem;"></i>
+            </div>
+            
+            <div class="container">
+                <div class="section-header" style="text-align: center;">
+                    <!-- Heading reveal-up added -->
+                    <h2 class="reveal reveal-up">Galeria de Fotos</h2>
+                    <p class="reveal reveal-up" style="transition-delay: 0.1s; margin-bottom: 20px;">Momentos magicos de nossos alunãos em aaao não curso de Circo.</p>
+                    <!-- Button to open Lightbox directly -->
+                    <button class="btn btn-coral reveal reveal-up" onclick="openLightboxCirco(0)" style="margin-bottom: 35px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-images"></i> Abrir Galeria
+                    </button>
+                </div>
+                
+                <div class="cursos-carousel-container reveal reveal-scale">
+                    <button class="prev-btn-galeria-circo carousel-nav-btn" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="carousel-track-container">
+                        <div class="carousel-track" id="galeriaCircoCarousel">
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(0)">
+                                    <img src="../imagesemca/circo/R6II4147.jpg" alt="Lira">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(1)">
+                                    <img src="../imagesemca/circo/R6II4162.jpg" alt="Acrobacia Solo">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(2)">
+                                    <img src="../imagesemca/circo/R6II4398.jpg" alt="Palhaao">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(3)">
+                                    <img src="../imagesemca/circo/R6II4420.jpg" alt="Equilabrio Rola-bola">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(4)">
+                                    <img src="../imagesemca/circo/R6II4423.jpg" alt="Apresentaaao Circo">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(5)">
+                                    <img src="../imagesemca/circo/R6II4429.jpg" alt="Grupo Circo">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(6)">
+                                    <img src="../imagesemca/circo/R6II4430.jpg" alt="Malabarismo Clavas">
+                                </div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(7)">
+                                    <img src="../imagesemca/circo/R6II4436.jpg" alt="Alunas Tecido">
+                                </div>
+                            </div>
+                            <!-- Added one more image to the carousel as requested -->
+                            <div class="carousel-slide">
+                                <div class="gallery-item-new" onclick="openLightboxCirco(8)">
+                                    <img src="../imagesemca/circo/R6II4445.jpg" alt="Lira e Tecido">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="next-btn-galeria-circo carousel-nav-btn" aria-label="Praximo"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div id="lightboxCirco" class="lightbox" role="dialog" aria-modal="true">
+        <button class="lightbox-close" onclick="closeLightboxCirco()" aria-label="Fechar">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="prevLightboxCirco()" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="lightbox-content">
+            <img id="lightboxImgCirco" class="lightbox-img" src="" alt="Foto Circo">
+        </div>
+        <button class="lightbox-nav lightbox-next" onclick="nextLightboxCirco()" aria-label="Praxima"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="lightbox-counter" id="lightboxCounterCirco">1 / 9</div>
+    </div>
+
+    <!-- Footer -->
+            <style>
+    .biblio-footer {
+        background: #000000;
+        color: #ffffff !important;
+        font-family: 'Rubik', sans-serif !important;
+        padding-top: 50px;
+        padding-bottom: 30px;
+        margin-top: 50px;
+        border: none;
+    }
+    .biblio-footer-wrapper {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 5%;
+    }
+    .biblio-footer .brand-col {
+        display: flex;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+    .biblio-footer .brand-col .logo-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #ffffff !important;
+        margin: 0;
+        padding: 0;
+    }
+    .biblio-footer .brand-col .logo-subtitle {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        color: rgba(255,255,255,0.9) !important;
+    }
+    .biblio-footer .footer-col h4 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #ffffff !important;
+    }
+    .biblio-footer .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .biblio-footer ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .biblio-footer ul li a {
+        color: #ffffff !important;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+    .biblio-footer ul li a:hover {
+        opacity: 0.8;
+    }
+    .biblio-footer .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        color: #ffffff !important;
+    }
+    .biblio-footer .contact-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .biblio-footer .bottom-bar {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.8) !important;
+        font-size: 0.9rem;
+    }
+    @media (max-width: 992px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 576px) {
+        .biblio-footer-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+  
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <footer class="biblio-footer">
+    <div class="biblio-footer-wrapper">
+      <div class="footer-col brand-col">
+        <div class="logo-title">GAR&Ccedil;A</div>
+        <div class="logo-subtitle">Cidade de Culturas</div>
+        <p style="color: #ffffff !important; line-height: 1.6; margin: 0;">Espa&ccedil;os dedicados ao conhecimento, &agrave; arte e ao desenvolvimento de toda a nossa comunidade.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/secultgarca" target="_blank" style="color: #ffffff !important; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fa-brands fa-instagram" style="font-size: 1.2rem;"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Acesso Rápido</h4>
+        <ul>
+          <li><a href="../../index.html">In&iacute;cio</a></li>
+          <li><a href="../../emca/emca.html">EMCA</a></li>
+          <li><a href="../../biblioteca/biblioteca.html">Biblioteca</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i data-lucide="map-pin" style="flex-shrink: 0;"></i> 
+            <span>Rua Bar&atilde;o do Rio Branco, 131 - Centro<br>Gar&ccedil;a/SP</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="phone"></i> <span>(14) 3471-1616</span>
+          </div>
+          <div class="contact-item">
+            <i data-lucide="mail"></i> <span>cultura@garca.sp.gov.br</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <p>&copy; 2026 Gar&ccedil;a Cidade de Culturas. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+    <script src="../emca.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to safely initialize carousels once script loads
+            const startCarousels = () => {
+                if (typeof window.initCarousel === 'function') {
+                    window.initCarousel('galeriaCircoCarousel', '.prev-btn-galeria-circo', '.next-btn-galeria-circo', 3, false);
+                } else if (typeof initCarousel === 'function') {
+                    initCarousel('galeriaCircoCarousel', '.prev-btn-galeria-circo', '.next-btn-galeria-circo', 3, false);
+                }
+            };
+            
+            // Short delay to ensure window object variables have bound correctly
+            setTimeout(startCarousels, 150);
+
+            // Hero Background Slide & Subtitle Carousel (Desktop only)
+            const slides = document.querySelectorAll('.hero-bg-slide');
+            const subtitles = document.querySelectorAll('.hero-subtitle');
+            
+            if (slides.length > 0 && subtitles.length > 0) {
+                let currentSlideIndex = 0;
+                setInterval(() => {
+                    // Remove active & delay classes
+                    slides[currentSlideIndex].classList.remove('active');
+                    subtitles[currentSlideIndex].classList.remove('active');
+                    subtitles[currentSlideIndex].classList.remove('fade-in-subtitle');
+                    
+                    // Advance index
+                    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+                    
+                    // Add active class to show the new slide and text
+                    slides[currentSlideIndex].classList.add('active');
+                    subtitles[currentSlideIndex].classList.add('active');
+                }, 6000); // Changes background slide and phrase every 6 seconds
+            }
+        });
+
+        // Lightbox functionality
+        const lightboxCirco = document.getElementById('lightboxCirco');
+        const lightboxImgCirco = document.getElementById('lightboxImgCirco');
+        const lightboxCounterCirco = document.getElementById('lightboxCounterCirco');
+        
+        const galleryImages = [
+            '../imagesemca/circo/R6II4147.jpg',
+            '../imagesemca/circo/R6II4162.jpg',
+            '../imagesemca/circo/R6II4398.jpg',
+            '../imagesemca/circo/R6II4420.jpg',
+            '../imagesemca/circo/R6II4423.jpg',
+            '../imagesemca/circo/R6II4429.jpg',
+            '../imagesemca/circo/R6II4430.jpg',
+            '../imagesemca/circo/R6II4436.jpg',
+            '../imagesemca/circo/R6II4445.jpg'
+        ];
+        
+        let currentImgIndex = 0;
+
+        function openLightboxCirco(index) {
+            currentImgIndex = index;
+            lightboxImgCirco.src = galleryImages[index];
+            lightboxCounterCirco.textContent = `${index + 1} / ${galleryImages.length}`;
+            lightboxCirco.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightboxCirco() {
+            lightboxCirco.classList.remove('active');
+            lightboxImgCirco.src = '';
+            document.body.style.overflow = '';
+        }
+
+        function nextLightboxCirco() {
+            currentImgIndex = (currentImgIndex + 1) % galleryImages.length;
+            lightboxImgCirco.src = galleryImages[currentImgIndex];
+            lightboxCounterCirco.textContent = `${currentImgIndex + 1} / ${galleryImages.length}`;
+        }
+
+        function prevLightboxCirco() {
+            currentImgIndex = (currentImgIndex - 1 + galleryImages.length) % galleryImages.length;
+            lightboxImgCirco.src = galleryImages[currentImgIndex];
+            lightboxCounterCirco.textContent = `${currentImgIndex + 1} / ${galleryImages.length}`;
+        }
+
+        // Close lightbox when clicking outside the image
+        lightboxCirco.addEventListener('click', (e) => {
+            if (e.target === lightboxCirco) {
+                closeLightboxCirco();
+            }
+        });
+
+        // Close with ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightboxCirco.classList.contains('active')) {
+                closeLightboxCirco();
+            }
+        });
+    </script>
+  <script>lucide.createIcons();</script>
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+</button>
+<style>
+    #backToTopBtn {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        background: #ff716e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 55px;
+        height: 55px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4);
+        transition: all 0.3s ease;
+    }
+    #backToTopBtn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(255, 113, 110, 0.6);
+        background: #fa5f5c;
+    }
+    #backToTopBtn.show {
+        display: flex;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+        #backToTopBtn {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+    }
+
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const backBtn = document.getElementById("backToTopBtn");
+        if (backBtn) {
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 400) {
+                    backBtn.classList.add("show");
+                } else {
+                    backBtn.classList.remove("show");
+                    backBtn.style.display = window.scrollY > 400 ? "flex" : "none";
+                }
+            });
+            backBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+    });
+</script>
+<!-- /BACK TO TOP BUTTON -->
+
+  <!-- VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

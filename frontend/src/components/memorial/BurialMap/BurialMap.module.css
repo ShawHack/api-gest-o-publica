@@ -1,0 +1,139 @@
+.wrap {
+  background: var(--memorial-surface);
+  border: 1px solid var(--memorial-border);
+  border-radius: var(--memorial-radius);
+  box-shadow: var(--memorial-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--memorial-border);
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--memorial-primary);
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--memorial-text-muted);
+  border-radius: 8px;
+}
+
+.canvas {
+  position: relative;
+  flex: 1;
+  min-height: 200px;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--memorial-text-muted);
+  margin: 0;
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.panel {
+  padding: 14px 16px;
+  border-top: 1px solid var(--memorial-border);
+}
+
+.name {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: var(--memorial-text);
+}
+
+.loc {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--memorial-text);
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--memorial-text-muted);
+  line-height: 1.45;
+}
+
+.btnMap {
+  width: 100%;
+  min-height: var(--memorial-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--memorial-radius-sm);
+  background: var(--memorial-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnMap:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 10px 16px 14px;
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: var(--memorial-text-muted);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dotEntry,
+.dotBurial {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dotEntry {
+  background: #94a3b8;
+}
+
+.dotBurial {
+  background: var(--memorial-accent);
+  border: 2px solid var(--memorial-primary);
+}

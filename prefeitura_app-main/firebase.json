@@ -1,0 +1,29 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "prefeituraapp",
+          "appId": "1:879806499553:android:43e5c941021fb4cf4c85a0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "prefeituraapp",
+          "configurations": {
+            "android": "1:879806499553:android:43e5c941021fb4cf4c85a0",
+            "ios": "1:879806499553:ios:2422388d1b695bee4c85a0",
+            "web": "1:879806499553:web:9044d14f36b8eed24c85a0"
+          }
+        }
+      }
+    }
+  },
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint"
+    ]
+  }
+}

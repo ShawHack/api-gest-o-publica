@@ -1,0 +1,422 @@
+.sepultado_details_container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.sepultado_details_header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #364ba3 0%, #7481d1 100%); /* Identidade Visual Garça */
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sepultado_details_header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+  color: #fff !important; /* Força o branco para o nome do falecido */
+}
+
+/* ====== BLOCO DAS IMAGENS ====== */
+.sepultado_images {
+  width: 100%;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Pista do carrossel / Grade desktop */
+.carousel_track { display: grid; gap: 12px; }
+.slide { position: relative; }
+
+.slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+.slide img:hover { transform: scale(1.02); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+
+.dots { margin-top: 10px; display: flex; justify-content: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border: none; border-radius: 50%; background: #cbd5e1; cursor: pointer; }
+.dot_active { background: #111827; }
+
+/* ====== LAYOUT PRINCIPAL ====== */
+.main_content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.left_column { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.info_section {
+  background: white; padding: 1.5rem; border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); border-left: 4px solid #364ba3; /* Identidade Visual Garça - Azul Escuro */
+}
+.info_section h3 { margin: 0 0 1rem 0; color: #364ba3; font-size: 1.3rem; font-weight: 600; border-bottom: 2px solid #ed9756; padding-bottom: 0.5rem; } /* Identidade Visual Garça */
+.info_grid { display: grid; gap: 0.8rem; }
+.info_item { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid #f1f3f4; }
+.info_item:last-child { border-bottom: none; }
+.label { font-weight: 600; color: #364ba3; font-size: 0.9rem; } /* Identidade Visual Garça - Azul Escuro */
+.value { color: #2c3e50; font-size: 0.95rem; } /* Cor de texto mais suave */
+
+.epitafio_section {
+  background: linear-gradient(135deg, #364ba3 0%, #7481d1 100%); /* Identidade Visual Garça */
+  color: white; padding: 2rem; border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); text-align: center;
+}
+.epitafio_section h3 { margin: 0 0 1rem 0; font-size: 1.3rem; font-weight: 300; color: #fff !important; } /* Força branco no título do epitáfio */
+.epitafio_content p { font-size: 1.1rem; font-style: italic; line-height: 1.6; margin: 0; opacity: 0.95; color: #fff !important; } /* Força branco no texto do epitáfio */
+
+/* Coluna da direita - Comentários */
+.right_column { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); overflow: hidden; }
+.comments_section { height: 100%; display: flex; flex-direction: column; }
+.comments_section h3 { margin: 0; padding: 1.5rem; background: #364ba3; color: white; font-size: 1.3rem; font-weight: 600; } /* Identidade Visual Garça - Azul Escuro */
+
+/* Formulário de comentário */
+.comment_form { padding: 1.5rem; border-bottom: 1px solid #ecf0f1; }
+.comment_textarea {
+  width: 100%; padding: 1rem; border: 2px solid #e0e6ed; border-radius: 8px;
+  resize: vertical; font-family: inherit; font-size: 0.95rem; line-height: 1.5;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.comment_textarea:focus { outline: none; border-color: #364ba3; box-shadow: 0 0 0 3px rgba(54, 75, 163, 0.1); } /* Identidade Visual Garça */
+
+.comment_tools { margin-top: .5rem; display: flex; align-items: center; gap: 10px; position: relative; }
+.emoji_button { border: 0; background: #eef2ff; padding: .4rem .6rem; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+.emoji_picker { position: absolute; top: 40px; left: 0; z-index: 20; }
+
+.file_button {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #eef9f0; border: 1px solid #ccf0d5; color: #1b6b33;
+  padding: .4rem .6rem; border-radius: 6px; cursor: pointer;
+}
+.file_button input[type="file"] { display: none; }
+
+.comment_preview { margin-top: .5rem; display: flex; align-items: center; gap: 10px; }
+.comment_preview img { 
+  max-width: 200px; /* Aumentado de 160px para 200px */
+  min-width: 120px; /* Tamanho mínimo */
+  height: auto;
+  border-radius: 6px; 
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  /* Melhorar qualidade da prévia */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+}
+.remove_preview { border: 0; background: #ffeef0; color: #c62828; padding: .35rem .6rem; border-radius: 6px; cursor: pointer; }
+
+.submit_button {
+  margin-top: 1rem; background: linear-gradient(135deg, #ed9756 0%, #ffb583 100%); /* Identidade Visual Garça - Laranja */
+  color: white; border: none; padding: 0.8rem 2rem; border-radius: 6px; font-weight: 600; cursor: pointer;
+  transition: all 0.3s ease; font-size: 0.95rem;
+}
+.submit_button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(237, 151, 86, 0.3); } /* Identidade Visual Garça - Laranja */
+
+/* Lista de comentários */
+.comments_list { flex: 1; padding: 1rem; max-height: 400px; overflow-y: auto; }
+.comment_item { background: #f8f9fa; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border-left: 3px solid #364ba3; } /* Identidade Visual Garça - Azul Escuro */
+.comment_header { display: flex; align-items: center; gap: .5rem; }
+.comment_author { font-weight: 600; color: #2c3e50; }
+.comment_date { color: #7f8c8d; margin-left: auto; }
+.comment_text { margin: 0.35rem 0 0; line-height: 1.5; color: #444; }
+
+.comment_image {
+  display: block; 
+  margin-top: .5rem; 
+  max-width: 100%;
+  min-width: 200px; /* Tamanho mínimo para melhor qualidade */
+  height: auto;
+  border-radius: 8px; 
+  box-shadow: 0 2px 10px rgba(0,0,0,.06); 
+  cursor: pointer;
+  /* Melhorar qualidade da imagem */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: high-quality;
+  /* Transição suave */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  /* Indicar que é clicável */
+  border: 2px solid transparent;
+}
+
+.comment_image:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(54, 75, 163, 0.15); /* Sombra com cor da identidade */
+  border-color: rgba(54, 75, 163, 0.3); /* Borda sutil da identidade visual */
+  filter: brightness(1.05);
+}
+
+/* Indicação visual melhorada para imagem clicável */
+.comment_image {
+  position: relative;
+}
+
+.comment_image::before {
+  content: '🔍 Clique para expandir';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(54, 75, 163, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.comment_image:hover::before {
+  opacity: 1;
+}
+.comment_emojis { margin-top: .35rem; display: flex; gap: 6px; flex-wrap: wrap; }
+.comment_emoji { font-size: 1.15rem; }
+
+.loading, .no_comments { text-align: center; padding: 2rem; color: #7f8c8d; }
+.no_comments p { margin: 0; font-style: italic; }
+
+/* Modal de imagem */
+.image_modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.95); /* Fundo mais escuro para melhor contraste */
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; cursor: pointer;
+  /* Animação de entrada */
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(2px); /* Efeito de desfoque no fundo */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal_content { 
+  position: relative; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  padding: 20px;
+  /* Container fixo para a imagem expandida */
+  width: 640px;
+  height: 520px;
+}
+.expanded_image { 
+  /* Tamanho fixo para todas as imagens expandidas */
+  width: 600px;
+  height: 480px;
+  object-fit: contain; 
+  cursor: pointer; 
+  border-radius: 12px; 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  background-color: rgba(255, 255, 255, 0.1);
+  /* Animação de entrada da imagem */
+  animation: zoomIn 0.3s ease-out;
+  /* Melhor qualidade na expansão */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+}
+
+@keyframes zoomIn {
+  from { 
+    transform: scale(0.8); 
+    opacity: 0; 
+  }
+  to { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+}
+.close_button {
+  position: absolute; top: -50px; right: -50px; 
+  background: rgba(237, 151, 86, 0.9); /* Cor da identidade visual - Laranja */
+  border: none; border-radius: 50%; width: 44px; height: 44px; 
+  font-size: 24px; font-weight: bold; cursor: pointer;
+  display: flex; justify-content: center; align-items: center; 
+  color: #fff; transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.close_button:hover { 
+  background: rgba(237, 151, 86, 1); 
+  transform: scale(1.1); 
+  box-shadow: 0 4px 12px rgba(237, 151, 86, 0.4);
+}
+
+/* ====== RESPONSIVIDADE ====== */
+@media (max-width: 768px) {
+  .sepultado_details_container { padding: 1rem; }
+  .main_content { grid-template-columns: 1fr; gap: 1rem; }
+  .sepultado_details_header h1 { font-size: 2rem; }
+  .info_item { grid-template-columns: 1fr; gap: 0.3rem; }
+  .label { font-weight: 700; color: #364ba3; } /* Identidade Visual Garça - Azul Escuro */
+
+  .carousel_track { display: block; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  .carousel_track::-webkit-scrollbar { display: none; }
+  .slide { display: inline-block; width: 100%; scroll-snap-align: start; white-space: normal; }
+
+  .modal_content { 
+    width: 360px;
+    height: 300px;
+  }
+  .expanded_image {
+    width: 320px;
+    height: 240px;
+  }
+  .close_button { top: -30px; right: -30px; width: 35px; height: 35px; font-size: 20px; }
+}
+@media (min-width: 769px) {
+  .carousel_track { grid-template-columns: repeat(3, 1fr); }
+  .slide img { aspect-ratio: 4 / 3; }
+}
+@media (max-width: 480px) {
+  .sepultado_details_container { padding: 0.5rem; }
+  .sepultado_details_header { padding: 1rem; }
+  .sepultado_details_header h1 { font-size: 1.5rem; }
+  .info_section, .comment_form { padding: 1rem; }
+  
+  /* Modal responsivo para mobile */
+  .close_button { 
+    top: 20px; 
+    right: 20px; 
+    background: rgba(237, 151, 86, 0.95);
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+  }
+  
+  .expanded_image {
+    max-width: 98%;
+    max-height: 90%;
+    border-radius: 8px;
+  }
+  
+  .modal_content {
+    max-width: 100%;
+    max-height: 100%;
+    padding: 10px;
+  }
+}
+
+/* Botões auxiliares */
+.delete_button {
+  background: transparent; border: 0; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+  color: #e74c3c; padding: .25rem .5rem; border-radius: 6px; transition: background .2s ease, transform .2s ease, opacity .2s ease;
+  opacity: .85;
+}
+.delete_button:hover { background: rgba(231, 76, 60, 0.12); transform: translateY(-1px); opacity: 1; }
+.delete_button:focus { outline: 2px solid rgba(231, 76, 60, 0.35); outline-offset: 2px; border-radius: 6px; }
+
+.load_more_wrap { display: flex; justify-content: center; padding: 0.75rem 1rem 1.25rem; }
+.load_more_button {
+  background: linear-gradient(135deg, #364ba3 0%, #7481d1 100%); /* Identidade Visual Garça */
+  color: #fff; border: none; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: 600; cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.load_more_button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3); }
+.load_more_button:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; transform: none; }
+
+
+
+
+/* Avatar circular do autor do comentário */
+.comment_avatar {
+  width: 40px; /* Aumentado de 32px para 40px */
+  height: 40px; /* Aumentado de 32px para 40px */
+  border-radius: 999px; /* círculo */
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #364ba3; /* Identidade Visual Garça - Azul Escuro */
+  margin-right: 8px; /* garante respiro antes do nome */
+  opacity: 1; /* Sempre visível */
+  display: block; /* Garante que a imagem seja exibida */
+  /* Melhorar qualidade do avatar */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+  /* Tornar clicável */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comment_avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px #ed9756; /* Laranja da identidade visual no hover */
+}
+
+/* Botão flutuante para localização da quadra */
+.floating_location_button {
+  position: fixed !important;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ed9756 0%, #ffb583 100%); /* Identidade Visual Garça - Laranja */
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(237, 151, 86, 0.4); /* Identidade Visual Garça - Laranja */
+  transition: all 0.3s ease;
+  z-index: 999;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.floating_location_button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(237, 151, 86, 0.5); /* Identidade Visual Garça - Laranja */
+}
+
+.floating_location_button:active {
+  transform: translateY(-1px);
+}
+
+.floating_location_button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.floating_location_button svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .floating_location_button {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .floating_location_button span {
+    display: none;
+  }
+  
+  .floating_location_button {
+    padding: 1rem;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    justify-content: center;
+  }
+}
