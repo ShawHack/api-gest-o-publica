@@ -1,0 +1,1786 @@
+[
+  {
+    "ramal": "1000",
+    "nomeSetor": "TELEFONISTA-PAÇO"
+  },
+  {
+    "ramal": "1002",
+    "nomeSetor": "SUELY"
+  },
+  {
+    "ramal": "1004",
+    "nomeSetor": "BIANCA"
+  },
+  {
+    "ramal": "1005",
+    "nomeSetor": "AMANDA"
+  },
+  {
+    "ramal": "1006",
+    "nomeSetor": "CHEFE DE GABINETE"
+  },
+  {
+    "ramal": "1007",
+    "nomeSetor": "COMUNICACAO ESTAGIO"
+  },
+  {
+    "ramal": "1008",
+    "nomeSetor": "PROCURADORIA TAMURA"
+  },
+  {
+    "ramal": "1009",
+    "nomeSetor": "PROTO FABIO"
+  },
+  {
+    "ramal": "1013",
+    "nomeSetor": "CONVENIOS PAULO / JORDANA"
+  },
+  {
+    "ramal": "1014",
+    "nomeSetor": "CONVENIOS JOANA/RICARDO/ALEXANDRE"
+  },
+  {
+    "ramal": "1015",
+    "nomeSetor": "CONVENIOS ADRIANA"
+  },
+  {
+    "ramal": "1016",
+    "nomeSetor": "TIRO DE GUERRA LUAN/SARG"
+  },
+  {
+    "ramal": "1018",
+    "nomeSetor": "JUNTA MILITAR LUAN"
+  },
+  {
+    "ramal": "1023",
+    "nomeSetor": "VANESSA"
+  },
+  {
+    "ramal": "1025",
+    "nomeSetor": "DEFESA CIVIL"
+  },
+  {
+    "ramal": "1030",
+    "nomeSetor": "CONSELHO TUTELAR - SEC"
+  },
+  {
+    "ramal": "1031",
+    "nomeSetor": "CONSELHO TUTELAR - NEIDE"
+  },
+  {
+    "ramal": "1032",
+    "nomeSetor": "CONSELHO TUTELAR - RUTE"
+  },
+  {
+    "ramal": "1033",
+    "nomeSetor": "CONSELHO TUTELAR - FATIMA"
+  },
+  {
+    "ramal": "1034",
+    "nomeSetor": "CONSELHO TUTELAR - BRUNO"
+  },
+  {
+    "ramal": "1035",
+    "nomeSetor": "CONSELHO TUTELAR - ALTAIR"
+  },
+  {
+    "ramal": "1036",
+    "nomeSetor": "ENGENHARIA"
+  },
+  {
+    "ramal": "1101",
+    "nomeSetor": "LICI MARIA EDUARDA"
+  },
+  {
+    "ramal": "1102",
+    "nomeSetor": "LICI BRUNA"
+  },
+  {
+    "ramal": "1103",
+    "nomeSetor": "LICI AMANDA"
+  },
+  {
+    "ramal": "1104",
+    "nomeSetor": "COMPRAS LUCIANA"
+  },
+  {
+    "ramal": "1105",
+    "nomeSetor": "COMPRAS FABIO"
+  },
+  {
+    "ramal": "1106",
+    "nomeSetor": "COMPRAS LUCIANA"
+  },
+  {
+    "ramal": "1107",
+    "nomeSetor": "CONTROLE ROSELI"
+  },
+  {
+    "ramal": "1108",
+    "nomeSetor": "PATRIMONIO VICTOR HP"
+  },
+  {
+    "ramal": "1109",
+    "nomeSetor": "RH CAROL"
+  },
+  {
+    "ramal": "1110",
+    "nomeSetor": "RH LUANA"
+  },
+  {
+    "ramal": "1111",
+    "nomeSetor": "RH HELOISA"
+  },
+  {
+    "ramal": "1112",
+    "nomeSetor": "LICI ALINE"
+  },
+  {
+    "ramal": "1113",
+    "nomeSetor": "RH - PATRICIA TST"
+  },
+  {
+    "ramal": "1114",
+    "nomeSetor": "ALMOX SAULO HP"
+  },
+  {
+    "ramal": "1115",
+    "nomeSetor": "ALMOXARIFADO CENTRAL"
+  },
+  {
+    "ramal": "1116",
+    "nomeSetor": "COMPRAS MARI"
+  },
+  {
+    "ramal": "1117",
+    "nomeSetor": "RH MARCOS"
+  },
+  {
+    "ramal": "1118",
+    "nomeSetor": "RH LAISA"
+  },
+  {
+    "ramal": "1119",
+    "nomeSetor": "RH CAROLINA"
+  },
+  {
+    "ramal": "1120",
+    "nomeSetor": "LICI LETICIA"
+  },
+  {
+    "ramal": "1121",
+    "nomeSetor": "LICI GUILHERME"
+  },
+  {
+    "ramal": "1122",
+    "nomeSetor": "COMPRAS"
+  },
+  {
+    "ramal": "1123",
+    "nomeSetor": "ALMOX MURILO - HP"
+  },
+  {
+    "ramal": "1124",
+    "nomeSetor": "CONTROLE DANI - HP"
+  },
+  {
+    "ramal": "1125",
+    "nomeSetor": "CONTROLE WAGNER HP"
+  },
+  {
+    "ramal": "1126",
+    "nomeSetor": "LICI ROSANGELA"
+  },
+  {
+    "ramal": "1127",
+    "nomeSetor": "ARQUIVO - TALISSA"
+  },
+  {
+    "ramal": "1128",
+    "nomeSetor": "ADM MABEL"
+  },
+  {
+    "ramal": "1129",
+    "nomeSetor": "LICI FELIPE"
+  },
+  {
+    "ramal": "1200",
+    "nomeSetor": "CONTABILIDADE"
+  },
+  {
+    "ramal": "1201",
+    "nomeSetor": "DANI ORCAMENTO"
+  },
+  {
+    "ramal": "1202",
+    "nomeSetor": "CONT LAUANDA"
+  },
+  {
+    "ramal": "1203",
+    "nomeSetor": "CONT ELAINE"
+  },
+  {
+    "ramal": "1204",
+    "nomeSetor": "JOSE ORCAMENTO"
+  },
+  {
+    "ramal": "1206",
+    "nomeSetor": "TESOURARIA - PAULA"
+  },
+  {
+    "ramal": "1207",
+    "nomeSetor": "TESOURARIA TANIA"
+  },
+  {
+    "ramal": "1208",
+    "nomeSetor": "RENDAS E DIVIDA ATIVA"
+  },
+  {
+    "ramal": "1209",
+    "nomeSetor": "EXEC FISCAL - FABIO"
+  },
+  {
+    "ramal": "1210",
+    "nomeSetor": "RENDAS EDER"
+  },
+  {
+    "ramal": "1211",
+    "nomeSetor": "ISS FABINHO"
+  },
+  {
+    "ramal": "1212",
+    "nomeSetor": "ISS DANIELA"
+  },
+  {
+    "ramal": "1213",
+    "nomeSetor": "ISS JULIANA/LUCIANA"
+  },
+  {
+    "ramal": "1214",
+    "nomeSetor": "ISS ERASMO"
+  },
+  {
+    "ramal": "1215",
+    "nomeSetor": "ISS ISABELA/LEANDRO"
+  },
+  {
+    "ramal": "1216",
+    "nomeSetor": "FAZENDA CRIS"
+  },
+  {
+    "ramal": "1217",
+    "nomeSetor": "RENDAS MAURO"
+  },
+  {
+    "ramal": "1218",
+    "nomeSetor": "CONT - MARA"
+  },
+  {
+    "ramal": "1219",
+    "nomeSetor": "CONT - SERGINHO"
+  },
+  {
+    "ramal": "1220",
+    "nomeSetor": "CONT - MAGDA"
+  },
+  {
+    "ramal": "1221",
+    "nomeSetor": "SAMUEL ORCAMENTO"
+  },
+  {
+    "ramal": "1222",
+    "nomeSetor": "CONT FELIPE"
+  },
+  {
+    "ramal": "1223",
+    "nomeSetor": "TESOURARIA - PAULA"
+  },
+  {
+    "ramal": "1224",
+    "nomeSetor": "TESOURARIA - TANIA"
+  },
+  {
+    "ramal": "1300",
+    "nomeSetor": "JURI HELOISA"
+  },
+  {
+    "ramal": "1301",
+    "nomeSetor": "JURI DANIEL CAROL"
+  },
+  {
+    "ramal": "1303",
+    "nomeSetor": "DIVIDA ATIVA"
+  },
+  {
+    "ramal": "1304",
+    "nomeSetor": "JURI ALINE"
+  },
+  {
+    "ramal": "1305",
+    "nomeSetor": "JURI HELIO"
+  },
+  {
+    "ramal": "1306",
+    "nomeSetor": "JURI OTAVIO"
+  },
+  {
+    "ramal": "1307",
+    "nomeSetor": "DIVIDA ATIVA - LUCIANA"
+  },
+  {
+    "ramal": "1308",
+    "nomeSetor": "EXEC FISCAL - BRUNA"
+  },
+  {
+    "ramal": "1309",
+    "nomeSetor": "DIVIDA ATIVA - FRED"
+  },
+  {
+    "ramal": "1400",
+    "nomeSetor": "SECOM PATRICIA"
+  },
+  {
+    "ramal": "1401",
+    "nomeSetor": "SECOM RONALDO"
+  },
+  {
+    "ramal": "1402",
+    "nomeSetor": "SECOM - JOAO"
+  },
+  {
+    "ramal": "1403",
+    "nomeSetor": "TI - XANDY"
+  },
+  {
+    "ramal": "1404",
+    "nomeSetor": "TI - SAULO"
+  },
+  {
+    "ramal": "1405",
+    "nomeSetor": "TI - ALANIS"
+  },
+  {
+    "ramal": "1407",
+    "nomeSetor": "CONECTA JA - JAFA"
+  },
+  {
+    "ramal": "1408",
+    "nomeSetor": "TI - ADRIANO"
+  },
+  {
+    "ramal": "1409",
+    "nomeSetor": "TI - THALITA"
+  },
+  {
+    "ramal": "1410",
+    "nomeSetor": "TI - THAIRINE"
+  },
+  {
+    "ramal": "1411",
+    "nomeSetor": "TI - MARJORIE"
+  },
+  {
+    "ramal": "1412",
+    "nomeSetor": "TI - THAISSA"
+  },
+  {
+    "ramal": "1414",
+    "nomeSetor": "TI - MONITORA"
+  },
+  {
+    "ramal": "1415",
+    "nomeSetor": "TI - MONITORA"
+  },
+  {
+    "ramal": "1420",
+    "nomeSetor": "INFORMACOES"
+  },
+  {
+    "ramal": "1500",
+    "nomeSetor": "PLAN - ATEDIMENTO"
+  },
+  {
+    "ramal": "1504",
+    "nomeSetor": "CAD IMOB - DANIELA"
+  },
+  {
+    "ramal": "1505",
+    "nomeSetor": "CAD IMOB - JAIR"
+  },
+  {
+    "ramal": "1507",
+    "nomeSetor": "PLAN - GILBERTO"
+  },
+  {
+    "ramal": "1508",
+    "nomeSetor": "PLAN - MARCO"
+  },
+  {
+    "ramal": "1509",
+    "nomeSetor": "PLAN ATENDIMENTO - ILZA"
+  },
+  {
+    "ramal": "1510",
+    "nomeSetor": "PLAN ATENDIMENTO - EDNA"
+  },
+  {
+    "ramal": "1511",
+    "nomeSetor": "POSTURAS - KATIANE"
+  },
+  {
+    "ramal": "1512",
+    "nomeSetor": "PLAN - JOAO"
+  },
+  {
+    "ramal": "1513",
+    "nomeSetor": "FISCAL OBRAS - ANA"
+  },
+  {
+    "ramal": "1514",
+    "nomeSetor": "FISCAL OBRAS - AMANDA"
+  },
+  {
+    "ramal": "1516",
+    "nomeSetor": "PLAN - EDUARDO HP"
+  },
+  {
+    "ramal": "1519",
+    "nomeSetor": "FISCAL OBRAS ANDERSON"
+  },
+  {
+    "ramal": "1520",
+    "nomeSetor": "FISCAL OBRAS ADRIANA"
+  },
+  {
+    "ramal": "1521",
+    "nomeSetor": "CAD IMOB - ANAINE EDUARDO"
+  },
+  {
+    "ramal": "1600",
+    "nomeSetor": "FISCAIS POSTURA"
+  },
+  {
+    "ramal": "1601",
+    "nomeSetor": "FISCAIS POSTURA"
+  },
+  {
+    "ramal": "1602",
+    "nomeSetor": "TRANSITO - NADIA"
+  },
+  {
+    "ramal": "1603",
+    "nomeSetor": "TRANSITO - NADIA"
+  },
+  {
+    "ramal": "1604",
+    "nomeSetor": "TRANSITO - SUELY"
+  },
+  {
+    "ramal": "1605",
+    "nomeSetor": "HABITACAO - FABIO"
+  },
+  {
+    "ramal": "1606",
+    "nomeSetor": "PLAN - RODRIGO / ROBERTA"
+  },
+  {
+    "ramal": "1607",
+    "nomeSetor": "POSTURA - PELLATE"
+  },
+  {
+    "ramal": "1608",
+    "nomeSetor": "POSTURA - CRISTINA"
+  },
+  {
+    "ramal": "1609",
+    "nomeSetor": "POSTURA - MARIA"
+  },
+  {
+    "ramal": "1610",
+    "nomeSetor": "POSTURA - MAYCON"
+  },
+  {
+    "ramal": "1611",
+    "nomeSetor": "POSTURA - EMILI"
+  },
+  {
+    "ramal": "1700",
+    "nomeSetor": "OUVIDORIA"
+  },
+  {
+    "ramal": "1701",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1702",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1703",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1704",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1705",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1706",
+    "nomeSetor": "CONTROLADORIA"
+  },
+  {
+    "ramal": "1800",
+    "nomeSetor": "BANCO DO POVO - ZEZÉ"
+  },
+  {
+    "ramal": "1801",
+    "nomeSetor": "TURISMO - PATRICIA"
+  },
+  {
+    "ramal": "1802",
+    "nomeSetor": "SEDETUR DIRETOR"
+  },
+  {
+    "ramal": "1803",
+    "nomeSetor": "PROCON-CLODOALDO"
+  },
+  {
+    "ramal": "1804",
+    "nomeSetor": "PROCON-PAULO"
+  },
+  {
+    "ramal": "1805",
+    "nomeSetor": "SEDETUR - TANI"
+  },
+  {
+    "ramal": "1806",
+    "nomeSetor": "PAT"
+  },
+  {
+    "ramal": "1807",
+    "nomeSetor": "SEDETUR"
+  },
+  {
+    "ramal": "1808",
+    "nomeSetor": "SEDETUR"
+  },
+  {
+    "ramal": "1900",
+    "nomeSetor": "SEJEL"
+  },
+  {
+    "ramal": "1901",
+    "nomeSetor": "SEJEL KIM"
+  },
+  {
+    "ramal": "2000",
+    "nomeSetor": "BIBLIOTECA- RECEPCAO"
+  },
+  {
+    "ramal": "2001",
+    "nomeSetor": "BIBLIOTECA- SETOR INFANTIL"
+  },
+  {
+    "ramal": "2002",
+    "nomeSetor": "CULTURA DIRECAO"
+  },
+  {
+    "ramal": "2003",
+    "nomeSetor": "BILIOTECA- JULIANA"
+  },
+  {
+    "ramal": "2004",
+    "nomeSetor": "CULTURA - ADRIANA"
+  },
+  {
+    "ramal": "2005",
+    "nomeSetor": "CULTURA - ELIANA"
+  },
+  {
+    "ramal": "2006",
+    "nomeSetor": "CULTURA- DIRETORA"
+  },
+  {
+    "ramal": "2007",
+    "nomeSetor": "CULTURA"
+  },
+  {
+    "ramal": "2010",
+    "nomeSetor": "GALERIA CREUZA"
+  },
+  {
+    "ramal": "2014",
+    "nomeSetor": "MUSEU"
+  },
+  {
+    "ramal": "2100",
+    "nomeSetor": "OBRAS SUELY/SANDRA"
+  },
+  {
+    "ramal": "2101",
+    "nomeSetor": "OBRAS SECRETARIO"
+  },
+  {
+    "ramal": "2102",
+    "nomeSetor": "OBRAS JOAO"
+  },
+  {
+    "ramal": "2103",
+    "nomeSetor": "OBRAS - ALMOXARIFADO"
+  },
+  {
+    "ramal": "2104",
+    "nomeSetor": "OBRAS ENGENHARIA"
+  },
+  {
+    "ramal": "2200",
+    "nomeSetor": "SEMADS - ANA PAULA / ELIANE"
+  },
+  {
+    "ramal": "2201",
+    "nomeSetor": "SEMADS - RECEPCAO"
+  },
+  {
+    "ramal": "2202",
+    "nomeSetor": "SEMADS - AUX BRASIL"
+  },
+  {
+    "ramal": "2203",
+    "nomeSetor": "SEMADS - PLANTAO / VIVA LEITE"
+  },
+  {
+    "ramal": "2204",
+    "nomeSetor": "SEMADS - LILIAN"
+  },
+  {
+    "ramal": "2205",
+    "nomeSetor": "SEMADS - SIMONE"
+  },
+  {
+    "ramal": "2206",
+    "nomeSetor": "SEMADS - REGINA"
+  },
+  {
+    "ramal": "2207",
+    "nomeSetor": "SEMADS - PLANTAO SOCIAL"
+  },
+  {
+    "ramal": "2208",
+    "nomeSetor": "CRAS 1 BRUNA"
+  },
+  {
+    "ramal": "2209",
+    "nomeSetor": "CRAS 1 EDSON"
+  },
+  {
+    "ramal": "2210",
+    "nomeSetor": "CRAS 1 KELLY"
+  },
+  {
+    "ramal": "2211",
+    "nomeSetor": "CRAS1 RENATA"
+  },
+  {
+    "ramal": "2212",
+    "nomeSetor": "CRAS2 RECEPCAO"
+  },
+  {
+    "ramal": "2213",
+    "nomeSetor": "CRAS2 ROSELI"
+  },
+  {
+    "ramal": "2214",
+    "nomeSetor": "CRAS2 UA"
+  },
+  {
+    "ramal": "2215",
+    "nomeSetor": "CRAS2 MIRIAM"
+  },
+  {
+    "ramal": "2216",
+    "nomeSetor": "CRAS2 ALINE"
+  },
+  {
+    "ramal": "2220",
+    "nomeSetor": "NAM"
+  },
+  {
+    "ramal": "2221",
+    "nomeSetor": "NAM 2"
+  },
+  {
+    "ramal": "2222",
+    "nomeSetor": "FUNDO SOCIAL CURSO"
+  },
+  {
+    "ramal": "2223",
+    "nomeSetor": "SEMADS AUX BRASIL"
+  },
+  {
+    "ramal": "2224",
+    "nomeSetor": "CRAS 1 MARCIA"
+  },
+  {
+    "ramal": "2225",
+    "nomeSetor": "SEMADS"
+  },
+  {
+    "ramal": "2226",
+    "nomeSetor": "SEMADS"
+  },
+  {
+    "ramal": "2228",
+    "nomeSetor": "CASA ABRIGO"
+  },
+  {
+    "ramal": "2229",
+    "nomeSetor": "CASA ABRIGO"
+  },
+  {
+    "ramal": "2230",
+    "nomeSetor": "VIDA LONGA"
+  },
+  {
+    "ramal": "2240",
+    "nomeSetor": "CREAS ANA"
+  },
+  {
+    "ramal": "2241",
+    "nomeSetor": "CREAS ANDERSON"
+  },
+  {
+    "ramal": "2242",
+    "nomeSetor": "CREAS GABRIEL"
+  },
+  {
+    "ramal": "2243",
+    "nomeSetor": "CREAS ISAIAS"
+  },
+  {
+    "ramal": "2244",
+    "nomeSetor": "CREAS RENAM"
+  },
+  {
+    "ramal": "2246",
+    "nomeSetor": "CREAS LIZENE"
+  },
+  {
+    "ramal": "2300",
+    "nomeSetor": "TURISMO DIRETOR"
+  },
+  {
+    "ramal": "2400",
+    "nomeSetor": "DSU ALINE"
+  },
+  {
+    "ramal": "2401",
+    "nomeSetor": "DSU SECRETARIO"
+  },
+  {
+    "ramal": "2402",
+    "nomeSetor": "DSU EDSON"
+  },
+  {
+    "ramal": "2403",
+    "nomeSetor": "DSU POSTO JUNIOR"
+  },
+  {
+    "ramal": "2404",
+    "nomeSetor": "DSU SALA DE PONTO"
+  },
+  {
+    "ramal": "2405",
+    "nomeSetor": "CEMITERIO"
+  },
+  {
+    "ramal": "2406",
+    "nomeSetor": "TERMINAL RODOVIARIO"
+  },
+  {
+    "ramal": "2409",
+    "nomeSetor": "DSU"
+  },
+  {
+    "ramal": "2410",
+    "nomeSetor": "CEMITERIO - ALINE HP"
+  },
+  {
+    "ramal": "2500",
+    "nomeSetor": "SAMA-SECRETARIO"
+  },
+  {
+    "ramal": "2501",
+    "nomeSetor": "SAMA - ERIKA"
+  },
+  {
+    "ramal": "2502",
+    "nomeSetor": "SAMA - BRUNO"
+  },
+  {
+    "ramal": "2503",
+    "nomeSetor": "SAMA - PATRICIA"
+  },
+  {
+    "ramal": "2504",
+    "nomeSetor": "SAMA ASSESSOR"
+  },
+  {
+    "ramal": "2600",
+    "nomeSetor": "SAUDE TELEFONISTA"
+  },
+  {
+    "ramal": "2601",
+    "nomeSetor": "SAUDE PLANEJAMENTO"
+  },
+  {
+    "ramal": "2602",
+    "nomeSetor": "SAUDE VISA"
+  },
+  {
+    "ramal": "2603",
+    "nomeSetor": "VIG EPIDEMIOLOGICA"
+  },
+  {
+    "ramal": "2604",
+    "nomeSetor": "VIG EPIDEMIOLOGICA"
+  },
+  {
+    "ramal": "2605",
+    "nomeSetor": "SAUDE UAC"
+  },
+  {
+    "ramal": "2606",
+    "nomeSetor": "SAUDE FISCAL"
+  },
+  {
+    "ramal": "2607",
+    "nomeSetor": "SAUDE TELEFONISTA"
+  },
+  {
+    "ramal": "2608",
+    "nomeSetor": "SAUDE UAC"
+  },
+  {
+    "ramal": "2609",
+    "nomeSetor": "SAUDE COORDENADORIA"
+  },
+  {
+    "ramal": "2610",
+    "nomeSetor": "SAUDE DIRETORIA"
+  },
+  {
+    "ramal": "2611",
+    "nomeSetor": "SAUDE ALMOX/FARMACIA"
+  },
+  {
+    "ramal": "2612",
+    "nomeSetor": "SAUDE ALMOX/FARMACIA"
+  },
+  {
+    "ramal": "2613",
+    "nomeSetor": "VIG SANITARIA"
+  },
+  {
+    "ramal": "2614",
+    "nomeSetor": "SAUDE CRISTIANE"
+  },
+  {
+    "ramal": "2615",
+    "nomeSetor": "SAUDE ASSESSORIA GABINETE"
+  },
+  {
+    "ramal": "2616",
+    "nomeSetor": "SAUDE FARMACIA"
+  },
+  {
+    "ramal": "2617",
+    "nomeSetor": "FARMACIA- RECEPCAO"
+  },
+  {
+    "ramal": "2618",
+    "nomeSetor": "SAUDE"
+  },
+  {
+    "ramal": "2619",
+    "nomeSetor": "SAUDE FARMACIA"
+  },
+  {
+    "ramal": "2620",
+    "nomeSetor": "UBS EUCALIPTOS"
+  },
+  {
+    "ramal": "2621",
+    "nomeSetor": "UBS EUCALIPTOS"
+  },
+  {
+    "ramal": "2622",
+    "nomeSetor": "UBS REBELO"
+  },
+  {
+    "ramal": "2623",
+    "nomeSetor": "UBS REBELO"
+  },
+  {
+    "ramal": "2624",
+    "nomeSetor": "UBS LABIENO"
+  },
+  {
+    "ramal": "2625",
+    "nomeSetor": "UBS LABIENO"
+  },
+  {
+    "ramal": "2626",
+    "nomeSetor": "UBS JAFA"
+  },
+  {
+    "ramal": "2627",
+    "nomeSetor": "UBS JAFA"
+  },
+  {
+    "ramal": "2628",
+    "nomeSetor": "UBS ARACELI"
+  },
+  {
+    "ramal": "2629",
+    "nomeSetor": "UBS ARACELI"
+  },
+  {
+    "ramal": "2630",
+    "nomeSetor": "UBS MARIANA"
+  },
+  {
+    "ramal": "2631",
+    "nomeSetor": "UBS MARIANA"
+  },
+  {
+    "ramal": "2632",
+    "nomeSetor": "UBS REGIAO OESTE"
+  },
+  {
+    "ramal": "2633",
+    "nomeSetor": "UBS REGIAO OESTE"
+  },
+  {
+    "ramal": "2634",
+    "nomeSetor": "UBS HELENA MULLER"
+  },
+  {
+    "ramal": "2635",
+    "nomeSetor": "UBS HELENA MULLER"
+  },
+  {
+    "ramal": "2636",
+    "nomeSetor": "UBS BARROS"
+  },
+  {
+    "ramal": "2637",
+    "nomeSetor": "UBS BARROS"
+  },
+  {
+    "ramal": "2638",
+    "nomeSetor": "UBS PALERMO"
+  },
+  {
+    "ramal": "2639",
+    "nomeSetor": "UBS PALERMO"
+  },
+  {
+    "ramal": "2640",
+    "nomeSetor": "UBS GLENDA"
+  },
+  {
+    "ramal": "2641",
+    "nomeSetor": "UBS GLENDA"
+  },
+  {
+    "ramal": "2642",
+    "nomeSetor": "UBS MARIANA II"
+  },
+  {
+    "ramal": "2643",
+    "nomeSetor": "UBS MARIANA II"
+  },
+  {
+    "ramal": "2644",
+    "nomeSetor": "CAPS I"
+  },
+  {
+    "ramal": "2645",
+    "nomeSetor": "CAPS I"
+  },
+  {
+    "ramal": "2646",
+    "nomeSetor": "CAPSAD"
+  },
+  {
+    "ramal": "2647",
+    "nomeSetor": "CAPSAD"
+  },
+  {
+    "ramal": "2648",
+    "nomeSetor": "CE RECEPCAO"
+  },
+  {
+    "ramal": "2649",
+    "nomeSetor": "CE ENFERMAGEM"
+  },
+  {
+    "ramal": "2650",
+    "nomeSetor": "CE OFTALMO"
+  },
+  {
+    "ramal": "2651",
+    "nomeSetor": "CE - CTA"
+  },
+  {
+    "ramal": "2654",
+    "nomeSetor": "CE - CASA DA CRIANCA"
+  },
+  {
+    "ramal": "2655",
+    "nomeSetor": "CE CEO"
+  },
+  {
+    "ramal": "2656",
+    "nomeSetor": "UPA RECEPCAO"
+  },
+  {
+    "ramal": "2657",
+    "nomeSetor": "UPA CONSULTORIO I"
+  },
+  {
+    "ramal": "2658",
+    "nomeSetor": "UPA CONSULTORIO II"
+  },
+  {
+    "ramal": "2659",
+    "nomeSetor": "UPA COORDENACAO"
+  },
+  {
+    "ramal": "2660",
+    "nomeSetor": "UPA RECEPCAO"
+  },
+  {
+    "ramal": "2661",
+    "nomeSetor": "UPA FARMACIA"
+  },
+  {
+    "ramal": "2662",
+    "nomeSetor": "UPA ASSIST SOCIAL"
+  },
+  {
+    "ramal": "2663",
+    "nomeSetor": "UPA COORDENACAO"
+  },
+  {
+    "ramal": "2664",
+    "nomeSetor": "UPA ENFERMAGEM"
+  },
+  {
+    "ramal": "2666",
+    "nomeSetor": "FISIOTERAPIA"
+  },
+  {
+    "ramal": "2667",
+    "nomeSetor": "FISIOTERAPIA"
+  },
+  {
+    "ramal": "2668",
+    "nomeSetor": "CAPSAD"
+  },
+  {
+    "ramal": "2669",
+    "nomeSetor": "CAPS I"
+  },
+  {
+    "ramal": "2670",
+    "nomeSetor": "AMBULANCIA TELEFONISTA"
+  },
+  {
+    "ramal": "2671",
+    "nomeSetor": "AMBULANCIA"
+  },
+  {
+    "ramal": "2672",
+    "nomeSetor": "AMBULANCIA MOTORISTAS"
+  },
+  {
+    "ramal": "2673",
+    "nomeSetor": "AMBULANCIA AGENDAMENTO"
+  },
+  {
+    "ramal": "2674",
+    "nomeSetor": "AMBULANCIA"
+  },
+  {
+    "ramal": "2678",
+    "nomeSetor": "SAUDE MARGARIDA"
+  },
+  {
+    "ramal": "2679",
+    "nomeSetor": "SAUDE - ELISA HP"
+  },
+  {
+    "ramal": "2680",
+    "nomeSetor": "UPA - SAMU"
+  },
+  {
+    "ramal": "2681",
+    "nomeSetor": "UBS PALERMO"
+  },
+  {
+    "ramal": "2682",
+    "nomeSetor": "UBS EUCALIPTOS"
+  },
+  {
+    "ramal": "2683",
+    "nomeSetor": "CAPS I"
+  },
+  {
+    "ramal": "2692",
+    "nomeSetor": "SAUDE"
+  },
+  {
+    "ramal": "2693",
+    "nomeSetor": "ALMOX FARMACIA"
+  },
+  {
+    "ramal": "2694",
+    "nomeSetor": "UAC - AGENDAMENTO HP"
+  },
+  {
+    "ramal": "2695",
+    "nomeSetor": "UBS EUCALIPTO FARMACIA"
+  },
+  {
+    "ramal": "2696",
+    "nomeSetor": "UBS REGIAO OESTE"
+  },
+  {
+    "ramal": "2700",
+    "nomeSetor": "DAMASCO RECEP"
+  },
+  {
+    "ramal": "2701",
+    "nomeSetor": "DAMASCO SEGURANCA TRABALHO"
+  },
+  {
+    "ramal": "2702",
+    "nomeSetor": "DAMASCO TI"
+  },
+  {
+    "ramal": "2703",
+    "nomeSetor": "DAMASCO"
+  },
+  {
+    "ramal": "2704",
+    "nomeSetor": "SBCD RH"
+  },
+  {
+    "ramal": "2705",
+    "nomeSetor": "DAMASCO RH RODRIGO"
+  },
+  {
+    "ramal": "2706",
+    "nomeSetor": "DAMASCO FERNANDA"
+  },
+  {
+    "ramal": "2707",
+    "nomeSetor": "DAMASCO RH RAFAEL HP"
+  },
+  {
+    "ramal": "2708",
+    "nomeSetor": "DAMASCO NI"
+  },
+  {
+    "ramal": "2709",
+    "nomeSetor": "DAMASCO ALMOXARIFADO"
+  },
+  {
+    "ramal": "2710",
+    "nomeSetor": "DAMASCO RT ADM"
+  },
+  {
+    "ramal": "2713",
+    "nomeSetor": "DAMASCO"
+  },
+  {
+    "ramal": "2714",
+    "nomeSetor": "DAMASCO MEDICO"
+  },
+  {
+    "ramal": "2715",
+    "nomeSetor": "CEBAS RECEP"
+  },
+  {
+    "ramal": "2721",
+    "nomeSetor": "RESIDENCIA TERAPEUTICA 1"
+  },
+  {
+    "ramal": "2722",
+    "nomeSetor": "RESIDENCIA TERAPEUTICA 2"
+  },
+  {
+    "ramal": "2723",
+    "nomeSetor": "RESIDENCIA TERAPEUTICA 3"
+  },
+  {
+    "ramal": "2724",
+    "nomeSetor": "RESIDENCIA TERAPEUTICA 4"
+  },
+  {
+    "ramal": "2800",
+    "nomeSetor": "CRE RECEPCAO"
+  },
+  {
+    "ramal": "2801",
+    "nomeSetor": "CRE LUCAS"
+  },
+  {
+    "ramal": "2802",
+    "nomeSetor": "CRE ADRIANA"
+  },
+  {
+    "ramal": "2803",
+    "nomeSetor": "CRE VIRGINIA"
+  },
+  {
+    "ramal": "2804",
+    "nomeSetor": "CRE FLAVIO"
+  },
+  {
+    "ramal": "2805",
+    "nomeSetor": "CRE LUCIANA"
+  },
+  {
+    "ramal": "2806",
+    "nomeSetor": "CRE FLAVIA"
+  },
+  {
+    "ramal": "2807",
+    "nomeSetor": "CRE CUCO"
+  },
+  {
+    "ramal": "2808",
+    "nomeSetor": "CRE MIRELLA"
+  },
+  {
+    "ramal": "2809",
+    "nomeSetor": "CRE PAULA"
+  },
+  {
+    "ramal": "2810",
+    "nomeSetor": "CRE ELAINE"
+  },
+  {
+    "ramal": "2811",
+    "nomeSetor": "CRE LEANDRO OUROS"
+  },
+  {
+    "ramal": "2812",
+    "nomeSetor": "CRE RH NEUZA"
+  },
+  {
+    "ramal": "2813",
+    "nomeSetor": "CRE ELISANGELA"
+  },
+  {
+    "ramal": "2814",
+    "nomeSetor": "CRE SUELY"
+  },
+  {
+    "ramal": "2815",
+    "nomeSetor": "CRE EMERSON"
+  },
+  {
+    "ramal": "2816",
+    "nomeSetor": "CRE SHEILA"
+  },
+  {
+    "ramal": "2817",
+    "nomeSetor": "CRE EMERSON"
+  },
+  {
+    "ramal": "2818",
+    "nomeSetor": "CRE CARLOS"
+  },
+  {
+    "ramal": "2819",
+    "nomeSetor": "CRE ALMOXARIFADO"
+  },
+  {
+    "ramal": "2820",
+    "nomeSetor": "CRE SANDRA"
+  },
+  {
+    "ramal": "2821",
+    "nomeSetor": "CRE PRISCILA"
+  },
+  {
+    "ramal": "2822",
+    "nomeSetor": "CRE GISLEINE"
+  },
+  {
+    "ramal": "2823",
+    "nomeSetor": "CRE PRISCILA"
+  },
+  {
+    "ramal": "2826",
+    "nomeSetor": "EMEI DINALVA PERON SARAIVA"
+  },
+  {
+    "ramal": "2827",
+    "nomeSetor": "EMEI DINALVA PERON SARAIVA"
+  },
+  {
+    "ramal": "2828",
+    "nomeSetor": "EMEI ENEDINA LUCCHIARI"
+  },
+  {
+    "ramal": "2829",
+    "nomeSetor": "EMEI ENEDINA LUCCHIARI"
+  },
+  {
+    "ramal": "2830",
+    "nomeSetor": "EMEI GARCAFE"
+  },
+  {
+    "ramal": "2831",
+    "nomeSetor": "EMEI GARCAFE"
+  },
+  {
+    "ramal": "2832",
+    "nomeSetor": "EMEI MARIA HELENA SANTOS MIRANDA"
+  },
+  {
+    "ramal": "2833",
+    "nomeSetor": "EMEI MARIA HELENA SANTOS MIRANDA"
+  },
+  {
+    "ramal": "2834",
+    "nomeSetor": "EMEI MARIA SOFIE BARAT BOSCHER"
+  },
+  {
+    "ramal": "2835",
+    "nomeSetor": "EMEI MARIA SOFIE BARAT BOSCHER"
+  },
+  {
+    "ramal": "2836",
+    "nomeSetor": "EMEI VICTOR HUGO"
+  },
+  {
+    "ramal": "2837",
+    "nomeSetor": "EMEI VICTOR HUGO"
+  },
+  {
+    "ramal": "2838",
+    "nomeSetor": "CLAUDIA ARONNE"
+  },
+  {
+    "ramal": "2839",
+    "nomeSetor": "CLAUDIA ARONNE"
+  },
+  {
+    "ramal": "2840",
+    "nomeSetor": "EMEIF EDSON PUGA"
+  },
+  {
+    "ramal": "2841",
+    "nomeSetor": "EMEIF EDSON PUGA"
+  },
+  {
+    "ramal": "2842",
+    "nomeSetor": "EMEIF JOAO CRISOSTOMO"
+  },
+  {
+    "ramal": "2843",
+    "nomeSetor": "EMEIF JOAO CRISOSTOMO"
+  },
+  {
+    "ramal": "2844",
+    "nomeSetor": "EMEIF MANOEL"
+  },
+  {
+    "ramal": "2845",
+    "nomeSetor": "MARIA DO CARMO POMPEU CASTRO"
+  },
+  {
+    "ramal": "2846",
+    "nomeSetor": "MARIA DO CARMO POMPEU CASTRO"
+  },
+  {
+    "ramal": "2847",
+    "nomeSetor": "EMEIF NORMA MONICO TRUZZI (JAFA)"
+  },
+  {
+    "ramal": "2848",
+    "nomeSetor": "EMEIF NORMA MONICO TRUZZI (JAFA)"
+  },
+  {
+    "ramal": "2849",
+    "nomeSetor": "EMEIF ORANE AVELINO DE SOUZA"
+  },
+  {
+    "ramal": "2850",
+    "nomeSetor": "EMEIF ORANE AVELINO DE SOUZA"
+  },
+  {
+    "ramal": "2851",
+    "nomeSetor": "EMEIF SAMIRA EL ADASS"
+  },
+  {
+    "ramal": "2852",
+    "nomeSetor": "EMEIF SAMIRA EL ADASS"
+  },
+  {
+    "ramal": "2853",
+    "nomeSetor": "EMEIF SILVIO SARTORI"
+  },
+  {
+    "ramal": "2854",
+    "nomeSetor": "EMEIF SILVIO SARTORI"
+  },
+  {
+    "ramal": "2855",
+    "nomeSetor": "NEI ANDREIA MORATO MARANGAO"
+  },
+  {
+    "ramal": "2856",
+    "nomeSetor": "NEI ANDREIA MORATO MARANGAO"
+  },
+  {
+    "ramal": "2857",
+    "nomeSetor": "NEI CAMILA CRISTINA NASCIMENTO CAMPOS"
+  },
+  {
+    "ramal": "2858",
+    "nomeSetor": "NEI CAMILA CRISTINA NASCIMENTO CAMPOS"
+  },
+  {
+    "ramal": "2859",
+    "nomeSetor": "NEI CANDIDA SOARES DE SOUZA"
+  },
+  {
+    "ramal": "2860",
+    "nomeSetor": "NEI CANDIDA SOARES DE SOUZA"
+  },
+  {
+    "ramal": "2861",
+    "nomeSetor": "NEI INEZ MARANGAO"
+  },
+  {
+    "ramal": "2862",
+    "nomeSetor": "NEI INEZ MARANGAO"
+  },
+  {
+    "ramal": "2863",
+    "nomeSetor": "NEI JULIO JULINHO"
+  },
+  {
+    "ramal": "2864",
+    "nomeSetor": "NEI JULIO JULINHO"
+  },
+  {
+    "ramal": "2865",
+    "nomeSetor": "NEI KARINA"
+  },
+  {
+    "ramal": "2866",
+    "nomeSetor": "NEI KARINA"
+  },
+  {
+    "ramal": "2867",
+    "nomeSetor": "NEI MARIO MANCHINI"
+  },
+  {
+    "ramal": "2868",
+    "nomeSetor": "NEI MARIO MANCHINI"
+  },
+  {
+    "ramal": "2869",
+    "nomeSetor": "NEI REMO CASARSA"
+  },
+  {
+    "ramal": "2871",
+    "nomeSetor": "CENTRO DE APOIO"
+  },
+  {
+    "ramal": "2872",
+    "nomeSetor": "NEI ADRIANA HP"
+  },
+  {
+    "ramal": "2879",
+    "nomeSetor": "NEI ADRIANA"
+  },
+  {
+    "ramal": "2880",
+    "nomeSetor": "NEI ADRIANA"
+  },
+  {
+    "ramal": "2881",
+    "nomeSetor": "EMEIF MANOEL"
+  },
+  {
+    "ramal": "2882",
+    "nomeSetor": "GARAGEM VANDERLEI"
+  },
+  {
+    "ramal": "2883",
+    "nomeSetor": "EMEIF MARIA DO CARMO"
+  },
+  {
+    "ramal": "2884",
+    "nomeSetor": "EMEIF ORANE"
+  },
+  {
+    "ramal": "2885",
+    "nomeSetor": "EMEIF JOAO CRISOSTOMO"
+  },
+  {
+    "ramal": "2886",
+    "nomeSetor": "CENTRO DE APOIO HP"
+  },
+  {
+    "ramal": "2887",
+    "nomeSetor": "EMEIF MARIA DO CARMO"
+  },
+  {
+    "ramal": "2889",
+    "nomeSetor": "EMEIF NORMA MONICO"
+  },
+  {
+    "ramal": "2890",
+    "nomeSetor": "NEI ANA CAROLINA"
+  },
+  {
+    "ramal": "2891",
+    "nomeSetor": "NEI JULIO JULINHO"
+  },
+  {
+    "ramal": "2892",
+    "nomeSetor": "NEI ANA CAROLINA"
+  },
+  {
+    "ramal": "2893",
+    "nomeSetor": "BIBLIOTECA EDSON PUGA"
+  },
+  {
+    "ramal": "2894",
+    "nomeSetor": "CLAUDIA ARONNE"
+  },
+  {
+    "ramal": "2895",
+    "nomeSetor": "EMEIF MANOEL"
+  },
+  {
+    "ramal": "2896",
+    "nomeSetor": "EMEIF SAMIRA"
+  },
+  {
+    "ramal": "2897",
+    "nomeSetor": "NEI ANA CAROLINA"
+  },
+  {
+    "ramal": "2898",
+    "nomeSetor": "EDSON PUGA"
+  },
+  {
+    "ramal": "2900",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2901",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2902",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2903",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2904",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2905",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2906",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2907",
+    "nomeSetor": "DAE"
+  },
+  {
+    "ramal": "2913",
+    "nomeSetor": "CENTRO DE APOIO HP"
+  },
+  {
+    "ramal": "2920",
+    "nomeSetor": "ACOLHER"
+  },
+  {
+    "ramal": "3000",
+    "nomeSetor": "ATT-Fila-Gsm"
+  },
+  {
+    "ramal": "4100",
+    "nomeSetor": "SAAE - JOSÉ NILDO"
+  },
+  {
+    "ramal": "4101",
+    "nomeSetor": "SAAE - THAISSA VELOSO"
+  },
+  {
+    "ramal": "4102",
+    "nomeSetor": "SAAE - MACIEL"
+  },
+  {
+    "ramal": "4200",
+    "nomeSetor": "SAAE - EVANDRO"
+  },
+  {
+    "ramal": "4210",
+    "nomeSetor": "SAAE - CLARICE"
+  },
+  {
+    "ramal": "4211",
+    "nomeSetor": "SAAE - EMERSON"
+  },
+  {
+    "ramal": "4212",
+    "nomeSetor": "SAAE - ELAINE"
+  },
+  {
+    "ramal": "4220",
+    "nomeSetor": "SAAE - SANDRA"
+  },
+  {
+    "ramal": "4221",
+    "nomeSetor": "SAAE - VALERIA"
+  },
+  {
+    "ramal": "4230",
+    "nomeSetor": "SAAE - LILIAN"
+  },
+  {
+    "ramal": "4231",
+    "nomeSetor": "SAAE - COMPRAS ESTÁGIO"
+  },
+  {
+    "ramal": "4232",
+    "nomeSetor": "SAAE - DANIELE"
+  },
+  {
+    "ramal": "4240",
+    "nomeSetor": "SAAE - LUCIA"
+  },
+  {
+    "ramal": "4260",
+    "nomeSetor": "SAAE - LUCAS"
+  },
+  {
+    "ramal": "4270",
+    "nomeSetor": "SAAE - BRUNO"
+  },
+  {
+    "ramal": "4271",
+    "nomeSetor": "SAAE - TI ESTÁGIO"
+  },
+  {
+    "ramal": "4300",
+    "nomeSetor": "SAAE - PAULO VICTOR"
+  },
+  {
+    "ramal": "4310",
+    "nomeSetor": "SAAE - LUCIANA"
+  },
+  {
+    "ramal": "4320",
+    "nomeSetor": "SAAE - ATENDIMENTO"
+  },
+  {
+    "ramal": "4322",
+    "nomeSetor": "SAAE - CAMILA"
+  },
+  {
+    "ramal": "4323",
+    "nomeSetor": "SAAE - BEATRIZ"
+  },
+  {
+    "ramal": "4330",
+    "nomeSetor": "SAAE - RONALDO"
+  },
+  {
+    "ramal": "4341",
+    "nomeSetor": "SAAE - FERNANDO HENRIQUE"
+  },
+  {
+    "ramal": "4400",
+    "nomeSetor": "SAAE - PABX"
+  },
+  {
+    "ramal": "4410",
+    "nomeSetor": "SAAE - JOÃO LUIZ"
+  },
+  {
+    "ramal": "4411",
+    "nomeSetor": "SAAE - AUGUSTO"
+  },
+  {
+    "ramal": "4420",
+    "nomeSetor": "SAAE - ENGENHEIRO CIVIL"
+  },
+  {
+    "ramal": "4430",
+    "nomeSetor": "SAAE - CLAUDIO SOSSOLOTE"
+  },
+  {
+    "ramal": "4431",
+    "nomeSetor": "SAAE - ROSINHA"
+  },
+  {
+    "ramal": "4500",
+    "nomeSetor": "SAAE - MARCELO"
+  },
+  {
+    "ramal": "4510",
+    "nomeSetor": "SAAE - OPERADOR ETA"
+  },
+  {
+    "ramal": "4520",
+    "nomeSetor": "SAAE - LUIZA"
+  },
+  {
+    "ramal": "4600",
+    "nomeSetor": "SAAE - JOSE HENRIQUE"
+  },
+  {
+    "ramal": "4610",
+    "nomeSetor": "SAAE - CARLOS"
+  },
+  {
+    "ramal": "4800",
+    "nomeSetor": "SAAE - CLAUDIO KOBATA"
+  },
+  {
+    "ramal": "5006",
+    "nomeSetor": "TI TESTE2"
+  },
+  {
+    "ramal": "5050",
+    "nomeSetor": "SAUDE AGENDAMENTO"
+  },
+  {
+    "ramal": "5151",
+    "nomeSetor": "SAUDE PEDRO"
+  }
+]

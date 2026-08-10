@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:smoke": "tsx scripts/smoke-convert.ts",
+    "test:smoke": "tsx scripts/smoke-convert.ts && tsx scripts/smoke-pdf-services.ts",
     "postinstall": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});fs.copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs','public/pdf.worker.min.mjs')\""
   },
   "dependencies": {
@@ -21,11 +21,9 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
     "pdfkit": "^0.19.1",
-    "pptxgenjs": "^4.0.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "^0.35.3",
-    "xlsx": "^0.18.5"
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@types/heic-convert": "^2.1.1",

@@ -1,13 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import * as XLSX from "xlsx";
 
 export type RamalEntry = {
   ramal: string;
   nomeSetor: string;
 };
 
-const DATA_FILE = path.join(process.cwd(), "src", "lib", "Ramais_Completo.xlsx");
+const DATA_FILE = path.join(process.cwd(), "src", "lib", "Ramais_Completo.json");
 
 let cached: RamalEntry[] | null = null;
 let cachedMtime = 0;
@@ -24,15 +23,12 @@ export function loadRamais(): RamalEntry[] {
   const stat = fs.statSync(DATA_FILE);
   if (cached && cachedMtime === stat.mtimeMs) return cached;
 
-  const workbook = XLSX.readFile(DATA_FILE);
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  const rows = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) as Array<Partial<RamalEntry>>;
 
   cached = rows
     .map((row) => {
-      const ramal = String(row["Ramal"] ?? "").trim();
-      const nomeSetor = String(row["Nome / Setor"] ?? "").trim();
+      const ramal = String(row.ramal ?? "").trim();
+      const nomeSetor = String(row.nomeSetor ?? "").trim();
       return { ramal, nomeSetor };
     })
     .filter((row) => row.ramal && row.nomeSetor);
