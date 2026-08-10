@@ -219,6 +219,14 @@ function normalizeWinnersCount(value, fallback = 1) {
   return Math.min(Math.floor(n), 100)
 }
 
+function compareCandidatesByVotesThenNumber(a, b) {
+  const voteDiff = Number(b?.votes || 0) - Number(a?.votes || 0)
+  if (voteDiff !== 0) return voteDiff
+  const numberDiff = Number(a?.number) - Number(b?.number)
+  if (Number.isFinite(numberDiff) && numberDiff !== 0) return numberDiff
+  return String(a?.number || '').localeCompare(String(b?.number || ''))
+}
+
 /**
  * Seleciona os N primeiros por votos. Empates no corte do N-ésimo também são incluídos.
  */
@@ -282,7 +290,7 @@ async function tallyElection(votationId) {
       }
     })
 
-    candidateRows.sort((a, b) => b.votes - a.votes || String(a.number).localeCompare(String(b.number)))
+    candidateRows.sort(compareCandidatesByVotesThenNumber)
     const winners = pickWinners(candidateRows, winnersCount)
     const winnerIds = new Set(winners.map((w) => w.candidateId))
     candidateRows.forEach((row) => {
@@ -325,4 +333,5 @@ module.exports = {
   tallyElection,
   normalizeWinnersCount,
   pickWinners,
+  compareCandidatesByVotesThenNumber,
 }

@@ -1,0 +1,186 @@
+{
+  "api_version": "1.0.0",
+  "base_url": "http://localhost:5000",
+  "documentation": {
+    "url": "/endpoints.html",
+    "full_url": "http://localhost/endpoints.html",
+    "description": "Documentação completa: exemplos de request/response, parâmetros, autenticação (JWT e API Key), códigos de erro e todos os endpoints detalhados por módulo."
+  },
+  "auth": {
+    "jwt": "Header: Authorization: Bearer <token> (obtido via POST /api/users/login)",
+    "api_key": "Header: X-API-Key: <chave> (configurada no servidor, ver ACESSO-API-KEY.md)"
+  },
+  "error_codes": {
+    "400": "Requisição inválida",
+    "401": "Não autenticado",
+    "403": "Sem permissão",
+    "404": "Não encontrado",
+    "429": "Rate limit excedido",
+    "500": "Erro interno"
+  },
+  "endpoints": [
+    {"method": "GET", "path": "/health", "description": "Verificar status da API"},
+    {"method": "GET", "path": "/readyz", "description": "Verificar conexão com banco de dados"},
+    {"method": "POST", "path": "/api/users/login", "description": "Autenticação de usuário (retorna JWT)"},
+    {"method": "POST", "path": "/api/users/register", "description": "Registro de novo usuário"},
+    {"method": "GET", "path": "/api/users/checkuser", "description": "Verificar token atual"},
+    {"method": "GET", "path": "/api/pets", "description": "Listar todos os pets para adoção"},
+    {"method": "POST", "path": "/api/pets/create", "description": "Cadastrar novo pet"},
+    {"method": "GET", "path": "/api/pets/mypets", "description": "Listar meus pets cadastrados"},
+    {"method": "GET", "path": "/api/pets/:id", "description": "Detalhes de um pet"},
+    {"method": "GET", "path": "/api/arvores", "description": "Listar todas as mudas disponíveis"},
+    {"method": "POST", "path": "/api/arvores/create", "description": "Solicitar muda"},
+    {"method": "GET", "path": "/api/forms-garca/forms", "description": "Listar formulários ativos"},
+    {"method": "POST", "path": "/api/forms-garca/inscriptions", "description": "Enviar inscrição"},
+    {"method": "GET", "path": "/api/sepultados", "description": "Listar sepultados"},
+    {"method": "GET", "path": "/api/sepultados/pesquisa", "description": "Pesquisar sepultados"},
+    {"method": "POST", "path": "/api/denounces/create", "description": "Criar denúncia anônima"}
+  ],
+  "modules": {
+    "sistema": {
+      "prefix": "",
+      "endpoints": [
+        {"method": "GET", "path": "/health", "description": "Status da API", "auth": false},
+        {"method": "GET", "path": "/readyz", "description": "Status do banco de dados", "auth": false}
+      ]
+    },
+    "usuarios": {
+      "prefix": "/api/users",
+      "endpoints": [
+        {"method": "POST", "path": "/login", "description": "Login (retorna JWT)", "auth": false},
+        {"method": "POST", "path": "/register", "description": "Registro de usuário", "auth": false},
+        {"method": "GET", "path": "/checkuser", "description": "Validar token", "auth": true},
+        {"method": "GET", "path": "/:id", "description": "Obter usuário", "auth": false},
+        {"method": "GET", "path": "/verify-email", "description": "Verificar e-mail", "auth": false},
+        {"method": "POST", "path": "/forgot-password", "description": "Solicitar reset de senha", "auth": false},
+        {"method": "POST", "path": "/reset-password", "description": "Redefinir senha", "auth": false},
+        {"method": "POST", "path": "/resend-verification", "description": "Reenviar verificação", "auth": false},
+        {"method": "GET", "path": "/institutes", "description": "Listar institutos", "auth": false},
+        {"method": "GET", "path": "/", "description": "Listar usuários", "auth": "admin"},
+        {"method": "PATCH", "path": "/:id", "description": "Editar perfil", "auth": true},
+        {"method": "PATCH", "path": "/:id/role", "description": "Alterar papel", "auth": "admin"},
+        {"method": "DELETE", "path": "/:id", "description": "Remover usuário", "auth": "admin"}
+      ]
+    },
+    "pets": {
+      "prefix": "/api/pets",
+      "endpoints": [
+        {"method": "GET", "path": "/", "description": "Listar pets", "auth": false},
+        {"method": "GET", "path": "/:id", "description": "Detalhes do pet", "auth": false},
+        {"method": "POST", "path": "/create", "description": "Cadastrar pet", "auth": true},
+        {"method": "GET", "path": "/mypets", "description": "Meus pets", "auth": true},
+        {"method": "GET", "path": "/myadoptions", "description": "Minhas adoções (fila + pets legado)", "auth": true},
+        {"method": "POST", "path": "/:id/adoption-requests", "description": "Entrar na fila de adoção", "auth": true},
+        {"method": "GET", "path": "/:id/adoption-requests", "description": "Fila do pet (doador)", "auth": true},
+        {"method": "POST", "path": "/:id/report", "description": "Denunciar pet", "auth": true},
+        {"method": "GET", "path": "/admin/adoption-queue", "description": "Fila global (admin)", "auth": "admin"},
+        {"method": "GET", "path": "/admin/reports", "description": "Denúncias (admin)", "auth": "admin"},
+        {"method": "PATCH", "path": "/admin/:petId/suspend", "description": "Suspender pet", "auth": "admin"},
+        {"method": "PATCH", "path": "/:id", "description": "Atualizar pet", "auth": true},
+        {"method": "PATCH", "path": "/schedule/:id", "description": "Entrar na fila (legado)", "auth": true},
+        {"method": "PATCH", "path": "/conclude/:id", "description": "Concluir adoção", "auth": true},
+        {"method": "PATCH", "path": "/cancel/:id", "description": "Cancelar adoção", "auth": true},
+        {"method": "DELETE", "path": "/:id", "description": "Remover pet", "auth": true}
+      ]
+    },
+    "arvores": {
+      "prefix": "/api/arvores",
+      "endpoints": [
+        {"method": "GET", "path": "/", "description": "Listar mudas", "auth": false},
+        {"method": "GET", "path": "/:id", "description": "Detalhes da muda", "auth": false},
+        {"method": "POST", "path": "/create", "description": "Cadastrar muda", "auth": true},
+        {"method": "GET", "path": "/mytrees", "description": "Minhas mudas", "auth": true},
+        {"method": "PATCH", "path": "/request/:id", "description": "Solicitar muda", "auth": true},
+        {"method": "PATCH", "path": "/conclude/:id", "description": "Concluir entrega", "auth": true},
+        {"method": "PATCH", "path": "/cancel/:id", "description": "Cancelar solicitação", "auth": true},
+        {"method": "PATCH", "path": "/:id", "description": "Atualizar muda", "auth": true},
+        {"method": "DELETE", "path": "/:id", "description": "Remover muda", "auth": true}
+      ]
+    },
+    "forms_garca": {
+      "prefix": "/api/forms-garca",
+      "endpoints": [
+        {"method": "GET", "path": "/forms", "description": "Listar formulários", "auth": false},
+        {"method": "GET", "path": "/forms/:id", "description": "Detalhes do formulário", "auth": false},
+        {"method": "GET", "path": "/forms/statistics", "description": "Estatísticas", "auth": false},
+        {"method": "POST", "path": "/forms", "description": "Criar formulário", "auth": true},
+        {"method": "PUT", "path": "/forms/:id", "description": "Atualizar formulário", "auth": true},
+        {"method": "DELETE", "path": "/forms/:id", "description": "Excluir formulário", "auth": true},
+        {"method": "POST", "path": "/inscriptions", "description": "Enviar inscrição", "auth": false},
+        {"method": "GET", "path": "/inscriptions", "description": "Listar inscrições", "auth": true},
+        {"method": "GET", "path": "/inscriptions/:id", "description": "Detalhes da inscrição", "auth": true},
+        {"method": "GET", "path": "/inscriptions/check", "description": "Verificar inscrição", "auth": true},
+        {"method": "PUT", "path": "/inscriptions/:id", "description": "Atualizar inscrição", "auth": true},
+        {"method": "DELETE", "path": "/inscriptions/:id", "description": "Excluir inscrição", "auth": true},
+        {"method": "POST", "path": "/upload", "description": "Upload único", "auth": true},
+        {"method": "POST", "path": "/upload-multiple", "description": "Upload múltiplo", "auth": true}
+      ]
+    },
+    "sepultados": {
+      "prefix": "/api/sepultados",
+      "endpoints": [
+        {"method": "GET", "path": "/", "description": "Listar sepultados", "auth": false},
+        {"method": "GET", "path": "/pesquisa", "description": "Pesquisar", "auth": false},
+        {"method": "GET", "path": "/sugestoes", "description": "Sugestões", "auth": false},
+        {"method": "GET", "path": "/autocomplete", "description": "Autocomplete", "auth": false},
+        {"method": "GET", "path": "/:id", "description": "Detalhes", "auth": false},
+        {"method": "GET", "path": "/:id/comentarios", "description": "Comentários", "auth": false},
+        {"method": "GET", "path": "/meussepultados", "description": "Meus sepultados", "auth": true},
+        {"method": "POST", "path": "/create", "description": "Cadastrar", "auth": "admin"},
+        {"method": "POST", "path": "/:id/comentarios", "description": "Adicionar comentário", "auth": true},
+        {"method": "DELETE", "path": "/:id/comentarios/:cid", "description": "Remover comentário", "auth": true},
+        {"method": "PATCH", "path": "/:id", "description": "Atualizar", "auth": "admin/concessionario"},
+        {"method": "DELETE", "path": "/:id", "description": "Remover", "auth": "admin"}
+      ]
+    },
+    "denounces": {
+      "prefix": "/api/denounces",
+      "endpoints": [
+        {"method": "POST", "path": "/create", "description": "Criar denúncia", "auth": false},
+        {"method": "GET", "path": "/", "description": "Listar denúncias", "auth": true},
+        {"method": "PATCH", "path": "/:id/status", "description": "Atualizar status", "auth": true}
+      ]
+    },
+    "settings": {
+      "prefix": "/api/settings",
+      "endpoints": [
+        {"method": "GET", "path": "/", "description": "Listar configurações", "auth": false},
+        {"method": "GET", "path": "/:key", "description": "Obter configuração", "auth": false},
+        {"method": "PUT", "path": "/:key", "description": "Atualizar configuração", "auth": true}
+      ]
+    },
+    "dloc": {
+      "prefix": "/api/dloc",
+      "endpoints": [
+        {"method": "GET", "path": "/:quadra", "description": "Localização por quadra", "auth": false}
+      ]
+    },
+    "services": {
+      "prefix": "/api/services",
+      "endpoints": [
+        {"method": "POST", "path": "/upload-image", "description": "Upload de imagem", "auth": false}
+      ]
+    }
+  },
+  "flat_endpoints": [
+    {"method": "GET", "path": "/health", "auth": false},
+    {"method": "GET", "path": "/readyz", "auth": false},
+    {"method": "POST", "path": "/api/users/login", "auth": false},
+    {"method": "POST", "path": "/api/users/register", "auth": false},
+    {"method": "GET", "path": "/api/users/checkuser", "auth": true},
+    {"method": "GET", "path": "/api/users/:id", "auth": false},
+    {"method": "GET", "path": "/api/pets", "auth": false},
+    {"method": "GET", "path": "/api/pets/:id", "auth": false},
+    {"method": "POST", "path": "/api/pets/create", "auth": true},
+    {"method": "GET", "path": "/api/arvores", "auth": false},
+    {"method": "GET", "path": "/api/arvores/:id", "auth": false},
+    {"method": "GET", "path": "/api/forms-garca/forms", "auth": false},
+    {"method": "POST", "path": "/api/forms-garca/inscriptions", "auth": false},
+    {"method": "GET", "path": "/api/sepultados", "auth": false},
+    {"method": "GET", "path": "/api/sepultados/pesquisa", "auth": false},
+    {"method": "GET", "path": "/api/sepultados/:id", "auth": false},
+    {"method": "POST", "path": "/api/denounces/create", "auth": false},
+    {"method": "GET", "path": "/api/settings", "auth": false},
+    {"method": "GET", "path": "/api/dloc/:quadra", "auth": false}
+  ]
+}

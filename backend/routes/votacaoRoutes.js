@@ -62,11 +62,11 @@ router.patch(
   requireVotingPleitoWrite,
   VotingAuditorController.revoke
 )
-router.get('/admin/dashboard', verifyToken, requireVotingAdmin, VotingAdminController.dashboard)
-router.get('/admin/votacoes', verifyToken, requireVotingAdmin, VotingAdminController.listVotations)
+router.get('/admin/dashboard', verifyToken, requireVotingStaff, VotingAdminController.dashboard)
+router.get('/admin/votacoes', verifyToken, requireVotingStaff, VotingAdminController.listVotations)
 router.post('/admin/votacoes', verifyToken, requireVotingAdmin, VotingAdminController.createVotation)
 router.get('/admin/votacoes/:id/export.csv', verifyToken, requireVotingAdmin, VotingAdminController.exportCsv)
-router.get('/admin/votacoes/:id', verifyToken, requireVotingAdmin, VotingAdminController.getVotation)
+router.get('/admin/votacoes/:id', verifyToken, requireVotingPleitoRead, VotingAdminController.getVotation)
 router.patch('/admin/votacoes/:id', verifyToken, requireVotingAdmin, votingBannerUploadMiddleware, VotingAdminController.patchVotation)
 router.post(
   '/admin/votacoes/:id/notify-closed',

@@ -3,6 +3,7 @@ const Votation = require('../models/Votation')
 const VotingCandidate = require('../models/VotingCandidate')
 const VotingServidor = require('../models/VotingServidor')
 const Vote = require('../models/Vote')
+const VotingPleitoMembership = require('../models/VotingPleitoMembership')
 const validateCPF = require('../helpers/validate-cpf')
 const {
   onlyDigits,
@@ -68,14 +69,26 @@ module.exports = {
 
   async listVotations(req, res) {
     try {
-      const list = await Votation.find().sort({ createdAt: -1 }).lean()
+      const globalAdmin = ['admin', 'admin-votacao'].includes(req.user?.role)
+      let filter = {}
+      if (!globalAdmin) {
+        const memberships = await VotingPleitoMembership.find({
+          userId: req.user?._id || req.user?.id,
+          status: 'active',
+        }).select('votationId').lean()
+        filter = { _id: { $in: memberships.map((row) => row.votationId) } }
+      }
+      const list = await Votation.find(filter).sort({ createdAt: -1 }).lean()
       void recordVoteEvent(req, {
         action: 'admin.votation_list',
         resourceType: 'votation',
         eventType: 'VIEW',
-        meta: { count: list.length },
+        meta: { count: list.length, scope: globalAdmin ? 'global_admin' : 'auditor' },
       })
-      return res.json({ votations: list })
+      return res.json({
+        votations: list,
+        access: { globalAdmin, canWrite: globalAdmin },
+      })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao listar.' })
     }
@@ -375,19 +388,29 @@ module.exports = {
 
   async dashboard(req, res) {
     try {
-      const totalVotations = await Votation.countDocuments()
-      const active = await Votation.countDocuments({ status: 'active' })
-      const servidores = await VotingServidor.countDocuments()
+      const globalAdmin = ['admin', 'admin-votacao'].includes(req.user?.role)
+      let filter = {}
+      if (!globalAdmin) {
+        const memberships = await VotingPleitoMembership.find({
+          userId: req.user?._id || req.user?.id,
+          status: 'active',
+        }).select('votationId').lean()
+        filter = { _id: { $in: memberships.map((row) => row.votationId) } }
+      }
+      const totalVotations = await Votation.countDocuments(filter)
+      const active = await Votation.countDocuments({ ...filter, status: 'active' })
+      const servidores = globalAdmin ? await VotingServidor.countDocuments() : null
       void recordVoteEvent(req, {
         action: 'admin.dashboard_view',
         resourceType: 'votation',
         eventType: 'VIEW',
-        meta: { totalVotations, activeVotations: active, servidoresCadastrados: servidores },
+        meta: { totalVotations, activeVotations: active, servidoresCadastrados: servidores, scope: globalAdmin ? 'global_admin' : 'auditor' },
       })
       return res.json({
         totalVotations,
         activeVotations: active,
         servidoresCadastrados: servidores,
+        access: { globalAdmin, canWrite: globalAdmin },
       })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao carregar dashboard.' })

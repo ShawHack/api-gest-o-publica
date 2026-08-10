@@ -30,6 +30,9 @@ blob-report/
 uploads/
 backend/private/
 backend/public/
+!backend/public/
+!backend/public/openapi.json
+!backend/public/routes.json
 nginx/react/
 cultura-src/emca/imagesemca/
 cultura-src/biblioteca/bibliotecaimages/

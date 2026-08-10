@@ -93,14 +93,14 @@ describe('iluminacao-notifier', () => {
       notifyByWhatsapp: true,
     })
 
-    expect(notifyWhatsappMedia).toHaveBeenCalled()
-    expect(notifyWhatsapp).toHaveBeenCalledWith(
+    expect(notifyWhatsappMedia).toHaveBeenCalledWith(
       expect.objectContaining({
         phone: '14982170294',
-        message: expect.stringContaining('ILU-1'),
+        caption: expect.stringContaining('ILU-1'),
         module: 'iluminacao',
       }),
     )
+    expect(notifyWhatsapp).not.toHaveBeenCalled()
     expect(result.whatsapp.sent).toBe(true)
   })
 
@@ -117,11 +117,12 @@ describe('iluminacao-notifier', () => {
       notifyByWhatsapp: true,
     })
 
-    expect(notifyWhatsapp).toHaveBeenCalledWith(
+    expect(notifyWhatsappMedia).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: expect.stringContaining('foi concluída'),
+        caption: expect.stringContaining('foi concluída'),
       }),
     )
+    expect(notifyWhatsapp).not.toHaveBeenCalled()
   })
 
   it('monta mensagens com rodapé SEMIT', () => {
