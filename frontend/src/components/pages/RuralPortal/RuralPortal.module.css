@@ -84,6 +84,7 @@
 .mapPropertyActions a:hover { background: #235f32; }
 .interactiveMap { width: 100%; height: min(72vh, 850px); min-height: 560px; border-radius: 16px; border: 2px solid #8aaa3a; box-shadow: 0 15px 40px rgba(8,45,34,.2); }
 .mapAttributionNote { color: #5a685e; font-size: .9rem; }
-:global(.rural-map-label) { border: 0; border-radius: 4px; padding: 2px 5px; background: rgba(5,35,27,.78); color: #fff; font-weight: 700; box-shadow: none; }
-:global(.rural-map-label::before) { display: none; }
+:global(.leaflet-tooltip.rural-map-label) { border: 1px solid rgba(180,215,112,.72) !important; border-radius: 999px !important; padding: 3px 8px !important; background: rgba(5,45,32,.78) !important; color: #fff !important; font-size: 11px !important; font-weight: 750 !important; line-height: 1.15 !important; white-space: nowrap !important; box-shadow: 0 2px 7px rgba(0,0,0,.22) !important; backdrop-filter: blur(2px); }
+:global(.leaflet-tooltip.rural-map-label-selected) { border-color: #fff0a5 !important; background: rgba(174,116,0,.92) !important; color: #fffdf0 !important; font-size: 12px !important; box-shadow: 0 0 0 2px rgba(245,213,71,.4), 0 3px 9px rgba(0,0,0,.3) !important; }
+:global(.leaflet-tooltip.rural-map-label::before) { display: none !important; }
 @media (max-width: 640px) { .banner { height: 210px; object-position: center; } .navStrip { min-height: 52px; padding: 0 14px; } .brand { font-size: .9rem; } .navSection { font-size: .8rem; } .page { padding: 22px 10px 40px; } .card { padding: 22px 16px; border-radius: 14px; } .grid { grid-template-columns: 1fr; } .reviewItem { align-items: flex-start; flex-direction: column; } .mapPageHeader, .mapPropertyCard { align-items: flex-start; flex-direction: column; } .mapSearch > div { flex-direction: column; } .interactiveMap { min-height: 480px; } }

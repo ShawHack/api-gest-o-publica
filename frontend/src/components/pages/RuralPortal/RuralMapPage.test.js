@@ -15,7 +15,7 @@ jest.mock('react-leaflet', () => {
   return {
     CircleMarker: Box, FeatureGroup: Box, GeoJSON: Box, MapContainer: Box, Popup: Box, TileLayer: Box, Tooltip: Box,
     LayersControl: Object.assign(Box, { BaseLayer: Box, Overlay: Box }),
-    useMap: () => ({ fitBounds: jest.fn(), setView: jest.fn() }),
+    useMap: () => ({ fitBounds: jest.fn(), setView: jest.fn(), getZoom: jest.fn(() => 10), on: jest.fn(), off: jest.fn() }),
   }
 })
 

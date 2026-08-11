@@ -16,6 +16,7 @@ export default function RuralMapPage() {
   const [locatedProperty, setLocatedProperty] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
+  const [mapZoom, setMapZoom] = useState(10)
   const assetPrefix = process.env.PUBLIC_URL || ''
 
   useEffect(() => {
@@ -84,8 +85,9 @@ export default function RuralMapPage() {
             <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} />
           </LayersControl.BaseLayer>
           <LayersControl.Overlay checked name="Limites dos bairros">
-            <GeoJSON key={selected || 'all'} data={polygons} style={(feature) => styleFeature(feature, selected)} onEachFeature={(feature, layer) => {
-              layer.bindTooltip(feature.properties.name, { permanent: true, direction: 'center', className: 'rural-map-label' })
+            <GeoJSON key={`${selected || 'all'}-${mapZoom >= 12 ? 'labels' : 'hover'}`} data={polygons} style={(feature) => styleFeature(feature, selected)} onEachFeature={(feature, layer) => {
+              const isSelected = feature.properties.name === selected
+              layer.bindTooltip(feature.properties.name, { permanent: mapZoom >= 12 || isSelected, direction: 'center', className: `rural-map-label${isSelected ? ' rural-map-label-selected' : ''}`, opacity: 1 })
               layer.on('click', () => setSelected(feature.properties.name))
             }} />
           </LayersControl.Overlay>
@@ -96,6 +98,7 @@ export default function RuralMapPage() {
         </LayersControl>
         <FitBounds bounds={bounds} />
         <FocusProperty property={locatedProperty} />
+        <ZoomObserver onZoom={setMapZoom} />
       </MapContainer>}
       <p className={styles.mapAttributionNote}>Os limites representam os dados fornecidos no arquivo “Bairros Garça.kmz” e devem ser usados como referência administrativa.</p>
     </main>
@@ -123,6 +126,17 @@ function FitBounds({ bounds }) {
 function FocusProperty({ property }) {
   const map = useMap()
   useEffect(() => { if (property) map.setView([property.location.latitude, property.location.longitude], 16) }, [map, property])
+  return null
+}
+
+function ZoomObserver({ onZoom }) {
+  const map = useMap()
+  useEffect(() => {
+    const update = () => onZoom(map.getZoom())
+    update()
+    map.on('zoomend', update)
+    return () => map.off('zoomend', update)
+  }, [map, onZoom])
   return null
 }
 
