@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const RuralAccount = require('../models/RuralAccount')
 const RuralProperty = require('../models/RuralProperty')
 const RuralProfile = require('../models/RuralProfile')
+const User = require('../models/User')
+const validatePassword = require('../helpers/validate-password')
 const { recordAudit } = require('../helpers/audit-log')
 const { findByPlusCode } = require('../helpers/rural-property-catalog')
 const { publishRuralProperty } = require('../helpers/rural-property-publisher')
@@ -30,6 +32,51 @@ function safeAccount(account) {
 }
 
 module.exports = class RuralPortalController {
+  static async listModuleUsers(req, res) {
+    try {
+      const users = await User.find({ role: { $in: ['rotas_operador', 'rotas_admin'] } })
+        .select('name email phone cpf role emailVerified createdAt')
+        .sort({ name: 1 })
+        .lean()
+      return res.status(200).json({ items: users })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao listar usuários de Estradas Rurais.' })
+    }
+  }
+
+  static async createModuleUser(req, res) {
+    try {
+      const name = String(req.body?.name || '').trim()
+      const email = String(req.body?.email || '').trim().toLowerCase()
+      const phone = String(req.body?.phone || '').trim()
+      const cpf = normalizeCpf(req.body?.cpf)
+      const password = String(req.body?.password || '')
+      const role = String(req.body?.role || 'rotas_operador').trim().toLowerCase()
+      if (!name || !email || !phone || !cpf || !password) return res.status(422).json({ message: 'Preencha todos os campos obrigatórios.' })
+      if (!isValidCpf(cpf)) return res.status(422).json({ message: 'CPF inválido.' })
+      if (!validatePassword(password)) return res.status(422).json({ message: 'A senha deve ter maiúscula, minúscula, número, caractere especial e pelo menos 6 caracteres.' })
+      if (!['rotas_operador', 'rotas_admin'].includes(role)) return res.status(422).json({ message: 'Perfil de acesso inválido.' })
+      if (await User.exists({ $or: [{ email }, { cpf }] })) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
+
+      const user = await User.create({
+        name, email, phone, cpf, role,
+        password: await bcrypt.hash(password, 12),
+        emailVerified: true,
+        acceptedTermsAt: new Date(),
+        acceptedTermsVersion: '2.0',
+        createdBy: operatorId(req),
+      })
+      void recordAudit(req, {
+        action: 'rotas.user.create', resourceType: 'user', resourceId: user._id,
+        module: 'rotas-rurais', metadata: { role },
+      })
+      return res.status(201).json({ message: 'Usuário criado com sucesso.', user: { id: user._id, name, email, phone, role } })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
+      return res.status(500).json({ message: 'Erro ao criar usuário de Estradas Rurais.' })
+    }
+  }
+
   static async resolveProperty(req, res) {
     const plusCode = normalizePlusCode(req.query.plusCode)
     if (!isPlausiblePlusCode(plusCode)) return res.status(422).json({ message: 'Plus Code inválido.' })

@@ -2,6 +2,7 @@ import { useContext, useState } from 'react'
 import { createRuralOwner, resolveRuralProperty } from '../../../services/ruralPortalService'
 import { Context } from '../../../context/UserContext'
 import { RuralReviewPanel } from './RuralAdminPage'
+import RuralUserManager from './RuralUserManager'
 import RuralNavbar from './RuralNavbar'
 import RuralPropertyManager from './RuralPropertyManager'
 import styles from './RuralPortal.module.css'
@@ -93,8 +94,9 @@ export default function RuralOperatorPage() {
         <button type="button" role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? styles.tabActive : styles.tab} onClick={() => setTab('register')}>Novo cadastro</button>
         <button type="button" role="tab" aria-selected={tab === 'manage'} className={tab === 'manage' ? styles.tabActive : styles.tab} onClick={() => setTab('manage')}>Gerenciar propriedades</button>
         {canReview && <button type="button" role="tab" aria-selected={tab === 'review'} className={tab === 'review' ? styles.tabActive : styles.tab} onClick={() => setTab('review')}>Revisar cadastros</button>}
+        {canReview && <button type="button" role="tab" aria-selected={tab === 'users'} className={tab === 'users' ? styles.tabActive : styles.tab} onClick={() => setTab('users')}>Usuários</button>}
       </div>
-      {tab === 'manage' ? <RuralPropertyManager /> : tab === 'review' && canReview ? <RuralReviewPanel /> : <>
+      {tab === 'manage' ? <RuralPropertyManager /> : tab === 'review' && canReview ? <RuralReviewPanel /> : tab === 'users' && canReview ? <RuralUserManager /> : <>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.field}>
           <label htmlFor="plusCode">Plus Code *</label>

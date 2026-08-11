@@ -140,9 +140,25 @@ describe('Portal do produtor rural', () => {
       email: 'admin-rural@test.local',
       role: 'rotas_admin',
     })
+    const adminToken = bearerToken(admin)
+    await request(app)
+      .post('/api/rotas-rurais/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Novo Operador', email: 'novo-operador@test.local', phone: '14999999999', cpf: '39053344705', password: 'Senha@123', role: 'rotas_operador' })
+      .expect(201)
+    const moduleUsers = await request(app)
+      .get('/api/rotas-rurais/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+    expect(moduleUsers.body.items).toEqual(expect.arrayContaining([expect.objectContaining({ email: 'novo-operador@test.local', role: 'rotas_operador' })]))
+    await request(app)
+      .get('/api/rotas-rurais/users')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403)
+
     const approved = await request(app)
       .patch(`/api/rotas-rurais/properties/${manual.body.property._id}`)
-      .set('Authorization', `Bearer ${bearerToken(admin)}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({ status: 'active' })
       .expect(200)
 

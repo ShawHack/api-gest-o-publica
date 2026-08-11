@@ -72,3 +72,13 @@ export async function reviewRuralProperty(id, status) {
   const response = await api.patch(`${BASE}/properties/${id}`, { status })
   return response.data
 }
+
+export async function listRuralUsers() {
+  const { data } = await api.get(`${BASE}/users`)
+  return data
+}
+
+export async function createRuralUser(payload) {
+  const { data } = await api.post(`${BASE}/users`, payload)
+  return data
+}

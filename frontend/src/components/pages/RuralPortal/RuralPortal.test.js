@@ -3,7 +3,7 @@ import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
 import RuralOperatorLoginPage from './RuralOperatorLoginPage'
 import { Context } from '../../../context/UserContext'
-import { getRuralProfile, listManagedRuralProperties, listRuralProperties, resolveRuralProperty } from '../../../services/ruralPortalService'
+import { getRuralProfile, listManagedRuralProperties, listRuralProperties, listRuralUsers, resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../context/UserContext', () => {
   const React = require('react')
@@ -19,6 +19,8 @@ jest.mock('../../../services/ruralPortalService', () => ({
   saveRuralProfile: jest.fn(),
   listManagedRuralProperties: jest.fn(),
   listRuralProperties: jest.fn(),
+  listRuralUsers: jest.fn(),
+  createRuralUser: jest.fn(),
   updateManagedRuralProperty: jest.fn(),
   deleteManagedRuralProperty: jest.fn(),
 }))
@@ -73,6 +75,14 @@ test('administrador acessa a revisão pela navegação do operador', async () =>
   fireEvent.click(screen.getByRole('tab', { name: /revisar cadastros/i }))
   expect(await screen.findByText('UPA-999')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /aprovar/i })).toBeInTheDocument()
+})
+
+test('administrador acessa o cadastro próprio de usuários rurais', async () => {
+  listRuralUsers.mockResolvedValue({ items: [{ _id: 'user-rural', name: 'Operador Rural', email: 'operador@teste.local', role: 'rotas_operador' }] })
+  render(<Context.Provider value={{ user: { role: 'rotas_admin' } }}><RuralOperatorPage /></Context.Provider>)
+  fireEvent.click(screen.getByRole('tab', { name: /^usuários$/i }))
+  expect(await screen.findByText('Operador Rural')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /criar usuário/i })).toBeInTheDocument()
 })
 
 test('proprietário inicia pela tela de login', () => {
