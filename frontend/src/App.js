@@ -40,6 +40,7 @@ import RuralOwnerPage from './components/pages/RuralPortal/RuralOwnerPage'
 import RuralAdminPage from './components/pages/RuralPortal/RuralAdminPage'
 import NotFoundPage from './components/pages/NotFound/NotFoundPage'
 import RuralAccessDeniedPage from './components/pages/RuralPortal/RuralAccessDeniedPage'
+import RuralOperatorLoginPage from './components/pages/RuralPortal/RuralOperatorLoginPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -87,11 +88,12 @@ function App() {
                     <Route path="/educacao/admin/*" element={<EducationAdminPortal />} />
                     <Route path="/educacao/*" element={<EducationPortal />} />
                     <Route path="/rotas-rurais/proprietario" element={<RuralOwnerPage />} />
+                    <Route path="/rotas-rurais/login" element={<RuralOperatorLoginPage />} />
                     <Route path="/rotas-rurais/operador" element={
-                        <RequireAuth><RoleGate allow={['admin', 'rotas_admin', 'rotas_operador']} fallback={<RuralAccessDeniedPage />}><RuralOperatorPage /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin', 'rotas_operador']} fallback={<RuralAccessDeniedPage />}><RuralOperatorPage /></RoleGate></RequireAuth>
                     } />
                     <Route path="/rotas-rurais/admin" element={
-                        <RequireAuth><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
                     } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}

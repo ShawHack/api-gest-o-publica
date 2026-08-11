@@ -1,6 +1,9 @@
+import { useContext } from 'react'
+import { Context } from '../../../context/UserContext'
 import styles from './RuralPortal.module.css'
 
-export default function RuralNavbar({ section }) {
+export default function RuralNavbar({ section, showLogout = false }) {
+  const auth = useContext(Context)
   const assetPrefix = process.env.PUBLIC_URL || ''
   return <header className={styles.navbar}>
     <img
@@ -10,7 +13,7 @@ export default function RuralNavbar({ section }) {
     />
     <nav className={styles.navStrip} aria-label="Navegação do módulo Estradas Rurais">
       <span className={styles.brand}>Estradas Rurais</span>
-      <span className={styles.navSection}>{section}</span>
+      <span className={styles.navActions}><span className={styles.navSection}>{section}</span>{showLogout && <button type="button" className={styles.logoutButton} onClick={() => auth?.logout?.('/rotas-rurais/login')}>Sair</button>}</span>
     </nav>
   </header>
 }

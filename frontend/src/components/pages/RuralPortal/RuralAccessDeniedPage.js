@@ -4,7 +4,7 @@ import styles from './RuralPortal.module.css'
 
 export default function RuralAccessDeniedPage() {
   return <div className={styles.appShell}>
-    <RuralNavbar section="Acesso restrito" />
+    <RuralNavbar section="Acesso restrito" showLogout />
     <main className={styles.page}>
       <section className={styles.card}>
         <header className={styles.header}>

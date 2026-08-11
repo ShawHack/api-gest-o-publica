@@ -26,7 +26,7 @@ export default function RuralAdminPage() {
   }
 
   return <div className={styles.appShell}>
-    <RuralNavbar section="Revisão de UPAs" />
+    <RuralNavbar section="Revisão de UPAs" showLogout />
     <main className={styles.page}><section className={styles.card}>
       <header className={styles.header}><h1>UPAs aguardando revisão</h1><p>Aprove apenas após conferir o código, o Plus Code e a propriedade.</p></header>
       {loading && <p>Carregando...</p>}

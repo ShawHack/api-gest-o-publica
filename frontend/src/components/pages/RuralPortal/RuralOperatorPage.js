@@ -78,7 +78,7 @@ export default function RuralOperatorPage() {
   }
 
   return <div className={styles.appShell}>
-    <RuralNavbar section="Área do operador" />
+    <RuralNavbar section="Área do operador" showLogout />
     <main className={styles.page}>
     <section className={styles.card}>
       <header className={styles.header}>

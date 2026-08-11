@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Context as UserContext } from "../../../context/UserContext";
 
 
-export default function RequireAuth({ children }) {
+export default function RequireAuth({ children, loginPath: configuredLoginPath }) {
   const location = useLocation();
   const ctx = useContext(UserContext) || {};
   let auth = {};
@@ -17,7 +17,7 @@ export default function RequireAuth({ children }) {
 
   if (!hasToken && !ctx.authenticated) {
     const isMonitoramento = location.pathname.includes('/shift-handovers');
-    const loginPath = isMonitoramento ? '/monitoramento/login' : '/login';
+    const loginPath = configuredLoginPath || (isMonitoramento ? '/monitoramento/login' : '/login');
     return <Navigate to={loginPath} replace state={{ from: location }} />;
   }
   return children;

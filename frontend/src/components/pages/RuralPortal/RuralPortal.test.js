@@ -1,7 +1,14 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
+import RuralOperatorLoginPage from './RuralOperatorLoginPage'
+import { Context } from '../../../context/UserContext'
 import { getRuralProfile, listManagedRuralProperties, resolveRuralProperty } from '../../../services/ruralPortalService'
+
+jest.mock('../../../context/UserContext', () => {
+  const React = require('react')
+  return { Context: React.createContext({}) }
+})
 
 jest.mock('../../../services/ruralPortalService', () => ({
   createRuralOwner: jest.fn(),
@@ -35,6 +42,16 @@ test('operador visualiza os campos essenciais', () => {
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/cpf do proprietário/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /criar acesso/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /sair/i })).toBeInTheDocument()
+})
+
+test('login rural autentica e retorna para a área do operador', async () => {
+  const login = jest.fn().mockResolvedValue(undefined)
+  render(<Context.Provider value={{ login }}><RuralOperatorLoginPage /></Context.Provider>)
+  fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: 'operador@garca.sp.gov.br' } })
+  fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: 'senha-segura' } })
+  fireEvent.click(screen.getByRole('button', { name: /^entrar$/i }))
+  await waitFor(() => expect(login).toHaveBeenCalledWith({ email: 'operador@garca.sp.gov.br', password: 'senha-segura' }, '/rotas-rurais/operador'))
 })
 
 test('operador abre o gerenciamento de propriedades', async () => {
