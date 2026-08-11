@@ -59,8 +59,8 @@ test('login rural autentica e retorna para a área do operador', async () => {
   await waitFor(() => expect(login).toHaveBeenCalledWith({ email: 'operador@garca.sp.gov.br', password: 'senha-segura' }, '/rotas-rurais/operador'))
 })
 
-test('pessoa realiza cadastro público e aguarda liberação', async () => {
-  registerRuralOperator.mockResolvedValue({ message: 'Cadastro realizado. Aguarde a liberação de acesso por um administrador.' })
+test('pessoa realiza cadastro público e recebe validação por e-mail', async () => {
+  registerRuralOperator.mockResolvedValue({ message: 'Cadastro realizado! Enviamos um e-mail para ativar a conta.' })
   render(<Context.Provider value={{ login: jest.fn() }}><RuralOperatorLoginPage /></Context.Provider>)
   fireEvent.click(screen.getByRole('button', { name: /cadastre-se/i }))
   fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'Maria Rural' } })
@@ -68,9 +68,10 @@ test('pessoa realiza cadastro público e aguarda liberação', async () => {
   fireEvent.change(screen.getByLabelText(/telefone/i), { target: { value: '14999999999' } })
   fireEvent.change(screen.getByLabelText(/^cpf$/i), { target: { value: '52998224725' } })
   fireEvent.change(screen.getByLabelText(/^senha$/i), { target: { value: 'Senha@123' } })
+  fireEvent.click(screen.getByLabelText(/li e concordo/i))
   fireEvent.click(screen.getByRole('button', { name: /^cadastrar$/i }))
-  expect(await screen.findByText(/aguarde a liberação/i)).toBeInTheDocument()
-  expect(registerRuralOperator).toHaveBeenCalledWith(expect.objectContaining({ email: 'maria@teste.local' }))
+  expect(await screen.findByText(/e-mail para ativar/i)).toBeInTheDocument()
+  expect(registerRuralOperator).toHaveBeenCalledWith(expect.objectContaining({ email: 'maria@teste.local', acceptedTermsAt: expect.any(String) }))
 })
 
 test('operador abre o gerenciamento de propriedades', async () => {

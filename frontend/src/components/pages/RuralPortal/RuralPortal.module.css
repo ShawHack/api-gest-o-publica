@@ -15,6 +15,9 @@
 .field label { font-weight: 650; }
 .field input, .field select, .field textarea { width: 100%; box-sizing: border-box; border: 1px solid #bdc9bf; border-radius: 9px; padding: 12px 13px; font: inherit; background: #fff; }
 .field textarea { min-height: 110px; resize: vertical; }
+.termsAcceptance { display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+.termsAcceptance input { margin-top: 3px; }
+.termsAcceptance a { color: #1f5c32; font-weight: 700; }
 .field input:focus, .field select:focus, .field textarea:focus { outline: 3px solid rgba(55, 125, 68, .18); border-color: #377d44; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
 .button { border: 0; border-radius: 9px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #2f773e, #1f5c32); color: #fff; box-shadow: 0 5px 12px rgba(31, 92, 50, .17); }

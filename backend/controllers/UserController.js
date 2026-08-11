@@ -67,15 +67,17 @@ function inferPublicBaseFromRequest(req) {
 function resolveAuthClient(req) {
   const client = String(req.body?.client || '').trim().toLowerCase()
   if (client === 'garcapet') return 'garcapet'
+  if (client === 'rotas-rurais') return 'rotas-rurais'
   const ref = String(req.headers.referer || req.headers.referrer || '').toLowerCase()
   if (ref.includes('/garcapet')) return 'garcapet'
   return ''
 }
 
 function emailVerifyLinkPath(req) {
-  return resolveAuthClient(req) === 'garcapet'
-    ? '/garcapet/auth/verify-email'
-    : '/auth/verify-email'
+  const client = resolveAuthClient(req)
+  if (client === 'garcapet') return '/garcapet/auth/verify-email'
+  if (client === 'rotas-rurais') return '/rotas-rurais/verificar-email'
+  return '/auth/verify-email'
 }
 
 function escapeRegex(s) {
@@ -175,6 +177,7 @@ module.exports = class UserController {
     } = req.body || {}
 
     const cpf = resolveRegisterCpf(req.body)
+    const authClient = resolveAuthClient(req)
 
     const emailNorm = normalizeEmail(email)
 
@@ -229,6 +232,7 @@ module.exports = class UserController {
       emailVerifyToken: verificationToken,
       emailVerifyExpires: new Date(Date.now() + EMAIL_VERIFY_TTL_MS),
       role: 'usuario',
+      ...(authClient === 'rotas-rurais' ? { ruralAccessRequestedAt: new Date() } : {}),
 
       // >>> persistência do aceite
       acceptedTermsAt: new Date(acceptedTermsAt),

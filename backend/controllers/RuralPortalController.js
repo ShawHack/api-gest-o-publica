@@ -4,6 +4,7 @@ const RuralAccount = require('../models/RuralAccount')
 const RuralProperty = require('../models/RuralProperty')
 const RuralProfile = require('../models/RuralProfile')
 const User = require('../models/User')
+const UserController = require('./UserController')
 const validatePassword = require('../helpers/validate-password')
 const { recordAudit } = require('../helpers/audit-log')
 const { findByPlusCode, getCatalog } = require('../helpers/rural-property-catalog')
@@ -82,31 +83,15 @@ module.exports = class RuralPortalController {
   }
 
   static async registerModuleApplicant(req, res) {
-    try {
-      const name = String(req.body?.name || '').trim()
-      const email = String(req.body?.email || '').trim().toLowerCase()
-      const phone = String(req.body?.phone || '').trim()
-      const cpf = normalizeCpf(req.body?.cpf)
-      const password = String(req.body?.password || '')
-      if (!name || !email || !phone || !cpf || !password) return res.status(422).json({ message: 'Preencha todos os campos obrigatórios.' })
-      if (!isValidCpf(cpf)) return res.status(422).json({ message: 'CPF inválido.' })
-      if (!validatePassword(password)) return res.status(422).json({ message: 'A senha deve ter maiúscula, minúscula, número, caractere especial e pelo menos 6 caracteres.' })
-      if (await User.exists({ $or: [{ email }, { cpf }] })) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
-
-      const user = await User.create({
-        name, email, phone, cpf, password: await bcrypt.hash(password, 12),
-        role: 'usuario', emailVerified: true, ruralAccessRequestedAt: new Date(),
-        acceptedTermsAt: new Date(), acceptedTermsVersion: '2.0',
-      })
-      void recordAudit(req, {
-        action: 'rotas.user.request', resourceType: 'user', resourceId: user._id,
-        module: 'rotas-rurais', metadata: { requestedRole: 'rotas_operador' },
-      })
-      return res.status(201).json({ message: 'Cadastro realizado. Aguarde a liberação de acesso por um administrador.' })
-    } catch (error) {
-      if (error?.code === 11000) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
-      return res.status(500).json({ message: 'Erro ao realizar cadastro.' })
+    const password = String(req.body?.password || '')
+    req.body = {
+      ...req.body,
+      cpf: normalizeCpf(req.body?.cpf),
+      confirmpassword: password,
+      client: 'rotas-rurais',
+      acceptedTermsVersion: req.body?.acceptedTermsVersion || '2.0',
     }
+    return UserController.register(req, res)
   }
 
   static async listModuleUsers(req, res) {

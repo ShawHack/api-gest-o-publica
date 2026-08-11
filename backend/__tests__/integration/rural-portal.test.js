@@ -2,6 +2,11 @@ const request = require('supertest')
 jest.mock('../../helpers/rural-property-publisher', () => ({
   publishRuralProperty: jest.fn().mockResolvedValue('portal_test_key'),
 }))
+jest.mock('../../helpers/mailer', () => ({
+  sendMail: jest.fn(),
+  sendMailDirect: jest.fn().mockResolvedValue({ messageId: 'rural-verification-test' }),
+  isMailAccepted: jest.fn().mockReturnValue(true),
+}))
 const {
   setupIntegrationTest,
   teardownIntegrationTest,
@@ -151,9 +156,16 @@ describe('Portal do produtor rural', () => {
     const adminToken = bearerToken(admin)
     const applicant = await request(app)
       .post('/api/rotas-rurais/portal/register-operator')
-      .send({ name: 'Candidata Rural', email: 'candidata-rural@test.local', phone: '14977776666', cpf: '01234567890', password: 'Senha@123' })
+      .send({ name: 'Candidata Rural', email: 'candidata-rural@test.local', phone: '14977776666', cpf: '01234567890', password: 'Senha@123', acceptedTermsAt: new Date().toISOString(), acceptedTermsVersion: '2.0' })
       .expect(201)
-    expect(applicant.body.message).toMatch(/Aguarde a liberação/i)
+    expect(applicant.body.message).toMatch(/ativar a conta/i)
+    const pendingApplicant = await require('../../models/User').findOne({ email: 'candidata-rural@test.local' }).lean()
+    expect(pendingApplicant).toMatchObject({ emailVerified: false, role: 'usuario' })
+    expect(pendingApplicant.emailVerifyToken).toEqual(expect.any(String))
+    expect(require('../../helpers/mailer').sendMailDirect).toHaveBeenCalledWith(expect.objectContaining({
+      to: 'candidata-rural@test.local',
+      html: expect.stringContaining('/rotas-rurais/verificar-email'),
+    }))
 
     await request(app)
       .post('/api/rotas-rurais/users')
