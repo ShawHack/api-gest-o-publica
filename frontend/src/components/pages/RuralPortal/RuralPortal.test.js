@@ -12,7 +12,18 @@ jest.mock('../../../services/ruralPortalService', () => ({
   saveRuralProfile: jest.fn(),
 }))
 
-beforeEach(() => sessionStorage.clear())
+beforeEach(() => {
+  sessionStorage.clear()
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      features: [{
+        properties: { name: 'Venda Seca' },
+        geometry: { type: 'Polygon', coordinates: [[[-49.9, -22.3], [-49.8, -22.3], [-49.8, -22.2], [-49.9, -22.3]]] },
+      }],
+    }),
+  })
+})
 
 test('operador visualiza os campos essenciais', () => {
   render(<RuralOperatorPage />)
@@ -44,6 +55,8 @@ test('formulário do proprietário contém bairro rural', async () => {
   expect(neighborhood.tagName).toBe('SELECT')
   expect(screen.getByRole('option', { name: 'Venda Seca' })).toBeInTheDocument()
   expect(screen.getByRole('option', { name: 'Água da Prata / Adrianita' })).toBeInTheDocument()
+  fireEvent.click(await screen.findByRole('button', { name: /selecionar bairro venda seca/i }))
+  expect(neighborhood).toHaveValue('Venda Seca')
 })
 
 test('operador pode cadastrar quando o Plus Code não está no catálogo', async () => {

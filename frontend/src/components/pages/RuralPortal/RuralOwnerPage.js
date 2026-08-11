@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { changeRuralPassword, getRuralProfile, ruralLogin, saveRuralProfile } from '../../../services/ruralPortalService'
 import RuralNavbar from './RuralNavbar'
+import RuralNeighborhoodMap from './RuralNeighborhoodMap'
 import { RURAL_NEIGHBORHOODS } from './ruralNeighborhoods'
 import styles from './RuralPortal.module.css'
 
@@ -110,7 +111,7 @@ export default function RuralOwnerPage() {
         <Field label="Área total (hectares)" name="totalAreaHectares" type="number" step="0.01" value={profile.totalAreaHectares} onChange={updateProfile} />
         <label className={styles.field}>Relação com a propriedade<select name="relationship" value={profile.relationship} onChange={updateProfile}><option value="owner">Proprietário</option><option value="tenant">Arrendatário</option><option value="partner">Parceiro</option><option value="possessor">Possuidor</option><option value="other">Outro</option></select></label>
         <Field label="Moradores" name="residents" type="number" value={profile.residents} onChange={updateProfile} />
-      </div><Field label="Atividades (separadas por vírgula)" name="activities" value={profile.activities} onChange={updateProfile} /><Field label="Condições de acesso" name="accessNotes" textarea value={profile.accessNotes} onChange={updateProfile} /><Field label="Observações" name="notes" textarea value={profile.notes} onChange={updateProfile} /></section>
+      </div><RuralNeighborhoodMap selected={profile.ruralNeighborhood} onSelect={(ruralNeighborhood) => setProfile((current) => ({ ...current, ruralNeighborhood }))} /><Field label="Atividades (separadas por vírgula)" name="activities" value={profile.activities} onChange={updateProfile} /><Field label="Condições de acesso" name="accessNotes" textarea value={profile.accessNotes} onChange={updateProfile} /><Field label="Observações" name="notes" textarea value={profile.notes} onChange={updateProfile} /></section>
       <div className={styles.actions}><button className={styles.buttonSecondary} disabled={loading}>Salvar rascunho</button><button type="button" className={styles.button} disabled={loading} onClick={(event) => submitProfile(event, true)}>Enviar para análise</button></div>
     </form>
   </Shell>
