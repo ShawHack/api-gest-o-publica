@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createRuralOwner, resolveRuralProperty } from '../../../services/ruralPortalService'
 import RuralNavbar from './RuralNavbar'
+import RuralPropertyManager from './RuralPropertyManager'
 import styles from './RuralPortal.module.css'
 
 const initialForm = { plusCode: '', cpf: '', codigoUpa: '', propertyName: '' }
@@ -32,6 +33,7 @@ export async function copyText(text) {
 }
 
 export default function RuralOperatorPage() {
+  const [tab, setTab] = useState('register')
   const [form, setForm] = useState(initialForm)
   const [property, setProperty] = useState(null)
   const [result, setResult] = useState(null)
@@ -83,6 +85,11 @@ export default function RuralOperatorPage() {
         <h1>Cadastro de proprietário rural</h1>
         <p>Uso exclusivo da Casa da Agricultura. Consulte o Plus Code antes de criar o acesso.</p>
       </header>
+      <div className={styles.tabs} role="tablist" aria-label="Área do operador">
+        <button type="button" role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? styles.tabActive : styles.tab} onClick={() => setTab('register')}>Novo cadastro</button>
+        <button type="button" role="tab" aria-selected={tab === 'manage'} className={tab === 'manage' ? styles.tabActive : styles.tab} onClick={() => setTab('manage')}>Gerenciar propriedades</button>
+      </div>
+      {tab === 'manage' ? <RuralPropertyManager /> : <>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.field}>
           <label htmlFor="plusCode">Plus Code *</label>
@@ -114,6 +121,7 @@ export default function RuralOperatorPage() {
         <button className={styles.buttonSecondary} type="button" onClick={copyCredential}>Copiar acesso</button>
         {copyFeedback && <p role="status">{copyFeedback}</p>}
       </div>}
+      </>}
     </section>
     </main>
   </div>

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
-import { getRuralProfile, resolveRuralProperty } from '../../../services/ruralPortalService'
+import { getRuralProfile, listManagedRuralProperties, resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../services/ruralPortalService', () => ({
   createRuralOwner: jest.fn(),
@@ -10,6 +10,9 @@ jest.mock('../../../services/ruralPortalService', () => ({
   changeRuralPassword: jest.fn(),
   getRuralProfile: jest.fn(),
   saveRuralProfile: jest.fn(),
+  listManagedRuralProperties: jest.fn(),
+  updateManagedRuralProperty: jest.fn(),
+  deleteManagedRuralProperty: jest.fn(),
 }))
 
 beforeEach(() => {
@@ -32,6 +35,15 @@ test('operador visualiza os campos essenciais', () => {
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/cpf do proprietário/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /criar acesso/i })).toBeInTheDocument()
+})
+
+test('operador abre o gerenciamento de propriedades', async () => {
+  listManagedRuralProperties.mockResolvedValue({ items: [{ _id: 'upa-1', name: 'Sítio Teste', codigoUpa: 'UPA-001', plusCode: '58M5+CFGH', status: 'active', account: { cpfLast4: '1234' } }] })
+  render(<RuralOperatorPage />)
+  fireEvent.click(screen.getByRole('tab', { name: /gerenciar propriedades/i }))
+  expect(await screen.findByText('Sítio Teste')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /editar/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /excluir/i })).toBeInTheDocument()
 })
 
 test('proprietário inicia pela tela de login', () => {

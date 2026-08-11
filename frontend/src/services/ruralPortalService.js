@@ -13,6 +13,21 @@ export async function resolveRuralProperty(plusCode) {
   return data
 }
 
+export async function listManagedRuralProperties() {
+  const { data } = await api.get(`${BASE}/operator/properties`)
+  return data
+}
+
+export async function updateManagedRuralProperty(id, payload) {
+  const { data } = await api.patch(`${BASE}/operator/properties/${id}`, payload)
+  return data
+}
+
+export async function deleteManagedRuralProperty(id) {
+  const { data } = await api.delete(`${BASE}/operator/properties/${id}`)
+  return data
+}
+
 function publicApi() {
   const configured = (process.env.REACT_APP_API || '/api').replace(/\/+$/, '')
   return axios.create({ baseURL: configured })

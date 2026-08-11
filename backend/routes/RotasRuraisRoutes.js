@@ -24,6 +24,9 @@ router.put('/portal/profile', verifyRuralToken, RuralPortalController.saveProfil
 
 router.get('/operator/properties/resolve', verifyToken, requireRotasOperator, RuralPortalController.resolveProperty)
 router.post('/operator/owners', verifyToken, requireRotasOperator, RuralPortalController.createOwner)
+router.get('/operator/properties', verifyToken, requireRotasOperator, RuralPortalController.listManagedProperties)
+router.patch('/operator/properties/:id', verifyToken, requireRotasOperator, RuralPortalController.updateManagedProperty)
+router.delete('/operator/properties/:id', verifyToken, requireRotasOperator, RuralPortalController.archiveManagedProperty)
 
 router.use(verifyToken)
 

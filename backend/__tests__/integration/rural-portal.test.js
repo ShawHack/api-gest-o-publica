@@ -151,6 +151,29 @@ describe('Portal do produtor rural', () => {
       firebaseKey: 'portal_test_key',
     })
     expect(require('../../helpers/rural-property-publisher').publishRuralProperty).toHaveBeenCalled()
+
+    const managed = await request(app)
+      .get('/api/rotas-rurais/operator/properties')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+    expect(managed.body.items.some((item) => item._id === manual.body.property._id)).toBe(true)
+
+    const edited = await request(app)
+      .patch(`/api/rotas-rurais/operator/properties/${manual.body.property._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ codigoUpa: 'UPA-MANUAL-002', name: 'Propriedade Manual Editada' })
+      .expect(200)
+    expect(edited.body).toMatchObject({ codigoUpa: 'UPA-MANUAL-002', name: 'Propriedade Manual Editada' })
+
+    await request(app)
+      .delete(`/api/rotas-rurais/operator/properties/${manual.body.property._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+
+    await request(app)
+      .post('/api/rotas-rurais/portal/login')
+      .send({ username: '7FG8+CFGH', password: manual.body.temporaryPassword })
+      .expect(401)
     global.fetch = originalFetch
   })
 })

@@ -112,6 +112,59 @@ module.exports = class RuralPortalController {
     }
   }
 
+  static async listManagedProperties(req, res) {
+    try {
+      const properties = await RuralProperty.find({ status: { $ne: 'inactive' } }).sort({ createdAt: -1 }).limit(500).lean()
+      const propertyIds = properties.map((property) => property._id)
+      const accounts = await RuralAccount.find({ propertyId: { $in: propertyIds } }).lean()
+      const accountByProperty = new Map(accounts.map((account) => [String(account.propertyId), safeAccount(account)]))
+      return res.status(200).json({
+        items: properties.map((property) => ({ ...property, account: accountByProperty.get(String(property._id)) || null })),
+      })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao listar propriedades rurais.' })
+    }
+  }
+
+  static async updateManagedProperty(req, res) {
+    try {
+      const property = await RuralProperty.findById(req.params.id)
+      if (!property || property.status === 'inactive') return res.status(404).json({ message: 'Propriedade não encontrada.' })
+      const codigoUpa = String(req.body?.codigoUpa || '').trim()
+      if (!codigoUpa) return res.status(422).json({ message: 'Informe o código da UPA.' })
+      property.codigoUpa = codigoUpa
+      property.name = String(req.body?.name || '').trim()
+      await property.save()
+      void recordAudit(req, {
+        action: 'rotas.property.update', resourceType: 'rural_property', resourceId: property._id,
+        module: 'rotas-rurais', metadata: { codigoUpa: property.codigoUpa, plusCode: property.plusCode },
+      })
+      return res.status(200).json(property)
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Código da UPA já cadastrado.' })
+      return res.status(500).json({ message: 'Erro ao editar propriedade rural.' })
+    }
+  }
+
+  static async archiveManagedProperty(req, res) {
+    try {
+      const property = await RuralProperty.findById(req.params.id)
+      if (!property || property.status === 'inactive') return res.status(404).json({ message: 'Propriedade não encontrada.' })
+      property.status = 'inactive'
+      property.reviewedBy = operatorId(req)
+      property.reviewedAt = new Date()
+      await property.save()
+      await RuralAccount.updateMany({ propertyId: property._id }, { $set: { status: 'inactive' } })
+      void recordAudit(req, {
+        action: 'rotas.property.archive', resourceType: 'rural_property', resourceId: property._id,
+        module: 'rotas-rurais', metadata: { codigoUpa: property.codigoUpa, plusCode: property.plusCode },
+      })
+      return res.status(200).json({ message: 'Propriedade excluída da lista ativa.', id: property._id })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao excluir propriedade rural.' })
+    }
+  }
+
   static async listProperties(req, res) {
     try {
       const allowed = ['active', 'pending_review', 'inactive']
