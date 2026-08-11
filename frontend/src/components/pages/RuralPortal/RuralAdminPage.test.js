@@ -2,6 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import RuralAdminPage from './RuralAdminPage'
 import { listRuralProperties, reviewRuralProperty } from '../../../services/ruralPortalService'
 
+jest.mock('../../../context/UserContext', () => {
+  const React = require('react')
+  return { Context: React.createContext({ logout: jest.fn() }) }
+})
+
 jest.mock('../../../services/ruralPortalService', () => ({
   listRuralProperties: jest.fn(),
   reviewRuralProperty: jest.fn(),

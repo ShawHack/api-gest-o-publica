@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { createRuralOwner, resolveRuralProperty } from '../../../services/ruralPortalService'
+import { Context } from '../../../context/UserContext'
+import { RuralReviewPanel } from './RuralAdminPage'
 import RuralNavbar from './RuralNavbar'
 import RuralPropertyManager from './RuralPropertyManager'
 import styles from './RuralPortal.module.css'
@@ -33,6 +35,8 @@ export async function copyText(text) {
 }
 
 export default function RuralOperatorPage() {
+  const { user } = useContext(Context)
+  const canReview = user?.isAdmin || ['admin', 'rotas_admin'].includes(user?.role)
   const [tab, setTab] = useState('register')
   const [form, setForm] = useState(initialForm)
   const [property, setProperty] = useState(null)
@@ -88,8 +92,9 @@ export default function RuralOperatorPage() {
       <div className={styles.tabs} role="tablist" aria-label="Área do operador">
         <button type="button" role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? styles.tabActive : styles.tab} onClick={() => setTab('register')}>Novo cadastro</button>
         <button type="button" role="tab" aria-selected={tab === 'manage'} className={tab === 'manage' ? styles.tabActive : styles.tab} onClick={() => setTab('manage')}>Gerenciar propriedades</button>
+        {canReview && <button type="button" role="tab" aria-selected={tab === 'review'} className={tab === 'review' ? styles.tabActive : styles.tab} onClick={() => setTab('review')}>Revisar cadastros</button>}
       </div>
-      {tab === 'manage' ? <RuralPropertyManager /> : <>
+      {tab === 'manage' ? <RuralPropertyManager /> : tab === 'review' && canReview ? <RuralReviewPanel /> : <>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.field}>
           <label htmlFor="plusCode">Plus Code *</label>

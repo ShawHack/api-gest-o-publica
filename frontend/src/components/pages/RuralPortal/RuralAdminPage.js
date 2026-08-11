@@ -6,6 +6,13 @@ import styles from './RuralPortal.module.css'
 const messageOf = (error) => error?.response?.data?.message || 'Não foi possível carregar as UPAs.'
 
 export default function RuralAdminPage() {
+  return <div className={styles.appShell}>
+    <RuralNavbar section="Revisão de UPAs" showLogout />
+    <main className={styles.page}><section className={styles.card}><RuralReviewPanel /></section></main>
+  </div>
+}
+
+export function RuralReviewPanel() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -25,9 +32,7 @@ export default function RuralAdminPage() {
     catch (requestError) { setError(messageOf(requestError)) }
   }
 
-  return <div className={styles.appShell}>
-    <RuralNavbar section="Revisão de UPAs" showLogout />
-    <main className={styles.page}><section className={styles.card}>
+  return <>
       <header className={styles.header}><h1>UPAs aguardando revisão</h1><p>Aprove apenas após conferir o código, o Plus Code e a propriedade.</p></header>
       {loading && <p>Carregando...</p>}
       {error && <div role="alert" className={styles.error}>{error}</div>}
@@ -39,6 +44,5 @@ export default function RuralAdminPage() {
           <button className={styles.buttonDanger} onClick={() => review(item._id, 'inactive')}>Rejeitar</button>
         </div>
       </article>)}</div>
-    </section></main>
-  </div>
+    </>
 }

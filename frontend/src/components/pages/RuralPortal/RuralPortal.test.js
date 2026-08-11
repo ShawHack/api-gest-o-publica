@@ -3,7 +3,7 @@ import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
 import RuralOperatorLoginPage from './RuralOperatorLoginPage'
 import { Context } from '../../../context/UserContext'
-import { getRuralProfile, listManagedRuralProperties, resolveRuralProperty } from '../../../services/ruralPortalService'
+import { getRuralProfile, listManagedRuralProperties, listRuralProperties, resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../context/UserContext', () => {
   const React = require('react')
@@ -18,6 +18,7 @@ jest.mock('../../../services/ruralPortalService', () => ({
   getRuralProfile: jest.fn(),
   saveRuralProfile: jest.fn(),
   listManagedRuralProperties: jest.fn(),
+  listRuralProperties: jest.fn(),
   updateManagedRuralProperty: jest.fn(),
   deleteManagedRuralProperty: jest.fn(),
 }))
@@ -64,6 +65,14 @@ test('operador abre o gerenciamento de propriedades', async () => {
   fireEvent.click(screen.getByRole('button', { name: /editar/i }))
   expect(screen.getByLabelText(/nome completo/i)).toHaveValue('João Rural')
   expect(screen.getByLabelText(/bairro rural/i)).toHaveValue('Venda Seca')
+})
+
+test('administrador acessa a revisão pela navegação do operador', async () => {
+  listRuralProperties.mockResolvedValue({ items: [{ _id: 'upa-pendente', codigoUpa: 'UPA-999', plusCode: '7FG8+CFGH', name: 'Sítio Pendente' }] })
+  render(<Context.Provider value={{ user: { role: 'admin', isAdmin: true } }}><RuralOperatorPage /></Context.Provider>)
+  fireEvent.click(screen.getByRole('tab', { name: /revisar cadastros/i }))
+  expect(await screen.findByText('UPA-999')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /aprovar/i })).toBeInTheDocument()
 })
 
 test('proprietário inicia pela tela de login', () => {
