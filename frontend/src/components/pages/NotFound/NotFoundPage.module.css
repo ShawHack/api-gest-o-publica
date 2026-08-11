@@ -1,0 +1,8 @@
+.page { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 24px; background: linear-gradient(145deg, #edf3ef, #f8faf8); font-family: Arial, sans-serif; }
+.card { width: min(520px, 100%); padding: 48px 34px; border-radius: 18px; background: #fff; box-shadow: 0 18px 55px rgba(18, 60, 42, .15); text-align: center; color: #27352d; }
+.code { display: inline-block; color: #2f773e; font-size: 4rem; line-height: 1; font-weight: 800; }
+.brand { margin: 14px 0 4px; color: #1f5c32; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.card h1 { margin: 8px 0 12px; font-size: clamp(1.8rem, 5vw, 2.5rem); color: #173e2a; }
+.card p { line-height: 1.6; }
+.link { display: inline-block; margin-top: 18px; padding: 12px 20px; border-radius: 9px; background: #2f773e; color: #fff; font-weight: 700; text-decoration: none; }
+.link:hover { background: #235f32; }

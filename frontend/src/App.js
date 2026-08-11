@@ -38,6 +38,7 @@ import EducationAdminPortal from './components/pages/Education/admin/EducationAd
 import RuralOperatorPage from './components/pages/RuralPortal/RuralOperatorPage'
 import RuralOwnerPage from './components/pages/RuralPortal/RuralOwnerPage'
 import RuralAdminPage from './components/pages/RuralPortal/RuralAdminPage'
+import NotFoundPage from './components/pages/NotFound/NotFoundPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -56,7 +57,7 @@ import {
 } from './context/UserContext'
 
 // Quando servido em /sama/ (PUBLIC_URL=/sama), o Router precisa de basename para as rotas funcionarem
-const basename = process.env.PUBLIC_URL || '';
+const basename = process.env.PUBLIC_URL === '/sama' ? '/sama' : '';
 
 function App() {
     return (
@@ -210,6 +211,8 @@ function App() {
                                             </RoleGate>
                                         </RequireAuth>
                                     } />
+
+                                    <Route path="*" element={<NotFoundPage />} />
 
                                 </Routes>
                             </Container>
