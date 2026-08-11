@@ -54,8 +54,19 @@
 .loginLink { display: inline-block; margin-top: 18px; padding: 12px 18px; border-radius: 9px; background: #2f773e; color: #fff; font-weight: 700; text-decoration: none; }
 .loginLink:hover { background: #235f32; }
 .navActions { display: flex; align-items: center; gap: 10px; }
+.navLink { color: #f6edcf; font-weight: 700; text-decoration: none; padding: 7px 10px; border-radius: 999px; }
+.navLink:hover { background: rgba(255,255,255,.14); }
 .logoutButton { border: 1px solid rgba(255,255,255,.55); border-radius: 999px; padding: 6px 13px; background: transparent; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .logoutButton:hover { background: rgba(255,255,255,.14); }
 .loginPage { min-height: 52vh; display: grid; place-items: center; padding: 42px 16px 70px; }
 .loginCard { width: min(500px, 100%); padding: 34px; border-radius: 18px; background: #fff; box-shadow: 0 16px 44px rgba(22, 70, 46, .15); }
+.mapPage { width: min(1500px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 48px; }
+.mapPageHeader { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+.mapPageHeader h1 { color: #285b34; margin: 0 0 6px; }
+.mapPageHeader p { margin: 0; color: #58655b; }
+.mapPageHeader span { padding: 9px 13px; border-radius: 999px; background: #e6eee7; color: #285b34; font-weight: 700; }
+.interactiveMap { width: 100%; height: min(72vh, 850px); min-height: 560px; border-radius: 16px; border: 2px solid #8aaa3a; box-shadow: 0 15px 40px rgba(8,45,34,.2); }
+.mapAttributionNote { color: #5a685e; font-size: .9rem; }
+:global(.rural-map-label) { border: 0; border-radius: 4px; padding: 2px 5px; background: rgba(5,35,27,.78); color: #fff; font-weight: 700; box-shadow: none; }
+:global(.rural-map-label::before) { display: none; }
 @media (max-width: 640px) { .banner { height: 210px; object-position: center; } .navStrip { min-height: 52px; padding: 0 14px; } .brand { font-size: .9rem; } .navSection { font-size: .8rem; } .page { padding: 22px 10px 40px; } .card { padding: 22px 16px; border-radius: 14px; } .grid { grid-template-columns: 1fr; } .reviewItem { align-items: flex-start; flex-direction: column; } }

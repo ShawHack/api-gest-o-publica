@@ -18,7 +18,7 @@ export default function RuralNeighborhoodMap({ selected, onSelect }) {
 
   useEffect(() => {
     let active = true
-    fetch('/data/bairros-rurais.geojson')
+    fetch(`${process.env.PUBLIC_URL || ''}/data/bairros-rurais.geojson`)
       .then((response) => {
         if (!response.ok) throw new Error('map_unavailable')
         return response.json()
@@ -29,7 +29,8 @@ export default function RuralNeighborhoodMap({ selected, onSelect }) {
   }, [])
 
   const projected = useMemo(() => {
-    const allCoordinates = features.flatMap(outerRings).flat()
+    const neighborhoodFeatures = features.filter((feature) => feature.properties.kind === 'neighborhood' || (!feature.properties.kind && feature.geometry?.type !== 'Point'))
+    const allCoordinates = neighborhoodFeatures.flatMap(outerRings).flat()
     if (!allCoordinates.length) return []
     const longitudes = allCoordinates.map(([longitude]) => longitude)
     const latitudes = allCoordinates.map(([, latitude]) => latitude)
@@ -40,7 +41,7 @@ export default function RuralNeighborhoodMap({ selected, onSelect }) {
     const scaleX = (WIDTH - PADDING * 2) / (maxLongitude - minLongitude)
     const scaleY = (HEIGHT - PADDING * 2) / (maxLatitude - minLatitude)
 
-    return features.map((feature) => ({
+    return neighborhoodFeatures.map((feature) => ({
       name: feature.properties.name,
       polygons: outerRings(feature).map((ring) => ring.map(([longitude, latitude]) =>
         `${PADDING + (longitude - minLongitude) * scaleX},${HEIGHT - PADDING - (latitude - minLatitude) * scaleY}`,

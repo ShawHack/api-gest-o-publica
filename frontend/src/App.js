@@ -38,6 +38,7 @@ import EducationAdminPortal from './components/pages/Education/admin/EducationAd
 import RuralOperatorPage from './components/pages/RuralPortal/RuralOperatorPage'
 import RuralOwnerPage from './components/pages/RuralPortal/RuralOwnerPage'
 import RuralAdminPage from './components/pages/RuralPortal/RuralAdminPage'
+import RuralMapPage from './components/pages/RuralPortal/RuralMapPage'
 import NotFoundPage from './components/pages/NotFound/NotFoundPage'
 import RuralAccessDeniedPage from './components/pages/RuralPortal/RuralAccessDeniedPage'
 import RuralOperatorLoginPage from './components/pages/RuralPortal/RuralOperatorLoginPage'
@@ -89,6 +90,7 @@ function App() {
                     <Route path="/educacao/*" element={<EducationPortal />} />
                     <Route path="/rotas-rurais/proprietario" element={<RuralOwnerPage />} />
                     <Route path="/rotas-rurais/login" element={<RuralOperatorLoginPage />} />
+                    <Route path="/rotas-rurais/mapa" element={<RuralMapPage />} />
                     <Route path="/rotas-rurais/operador" element={
                         <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin', 'rotas_operador']} fallback={<RuralAccessDeniedPage />}><RuralOperatorPage /></RoleGate></RequireAuth>
                     } />
