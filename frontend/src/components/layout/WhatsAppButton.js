@@ -21,7 +21,8 @@ function WhatsAppButton() {
     location.pathname.includes('/monitoramento') ||
     location.pathname.includes('/medicamentos') ||
     location.pathname.includes('/compliance') ||
-    location.pathname.includes('/educacao')
+    location.pathname.includes('/educacao') ||
+    location.pathname.includes('/rotas-rurais')
 
   // Oculta o FAB enquanto o teclado virtual está aberto ou o campo de busca está focado,
   // evitando cobrir filtros/resultados no mobile.
