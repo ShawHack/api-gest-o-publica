@@ -40,7 +40,10 @@ test('formulário do proprietário contém bairro rural', async () => {
     profile: null,
   })
   render(<RuralOwnerPage />)
-  expect(await screen.findByLabelText(/bairro rural/i)).toBeInTheDocument()
+  const neighborhood = await screen.findByLabelText(/bairro rural/i)
+  expect(neighborhood.tagName).toBe('SELECT')
+  expect(screen.getByRole('option', { name: 'Venda Seca' })).toBeInTheDocument()
+  expect(screen.getByRole('option', { name: 'Água da Prata / Adrianita' })).toBeInTheDocument()
 })
 
 test('operador pode cadastrar quando o Plus Code não está no catálogo', async () => {

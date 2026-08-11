@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { changeRuralPassword, getRuralProfile, ruralLogin, saveRuralProfile } from '../../../services/ruralPortalService'
 import RuralNavbar from './RuralNavbar'
+import { RURAL_NEIGHBORHOODS } from './ruralNeighborhoods'
 import styles from './RuralPortal.module.css'
 
 const TOKEN_KEY = 'rural_portal_token'
@@ -105,7 +106,7 @@ export default function RuralOwnerPage() {
       </div><Field label="Endereço para correspondência" name="mailingAddress" value={profile.mailingAddress} onChange={updateProfile} /></section>
       <section className={styles.section}><h2>Dados da propriedade</h2><div className={styles.grid}>
         <Field label="Nome da propriedade" name="propertyName" value={profile.propertyName} onChange={updateProfile} />
-        <Field label="Bairro rural" name="ruralNeighborhood" value={profile.ruralNeighborhood} onChange={updateProfile} />
+        <NeighborhoodSelect value={profile.ruralNeighborhood} onChange={updateProfile} />
         <Field label="Área total (hectares)" name="totalAreaHectares" type="number" step="0.01" value={profile.totalAreaHectares} onChange={updateProfile} />
         <label className={styles.field}>Relação com a propriedade<select name="relationship" value={profile.relationship} onChange={updateProfile}><option value="owner">Proprietário</option><option value="tenant">Arrendatário</option><option value="partner">Parceiro</option><option value="possessor">Possuidor</option><option value="other">Outro</option></select></label>
         <Field label="Moradores" name="residents" type="number" value={profile.residents} onChange={updateProfile} />
@@ -117,3 +118,13 @@ export default function RuralOwnerPage() {
 
 function Shell({ title, subtitle, error, message, children }) { return <div className={styles.appShell}><RuralNavbar section="Portal do produtor" /><main className={styles.page}><section className={styles.card}><header className={styles.header}><h1>{title}</h1><p>{subtitle}</p></header>{children}{error && <div role="alert" className={styles.error}>{error}</div>}{message && <div className={styles.success}>{message}</div>}</section></main></div> }
 function Field({ label, textarea, ...props }) { return <label className={styles.field}>{label}{textarea ? <textarea {...props} /> : <input {...props} />}</label> }
+function NeighborhoodSelect({ value, onChange }) {
+  const isLegacyValue = value && !RURAL_NEIGHBORHOODS.includes(value)
+  return <label className={styles.field}>Bairro rural
+    <select name="ruralNeighborhood" value={value} onChange={onChange}>
+      <option value="">Selecione o bairro</option>
+      {isLegacyValue && <option value={value}>{value} (cadastro anterior)</option>}
+      {RURAL_NEIGHBORHOODS.map((name) => <option key={name} value={name}>{name}</option>)}
+    </select>
+  </label>
+}
