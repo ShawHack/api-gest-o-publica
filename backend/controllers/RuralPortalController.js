@@ -117,9 +117,15 @@ module.exports = class RuralPortalController {
       const properties = await RuralProperty.find({ status: { $ne: 'inactive' } }).sort({ createdAt: -1 }).limit(500).lean()
       const propertyIds = properties.map((property) => property._id)
       const accounts = await RuralAccount.find({ propertyId: { $in: propertyIds } }).lean()
+      const profiles = await RuralProfile.find({ propertyId: { $in: propertyIds } }).lean()
       const accountByProperty = new Map(accounts.map((account) => [String(account.propertyId), safeAccount(account)]))
+      const profileByProperty = new Map(profiles.map((profile) => [String(profile.propertyId), profile]))
       return res.status(200).json({
-        items: properties.map((property) => ({ ...property, account: accountByProperty.get(String(property._id)) || null })),
+        items: properties.map((property) => ({
+          ...property,
+          account: accountByProperty.get(String(property._id)) || null,
+          profile: profileByProperty.get(String(property._id)) || null,
+        })),
       })
     } catch (error) {
       return res.status(500).json({ message: 'Erro ao listar propriedades rurais.' })
@@ -135,11 +141,19 @@ module.exports = class RuralPortalController {
       property.codigoUpa = codigoUpa
       property.name = String(req.body?.name || '').trim()
       await property.save()
+      if (req.body?.profile) {
+        const currentProfile = await RuralProfile.findOne({ propertyId: property._id })
+        if (!currentProfile) return res.status(404).json({ message: 'Cadastro detalhado do proprietário não encontrado.' })
+        currentProfile.personal = req.body.profile.personal || {}
+        currentProfile.property = req.body.profile.property || {}
+        await currentProfile.save()
+      }
       void recordAudit(req, {
         action: 'rotas.property.update', resourceType: 'rural_property', resourceId: property._id,
         module: 'rotas-rurais', metadata: { codigoUpa: property.codigoUpa, plusCode: property.plusCode },
       })
-      return res.status(200).json(property)
+      const profile = await RuralProfile.findOne({ propertyId: property._id }).lean()
+      return res.status(200).json({ ...property.toObject(), profile })
     } catch (error) {
       if (error?.code === 11000) return res.status(409).json({ message: 'Código da UPA já cadastrado.' })
       return res.status(500).json({ message: 'Erro ao editar propriedade rural.' })

@@ -157,6 +157,28 @@ describe('Portal do produtor rural', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
     expect(managed.body.items.some((item) => item._id === manual.body.property._id)).toBe(true)
+    const propertyWithProfile = managed.body.items.find((item) => item.plusCode === '58M5+CFGH')
+    expect(propertyWithProfile.profile).toMatchObject({
+      personal: { fullName: 'Produtor Teste' },
+      property: { ruralNeighborhood: 'Bairro do Cafe' },
+    })
+
+    const profileEdited = await request(app)
+      .patch(`/api/rotas-rurais/operator/properties/${propertyWithProfile._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        codigoUpa: propertyWithProfile.codigoUpa,
+        name: propertyWithProfile.name,
+        profile: {
+          personal: { ...propertyWithProfile.profile.personal, phone: '14988887777' },
+          property: { ...propertyWithProfile.profile.property, ruralNeighborhood: 'Venda Seca' },
+        },
+      })
+      .expect(200)
+    expect(profileEdited.body.profile).toMatchObject({
+      personal: { phone: '14988887777' },
+      property: { ruralNeighborhood: 'Venda Seca' },
+    })
 
     const edited = await request(app)
       .patch(`/api/rotas-rurais/operator/properties/${manual.body.property._id}`)

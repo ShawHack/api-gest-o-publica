@@ -55,12 +55,15 @@ test('login rural autentica e retorna para a área do operador', async () => {
 })
 
 test('operador abre o gerenciamento de propriedades', async () => {
-  listManagedRuralProperties.mockResolvedValue({ items: [{ _id: 'upa-1', name: 'Sítio Teste', codigoUpa: 'UPA-001', plusCode: '58M5+CFGH', status: 'active', account: { cpfLast4: '1234' } }] })
+  listManagedRuralProperties.mockResolvedValue({ items: [{ _id: 'upa-1', name: 'Sítio Teste', codigoUpa: 'UPA-001', plusCode: '58M5+CFGH', status: 'active', account: { cpfLast4: '1234' }, profile: { personal: { fullName: 'João Rural', phone: '14999999999' }, property: { ruralNeighborhood: 'Venda Seca', activities: ['café'] } } }] })
   render(<RuralOperatorPage />)
   fireEvent.click(screen.getByRole('tab', { name: /gerenciar propriedades/i }))
   expect(await screen.findByText('Sítio Teste')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /editar/i })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /excluir/i })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: /editar/i }))
+  expect(screen.getByLabelText(/nome completo/i)).toHaveValue('João Rural')
+  expect(screen.getByLabelText(/bairro rural/i)).toHaveValue('Venda Seca')
 })
 
 test('proprietário inicia pela tela de login', () => {
