@@ -1,36 +1,66 @@
 import { useContext, useState } from 'react'
 import { Context } from '../../../context/UserContext'
+import { registerRuralOperator } from '../../../services/ruralPortalService'
 import RuralNavbar from './RuralNavbar'
 import styles from './RuralPortal.module.css'
 
+const initialRegistration = { name: '', email: '', phone: '', cpf: '', password: '' }
+
 export default function RuralOperatorLoginPage() {
   const { login } = useContext(Context)
+  const [mode, setMode] = useState('login')
   const [credentials, setCredentials] = useState({ email: '', password: '' })
+  const [registration, setRegistration] = useState(initialRegistration)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
 
-  async function submit(event) {
-    event.preventDefault()
-    setLoading(true)
+  async function submitLogin(event) {
+    event.preventDefault(); setLoading(true); setError('')
     try { await login(credentials, '/rotas-rurais/operador') }
     finally { setLoading(false) }
   }
 
-  const update = ({ target }) => setCredentials((current) => ({ ...current, [target.name]: target.value }))
+  async function submitRegistration(event) {
+    event.preventDefault(); setLoading(true); setError(''); setMessage('')
+    try {
+      const result = await registerRuralOperator(registration)
+      setMessage(result.message); setRegistration(initialRegistration)
+    } catch (requestError) { setError(requestError?.response?.data?.message || 'Não foi possível realizar o cadastro.') }
+    finally { setLoading(false) }
+  }
+
+  const updateCredentials = ({ target }) => setCredentials((current) => ({ ...current, [target.name]: target.value }))
+  const updateRegistration = ({ target }) => setRegistration((current) => ({ ...current, [target.name]: target.value }))
+  const changeMode = (nextMode) => { setMode(nextMode); setError(''); setMessage('') }
 
   return <div className={styles.appShell}>
-    <RuralNavbar section="Acesso do operador" />
-    <main className={styles.loginPage}>
-      <section className={styles.loginCard}>
-        <header className={styles.header}>
-          <h1>Entrar em Estradas Rurais</h1>
-          <p>Acesso exclusivo para operadores autorizados da Casa da Agricultura e administradores.</p>
-        </header>
-        <form className={styles.form} onSubmit={submit}>
-          <label className={styles.field}>E-mail<input name="email" type="email" value={credentials.email} onChange={update} autoComplete="email" required /></label>
-          <label className={styles.field}>Senha<input name="password" type="password" value={credentials.password} onChange={update} autoComplete="current-password" required /></label>
+    <RuralNavbar section={mode === 'login' ? 'Acesso do operador' : 'Cadastro de usuário'} />
+    <main className={styles.loginPage}><section className={styles.loginCard}>
+      {mode === 'login' ? <>
+        <header className={styles.header}><h1>Entrar em Estradas Rurais</h1><p>Acesso para operadores autorizados e administradores.</p></header>
+        <form className={styles.form} onSubmit={submitLogin}>
+          <Field label="E-mail" name="email" type="email" value={credentials.email} onChange={updateCredentials} autoComplete="email" />
+          <Field label="Senha" name="password" type="password" value={credentials.password} onChange={updateCredentials} autoComplete="current-password" />
           <button className={styles.button} disabled={loading}>{loading ? 'Entrando…' : 'Entrar'}</button>
         </form>
-      </section>
-    </main>
+        <button className={styles.buttonSecondary} type="button" onClick={() => changeMode('register')}>Cadastre-se</button>
+      </> : <>
+        <header className={styles.header}><h1>Cadastro em Estradas Rurais</h1><p>Crie sua conta. O acesso operacional será liberado posteriormente por um administrador.</p></header>
+        <form className={styles.form} onSubmit={submitRegistration}>
+          <Field label="Nome completo" name="name" value={registration.name} onChange={updateRegistration} />
+          <Field label="E-mail" name="email" type="email" value={registration.email} onChange={updateRegistration} />
+          <Field label="Telefone" name="phone" value={registration.phone} onChange={updateRegistration} />
+          <Field label="CPF" name="cpf" value={registration.cpf} onChange={updateRegistration} />
+          <Field label="Senha" name="password" type="password" value={registration.password} onChange={updateRegistration} />
+          <small>A senha deve conter maiúscula, minúscula, número e caractere especial.</small>
+          <button className={styles.button} disabled={loading}>{loading ? 'Cadastrando…' : 'Cadastrar'}</button>
+        </form>
+        <button className={styles.buttonSecondary} type="button" onClick={() => changeMode('login')}>Voltar para entrar</button>
+      </>}
+      {error && <div role="alert" className={styles.error}>{error}</div>}{message && <div role="status" className={styles.success}>{message}</div>}
+    </section></main>
   </div>
 }
+
+function Field({ label, ...props }) { return <label className={styles.field}>{label}<input {...props} required /></label> }

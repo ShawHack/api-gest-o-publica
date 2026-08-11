@@ -32,10 +32,38 @@ function safeAccount(account) {
 }
 
 module.exports = class RuralPortalController {
+  static async registerModuleApplicant(req, res) {
+    try {
+      const name = String(req.body?.name || '').trim()
+      const email = String(req.body?.email || '').trim().toLowerCase()
+      const phone = String(req.body?.phone || '').trim()
+      const cpf = normalizeCpf(req.body?.cpf)
+      const password = String(req.body?.password || '')
+      if (!name || !email || !phone || !cpf || !password) return res.status(422).json({ message: 'Preencha todos os campos obrigatórios.' })
+      if (!isValidCpf(cpf)) return res.status(422).json({ message: 'CPF inválido.' })
+      if (!validatePassword(password)) return res.status(422).json({ message: 'A senha deve ter maiúscula, minúscula, número, caractere especial e pelo menos 6 caracteres.' })
+      if (await User.exists({ $or: [{ email }, { cpf }] })) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
+
+      const user = await User.create({
+        name, email, phone, cpf, password: await bcrypt.hash(password, 12),
+        role: 'usuario', emailVerified: true, ruralAccessRequestedAt: new Date(),
+        acceptedTermsAt: new Date(), acceptedTermsVersion: '2.0',
+      })
+      void recordAudit(req, {
+        action: 'rotas.user.request', resourceType: 'user', resourceId: user._id,
+        module: 'rotas-rurais', metadata: { requestedRole: 'rotas_operador' },
+      })
+      return res.status(201).json({ message: 'Cadastro realizado. Aguarde a liberação de acesso por um administrador.' })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
+      return res.status(500).json({ message: 'Erro ao realizar cadastro.' })
+    }
+  }
+
   static async listModuleUsers(req, res) {
     try {
-      const users = await User.find({ role: { $in: ['rotas_operador', 'rotas_admin'] } })
-        .select('name email phone cpf role emailVerified createdAt')
+      const users = await User.find({ $or: [{ role: { $in: ['rotas_operador', 'rotas_admin'] } }, { ruralAccessRequestedAt: { $exists: true } }] })
+        .select('name email phone cpf role emailVerified ruralAccessRequestedAt createdAt')
         .sort({ name: 1 })
         .lean()
       return res.status(200).json({ items: users })
@@ -74,6 +102,25 @@ module.exports = class RuralPortalController {
     } catch (error) {
       if (error?.code === 11000) return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' })
       return res.status(500).json({ message: 'Erro ao criar usuário de Estradas Rurais.' })
+    }
+  }
+
+  static async updateModuleUserRole(req, res) {
+    try {
+      const role = String(req.body?.role || '').trim().toLowerCase()
+      if (!['usuario', 'rotas_operador', 'rotas_admin'].includes(role)) return res.status(422).json({ message: 'Perfil de acesso inválido.' })
+      if (String(req.params.id) === String(operatorId(req))) return res.status(422).json({ message: 'Você não pode alterar seu próprio perfil por esta tela.' })
+      const user = await User.findOne({ _id: req.params.id, $or: [{ role: { $in: ['usuario', 'rotas_operador', 'rotas_admin'] } }, { ruralAccessRequestedAt: { $exists: true } }] })
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' })
+      user.role = role
+      await user.save()
+      void recordAudit(req, {
+        action: 'rotas.user.role_update', resourceType: 'user', resourceId: user._id,
+        module: 'rotas-rurais', metadata: { role },
+      })
+      return res.status(200).json({ message: role === 'usuario' ? 'Permissão rural removida.' : 'Permissão rural concedida.', user: { id: user._id, role } })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao atualizar permissão rural.' })
     }
   }
 

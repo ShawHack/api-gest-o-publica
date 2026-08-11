@@ -3,7 +3,7 @@ import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
 import RuralOperatorLoginPage from './RuralOperatorLoginPage'
 import { Context } from '../../../context/UserContext'
-import { getRuralProfile, listManagedRuralProperties, listRuralProperties, listRuralUsers, resolveRuralProperty } from '../../../services/ruralPortalService'
+import { getRuralProfile, listManagedRuralProperties, listRuralProperties, listRuralUsers, registerRuralOperator, resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../context/UserContext', () => {
   const React = require('react')
@@ -14,6 +14,7 @@ jest.mock('../../../services/ruralPortalService', () => ({
   createRuralOwner: jest.fn(),
   resolveRuralProperty: jest.fn(),
   ruralLogin: jest.fn(),
+  registerRuralOperator: jest.fn(),
   changeRuralPassword: jest.fn(),
   getRuralProfile: jest.fn(),
   saveRuralProfile: jest.fn(),
@@ -21,6 +22,7 @@ jest.mock('../../../services/ruralPortalService', () => ({
   listRuralProperties: jest.fn(),
   listRuralUsers: jest.fn(),
   createRuralUser: jest.fn(),
+  updateRuralUserRole: jest.fn(),
   updateManagedRuralProperty: jest.fn(),
   deleteManagedRuralProperty: jest.fn(),
 }))
@@ -55,6 +57,20 @@ test('login rural autentica e retorna para a área do operador', async () => {
   fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: 'senha-segura' } })
   fireEvent.click(screen.getByRole('button', { name: /^entrar$/i }))
   await waitFor(() => expect(login).toHaveBeenCalledWith({ email: 'operador@garca.sp.gov.br', password: 'senha-segura' }, '/rotas-rurais/operador'))
+})
+
+test('pessoa realiza cadastro público e aguarda liberação', async () => {
+  registerRuralOperator.mockResolvedValue({ message: 'Cadastro realizado. Aguarde a liberação de acesso por um administrador.' })
+  render(<Context.Provider value={{ login: jest.fn() }}><RuralOperatorLoginPage /></Context.Provider>)
+  fireEvent.click(screen.getByRole('button', { name: /cadastre-se/i }))
+  fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'Maria Rural' } })
+  fireEvent.change(screen.getByLabelText(/^e-mail$/i), { target: { value: 'maria@teste.local' } })
+  fireEvent.change(screen.getByLabelText(/telefone/i), { target: { value: '14999999999' } })
+  fireEvent.change(screen.getByLabelText(/^cpf$/i), { target: { value: '52998224725' } })
+  fireEvent.change(screen.getByLabelText(/^senha$/i), { target: { value: 'Senha@123' } })
+  fireEvent.click(screen.getByRole('button', { name: /^cadastrar$/i }))
+  expect(await screen.findByText(/aguarde a liberação/i)).toBeInTheDocument()
+  expect(registerRuralOperator).toHaveBeenCalledWith(expect.objectContaining({ email: 'maria@teste.local' }))
 })
 
 test('operador abre o gerenciamento de propriedades', async () => {

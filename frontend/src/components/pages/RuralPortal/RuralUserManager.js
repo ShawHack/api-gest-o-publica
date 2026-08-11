@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { createRuralUser, listRuralUsers } from '../../../services/ruralPortalService'
+import { createRuralUser, listRuralUsers, updateRuralUserRole } from '../../../services/ruralPortalService'
 import styles from './RuralPortal.module.css'
 
 const initialForm = { name: '', email: '', phone: '', cpf: '', password: '', role: 'rotas_operador' }
@@ -30,6 +30,12 @@ export default function RuralUserManager() {
     } catch (requestError) { setError(messageOf(requestError)); setLoading(false) }
   }
 
+  async function setRole(id, role) {
+    setLoading(true); setError(''); setMessage('')
+    try { const result = await updateRuralUserRole(id, role); setMessage(result.message); await load() }
+    catch (requestError) { setError(messageOf(requestError)); setLoading(false) }
+  }
+
   return <section>
     <header className={styles.header}><h2>Usuários de Estradas Rurais</h2><p>Crie acessos internos sem utilizar as telas do Memorial.</p></header>
     <form className={styles.form} onSubmit={submit}>
@@ -48,7 +54,12 @@ export default function RuralUserManager() {
     <h3>Usuários cadastrados</h3>
     {loading && <p>Carregando…</p>}
     <div className={styles.propertyList}>{items.map((user) => <article className={styles.propertyItem} key={user._id}>
-      <div><strong>{user.name}</strong><span>{user.email}</span><small>{user.role === 'rotas_admin' ? 'Administrador do módulo' : 'Operador'}</small></div>
+      <div><strong>{user.name}</strong><span>{user.email}</span><small>{user.role === 'rotas_admin' ? 'Administrador do módulo' : user.role === 'rotas_operador' ? 'Operador' : 'Aguardando liberação'}</small></div>
+      <div className={styles.actions}>
+        {user.role !== 'rotas_operador' && <button className={styles.buttonSecondary} type="button" onClick={() => setRole(user._id, 'rotas_operador')}>Liberar operador</button>}
+        {user.role !== 'rotas_admin' && <button className={styles.buttonSecondary} type="button" onClick={() => setRole(user._id, 'rotas_admin')}>Tornar administrador</button>}
+        {user.role !== 'usuario' && <button className={styles.buttonDanger} type="button" onClick={() => setRole(user._id, 'usuario')}>Revogar acesso</button>}
+      </div>
     </article>)}</div>
   </section>
 }

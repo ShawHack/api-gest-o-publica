@@ -42,6 +42,11 @@ export async function ruralLogin(username, password) {
   return data
 }
 
+export async function registerRuralOperator(payload) {
+  const { data } = await publicApi().post(`${BASE}/portal/register-operator`, payload)
+  return data
+}
+
 export async function changeRuralPassword(token, password) {
   const { data } = await publicApi().post(
     `${BASE}/portal/change-password`,
@@ -80,5 +85,10 @@ export async function listRuralUsers() {
 
 export async function createRuralUser(payload) {
   const { data } = await api.post(`${BASE}/users`, payload)
+  return data
+}
+
+export async function updateRuralUserRole(id, role) {
+  const { data } = await api.patch(`${BASE}/users/${id}/role`, { role })
   return data
 }

@@ -80,6 +80,7 @@ const User = mongoose.model(
         type: Schema.Types.ObjectId,
         ref: 'User'
       },
+      ruralAccessRequestedAt: { type: Date, index: true },
 
       // >>> novos campos: verificação de e-mail <<<
       emailVerified: { type: Boolean, default: false },
