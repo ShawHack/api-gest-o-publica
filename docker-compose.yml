@@ -43,6 +43,7 @@ services:
       - UPLOAD_DIR=/data/apicemiterio
       - MONGODB_URI=mongodb://mongo:27017/apicemiterio?replicaSet=rs0
       - REDIS_URL=redis://redis:6379
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/upa-rural-firebase.json
     dns:
       - "10.15.25.1"
       - "10.15.25.254"
@@ -51,6 +52,7 @@ services:
       - ${BACKEND_PUBLIC_DIR:-./backend/public}:/app/public:ro
       - ${BACKEND_PRIVATE_DIR:-./backend/private}:/app/private:ro
       - ${MAPATURISTICO_PUBLIC_DIR:-./mapaturistico/public}:/mapaturistico-public:ro
+      - ${ROTAS_FIREBASE_CREDENTIALS_FILE:-/home/semit/.config/api-gestao-publica/upa-rural-service-account.json}:/run/secrets/upa-rural-firebase.json:ro
     depends_on:
       mongo:
         condition: service_healthy
