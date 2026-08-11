@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { changeRuralPassword, getRuralProfile, ruralLogin, saveRuralProfile } from '../../../services/ruralPortalService'
+import RuralNavbar from './RuralNavbar'
 import styles from './RuralPortal.module.css'
 
 const TOKEN_KEY = 'rural_portal_token'
@@ -114,5 +115,5 @@ export default function RuralOwnerPage() {
   </Shell>
 }
 
-function Shell({ title, subtitle, error, message, children }) { return <main className={styles.page}><section className={styles.card}><header className={styles.header}><h1>{title}</h1><p>{subtitle}</p></header>{children}{error && <div role="alert" className={styles.error}>{error}</div>}{message && <div className={styles.success}>{message}</div>}</section></main> }
+function Shell({ title, subtitle, error, message, children }) { return <div className={styles.appShell}><RuralNavbar section="Portal do produtor" /><main className={styles.page}><section className={styles.card}><header className={styles.header}><h1>{title}</h1><p>{subtitle}</p></header>{children}{error && <div role="alert" className={styles.error}>{error}</div>}{message && <div className={styles.success}>{message}</div>}</section></main></div> }
 function Field({ label, textarea, ...props }) { return <label className={styles.field}>{label}{textarea ? <textarea {...props} /> : <input {...props} />}</label> }

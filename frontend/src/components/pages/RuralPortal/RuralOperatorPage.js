@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createRuralOwner, resolveRuralProperty } from '../../../services/ruralPortalService'
+import RuralNavbar from './RuralNavbar'
 import styles from './RuralPortal.module.css'
 
 const initialForm = { plusCode: '', cpf: '', codigoUpa: '', propertyName: '' }
@@ -74,7 +75,9 @@ export default function RuralOperatorPage() {
     }
   }
 
-  return <main className={styles.page}>
+  return <div className={styles.appShell}>
+    <RuralNavbar section="Área do operador" />
+    <main className={styles.page}>
     <section className={styles.card}>
       <header className={styles.header}>
         <h1>Cadastro de proprietário rural</h1>
@@ -112,5 +115,6 @@ export default function RuralOperatorPage() {
         {copyFeedback && <p role="status">{copyFeedback}</p>}
       </div>}
     </section>
-  </main>
+    </main>
+  </div>
 }

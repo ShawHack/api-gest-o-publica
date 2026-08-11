@@ -16,6 +16,7 @@ beforeEach(() => sessionStorage.clear())
 
 test('operador visualiza os campos essenciais', () => {
   render(<RuralOperatorPage />)
+  expect(screen.getByRole('img', { name: /estradas rurais/i })).toHaveAttribute('src', '/banner-estradas.png')
   expect(screen.getByRole('heading', { name: /cadastro de proprietário rural/i })).toBeInTheDocument()
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/cpf do proprietário/i)).toBeInTheDocument()
@@ -24,6 +25,7 @@ test('operador visualiza os campos essenciais', () => {
 
 test('proprietário inicia pela tela de login', () => {
   render(<RuralOwnerPage />)
+  expect(screen.getAllByText(/portal do produtor/i).length).toBeGreaterThan(0)
   expect(screen.getByRole('heading', { name: /portal do produtor rural/i })).toBeInTheDocument()
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
