@@ -103,5 +103,35 @@ describe('Portal do produtor rural', () => {
       .get('/api/rotas-rurais/vehicles')
       .set('Authorization', `Bearer ${token}`)
       .expect(403)
+
+    const originalFetch = global.fetch
+    const { clearCatalogCache } = require('../../helpers/rural-property-catalog')
+    clearCatalogCache()
+    global.fetch = jest.fn().mockRejectedValue(new Error('catalog unavailable'))
+
+    const unresolved = await request(app)
+      .get('/api/rotas-rurais/operator/properties/resolve')
+      .query({ plusCode: '7FG8+CFGH' })
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+
+    expect(unresolved.body).toMatchObject({ found: false, catalogAvailable: false })
+
+    const manual = await request(app)
+      .post('/api/rotas-rurais/operator/owners')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        plusCode: '7FG8+CFGH',
+        cpf: '11144477735',
+        codigoUpa: 'UPA-MANUAL-001',
+        propertyName: 'Propriedade Manual',
+      })
+      .expect(201)
+
+    expect(manual.body.property).toMatchObject({
+      source: 'operator',
+      status: 'pending_review',
+    })
+    global.fetch = originalFetch
   })
 })

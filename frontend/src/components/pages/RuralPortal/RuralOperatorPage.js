@@ -61,11 +61,15 @@ export default function RuralOperatorPage() {
           <button className={styles.buttonSecondary} type="button" onClick={checkProperty} disabled={loading}>Consultar UPA</button>
         </div>
         {property && <div className={property.found ? styles.success : styles.message}>
-          {property.found ? `UPA localizada: ${property.property?.codigoUpa || 'sem código'}.` : 'UPA não localizada. Preencha os dados para um novo cadastro.'}
+          {property.found
+            ? `UPA localizada: ${property.property?.codigoUpa || 'sem código'}.`
+            : property.catalogAvailable === false
+              ? 'Catálogo temporariamente indisponível. Preencha os dados para cadastro manual; a UPA ficará pendente de revisão.'
+              : 'Plus Code não cadastrado. Preencha os dados para registrar uma nova UPA.'}
         </div>}
         <div className={styles.grid}>
           <div className={styles.field}><label htmlFor="cpf">CPF do proprietário *</label><input id="cpf" name="cpf" value={form.cpf} onChange={update} inputMode="numeric" required /></div>
-          <div className={styles.field}><label htmlFor="codigoUpa">Código da UPA</label><input id="codigoUpa" name="codigoUpa" value={form.codigoUpa} onChange={update} /></div>
+          <div className={styles.field}><label htmlFor="codigoUpa">Código da UPA {!property?.found && '*'}</label><input id="codigoUpa" name="codigoUpa" value={form.codigoUpa} onChange={update} required={!property?.found} /></div>
         </div>
         <div className={styles.field}><label htmlFor="propertyName">Nome da propriedade</label><input id="propertyName" name="propertyName" value={form.propertyName} onChange={update} /></div>
         <div className={styles.actions}><button className={styles.button} disabled={loading}>{loading ? 'Aguarde...' : 'Criar acesso'}</button></div>

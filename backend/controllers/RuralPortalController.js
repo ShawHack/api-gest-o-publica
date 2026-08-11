@@ -30,15 +30,27 @@ function safeAccount(account) {
 
 module.exports = class RuralPortalController {
   static async resolveProperty(req, res) {
+    const plusCode = normalizePlusCode(req.query.plusCode)
+    if (!isPlausiblePlusCode(plusCode)) return res.status(422).json({ message: 'Plus Code inválido.' })
+
     try {
-      const plusCode = normalizePlusCode(req.query.plusCode)
-      if (!isPlausiblePlusCode(plusCode)) return res.status(422).json({ message: 'Plus Code inválido.' })
       const local = await RuralProperty.findOne({ plusCode }).lean()
-      if (local) return res.status(200).json({ found: true, source: 'local', property: local })
-      const catalog = await findByPlusCode(plusCode)
-      return res.status(200).json({ found: !!catalog, source: catalog ? 'firebase' : null, property: catalog })
+      if (local) return res.status(200).json({ found: true, source: 'local', property: local, catalogAvailable: true })
     } catch (error) {
-      return res.status(503).json({ message: 'Não foi possível consultar o catálogo de UPAs.' })
+      return res.status(503).json({ message: 'Não foi possível consultar a base local de UPAs.' })
+    }
+
+    try {
+      const catalog = await findByPlusCode(plusCode)
+      return res.status(200).json({ found: !!catalog, source: catalog ? 'firebase' : null, property: catalog, catalogAvailable: true })
+    } catch (error) {
+      return res.status(200).json({
+        found: false,
+        source: null,
+        property: null,
+        catalogAvailable: false,
+        warning: 'Catálogo de UPAs temporariamente indisponível. Faça o cadastro manual para posterior revisão.',
+      })
     }
   }
 
@@ -51,7 +63,13 @@ module.exports = class RuralPortalController {
 
       let property = await RuralProperty.findOne({ plusCode })
       if (!property) {
-        const catalog = await findByPlusCode(plusCode)
+        let catalog = null
+        try {
+          catalog = await findByPlusCode(plusCode)
+        } catch (catalogError) {
+          // O catálogo é uma fonte auxiliar. Sua indisponibilidade não deve
+          // impedir o cadastro manual, que ficará pendente de revisão.
+        }
         const codigoUpa = String(catalog?.codigoUpa || req.body?.codigoUpa || '').trim()
         if (!codigoUpa) {
           return res.status(422).json({ message: 'Informe o código da nova UPA.' })

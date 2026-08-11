@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import RuralOperatorPage from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
+import { resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../services/ruralPortalService', () => ({
   createRuralOwner: jest.fn(),
@@ -27,4 +28,22 @@ test('proprietário inicia pela tela de login', () => {
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument()
+})
+
+test('operador pode cadastrar quando o Plus Code não está no catálogo', async () => {
+  resolveRuralProperty.mockResolvedValue({ found: false, catalogAvailable: true })
+  render(<RuralOperatorPage />)
+  fireEvent.change(screen.getByLabelText(/plus code/i), { target: { value: '7FG8+CFGH' } })
+  fireEvent.click(screen.getByRole('button', { name: /consultar upa/i }))
+  expect(await screen.findByText(/plus code não cadastrado/i)).toBeInTheDocument()
+  expect(screen.getByLabelText(/código da upa/i)).toBeRequired()
+})
+
+test('catálogo indisponível libera cadastro manual pendente de revisão', async () => {
+  resolveRuralProperty.mockResolvedValue({ found: false, catalogAvailable: false })
+  render(<RuralOperatorPage />)
+  fireEvent.change(screen.getByLabelText(/plus code/i), { target: { value: '7FG8+CFGH' } })
+  fireEvent.click(screen.getByRole('button', { name: /consultar upa/i }))
+  expect(await screen.findByText(/catálogo temporariamente indisponível/i)).toBeInTheDocument()
+  expect(screen.getByLabelText(/código da upa/i)).toBeRequired()
 })
