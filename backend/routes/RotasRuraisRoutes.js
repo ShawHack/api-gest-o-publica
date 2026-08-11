@@ -10,7 +10,7 @@ const verifyRuralToken = require('../helpers/verify-rural-token')
 
 const ruralLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: process.env.NODE_ENV === 'test' ? 0 : 10,
+  limit: process.env.NODE_ENV === 'test' ? 1000 : 10,
   standardHeaders: true,
   legacyHeaders: false,
 })
