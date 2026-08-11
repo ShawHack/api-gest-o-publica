@@ -27,6 +27,7 @@ test('localiza a UPA e apresenta a propriedade para marcação', async () => {
   fireEvent.click(screen.getByRole('button', { name: /buscar/i }))
   expect((await screen.findAllByText('Sítio Teste')).length).toBeGreaterThan(0)
   expect(screen.getAllByText(/upa: 1751428043/i).length).toBeGreaterThan(0)
+  expect(screen.getByRole('link', { name: 'Ir' })).toHaveAttribute('href', expect.stringContaining('destination=-22.21%2C-49.65'))
   expect(searchRuralMapProperties).toHaveBeenCalledWith('043')
 })
 

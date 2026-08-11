@@ -72,7 +72,7 @@ export default function RuralMapPage() {
         {searchError && <span role="alert">{searchError}</span>}
         {results.length > 1 && <ul className={styles.mapSearchResults}>{results.map((item) => <li key={`${item.codigoUpa}-${item.plusCode}`}><button type="button" onClick={() => selectProperty(item)}><strong>{item.codigoUpa}</strong><span>{item.name || 'Propriedade rural'} · {item.plusCode}</span></button></li>)}</ul>}
       </form>
-      {locatedProperty && <section className={styles.mapPropertyCard} aria-live="polite"><div><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa} · Plus Code: {locatedProperty.plusCode}</span>{selected && <span>Bairro rural: {selected}</span>}</div><button type="button" onClick={() => { setLocatedProperty(null); setSelected('') }}>Limpar marcação</button></section>}
+      {locatedProperty && <section className={styles.mapPropertyCard} aria-live="polite"><div><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa} · Plus Code: {locatedProperty.plusCode}</span>{selected && <span>Bairro rural: {selected}</span>}</div><div className={styles.mapPropertyActions}><a href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a><button type="button" onClick={() => { setLocatedProperty(null); setSelected('') }}>Limpar marcação</button></div></section>}
       {error && <div role="alert" className={styles.error}>{error}</div>}
       {!collection && !error && <p>Carregando mapa…</p>}
       {collection && <MapContainer center={DEFAULT_CENTER} zoom={10} className={styles.interactiveMap} scrollWheelZoom>
@@ -144,4 +144,8 @@ function pointInRing([x, y], ring) {
     if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
   }
   return inside
+}
+
+function directionsUrl(location) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${location.latitude},${location.longitude}`)}&travelmode=driving`
 }
