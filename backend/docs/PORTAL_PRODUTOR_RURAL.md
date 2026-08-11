@@ -27,7 +27,7 @@
 - `GET /api/rotas-rurais/portal/me`
 - `PUT /api/rotas-rurais/portal/profile`
 
-## Telas Flutter
+## Telas web React
 
 - `/rotas-rurais/operador`
 - `/rotas-rurais/proprietario`
@@ -45,3 +45,14 @@ O catálogo usa por padrão `https://upa-rural-default-rtdb.firebaseio.com`. Out
 5. Confirmar rascunho e envio do formulário.
 6. Revisar logs de auditoria e política de acesso ao Firebase.
 7. Somente depois gerar o build web e planejar a publicação em produção.
+
+## Homologação local descartável
+
+1. No diretório `backend`, execute `npm run homolog:rural`.
+2. Em outro terminal, no diretório `frontend`, execute `npm start`.
+3. Acesse `http://localhost:3000/login` com as credenciais exibidas pelo backend.
+4. Abra `http://localhost:3000/rotas-rurais/operador` e consulte a UPA `58M5+CFGH`.
+5. O portal do proprietário fica em `http://localhost:3000/rotas-rurais/proprietario`.
+
+O banco existe somente na memória. Ao encerrar o backend com `Ctrl+C`, todos os
+usuários, UPAs e formulários criados durante a homologação são apagados.

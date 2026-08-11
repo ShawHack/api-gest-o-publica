@@ -14,6 +14,7 @@ node_modules/
 .dart_tool/
 .next/
 .pytest_cache/
+.cache/
 **/ephemeral/
 
 # Builds, testes e cobertura
