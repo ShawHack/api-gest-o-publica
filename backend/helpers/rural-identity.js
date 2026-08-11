@@ -1,4 +1,3 @@
-const crypto = require('crypto')
 const { onlyDigits, computeCpfHash, cpfLast4 } = require('./voting-identity-hash')
 
 function normalizePlusCode(value) {
@@ -37,15 +36,10 @@ function ruralCpfIdentity(value) {
   return { cpfHash: computeCpfHash(cpf), cpfLast4: cpfLast4(cpf) }
 }
 
-function generateTemporaryPassword() {
-  return crypto.randomBytes(9).toString('base64url')
-}
-
 module.exports = {
   normalizePlusCode,
   isPlausiblePlusCode,
   normalizeCpf,
   isValidCpf,
   ruralCpfIdentity,
-  generateTemporaryPassword,
 }

@@ -8,9 +8,9 @@ const { findByPlusCode } = require('../helpers/rural-property-catalog')
 const {
   normalizePlusCode,
   isPlausiblePlusCode,
+  normalizeCpf,
   isValidCpf,
   ruralCpfIdentity,
-  generateTemporaryPassword,
 } = require('../helpers/rural-identity')
 
 function operatorId(req) {
@@ -90,7 +90,7 @@ module.exports = class RuralPortalController {
       const existing = await RuralAccount.findOne({ $or: [{ username: plusCode }, { cpfHash: identity.cpfHash }] })
       if (existing) return res.status(409).json({ message: 'Proprietário ou Plus Code já possui acesso.' })
 
-      const temporaryPassword = generateTemporaryPassword()
+      const temporaryPassword = normalizeCpf(cpf)
       const account = await RuralAccount.create({
         username: plusCode,
         passwordHash: await bcrypt.hash(temporaryPassword, 12),

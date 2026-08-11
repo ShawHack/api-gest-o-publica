@@ -8,7 +8,7 @@
 - UPA encontrada no catálogo é vinculada automaticamente.
 - UPA não encontrada é criada como `pending_review` e exige código informado pelo operador.
 - CPF é validado e armazenado apenas como hash irreversível e últimos quatro dígitos.
-- O sistema gera uma senha temporária aleatória, exibida uma única vez ao operador.
+- A senha inicial é o CPF com 11 dígitos e deve ser trocada no primeiro acesso.
 - O proprietário precisa trocar a senha antes de preencher o formulário.
 - O formulário pode ser salvo como rascunho ou enviado para análise.
 - O fluxo de veículos continua separado e não faz parte desta versão.

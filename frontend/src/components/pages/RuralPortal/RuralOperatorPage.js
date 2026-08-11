@@ -65,7 +65,7 @@ export default function RuralOperatorPage() {
   }
 
   async function copyCredential() {
-    const text = `Usuário: ${result.account.username}\nSenha temporária: ${result.temporaryPassword}`
+    const text = `Usuário: ${result.account.username}\nSenha inicial (CPF): ${result.temporaryPassword}`
     try {
       const copied = await copyText(text)
       setCopyFeedback(copied ? 'Acesso copiado.' : 'Não foi possível copiar automaticamente. Selecione os dados acima e copie manualmente.')
@@ -106,8 +106,8 @@ export default function RuralOperatorPage() {
       {result && <div className={styles.credential}>
         <strong>Acesso criado</strong>
         <code>Usuário: {result.account.username}</code>
-        <code>Senha temporária: {result.temporaryPassword}</code>
-        <p>Entregue ao proprietário. A senha deverá ser trocada no primeiro acesso.</p>
+        <code>Senha inicial (CPF): {result.temporaryPassword}</code>
+        <p>Entregue ao proprietário com segurança. O CPF deverá ser substituído por uma nova senha no primeiro acesso.</p>
         <button className={styles.buttonSecondary} type="button" onClick={copyCredential}>Copiar acesso</button>
         {copyFeedback && <p role="status">{copyFeedback}</p>}
       </div>}

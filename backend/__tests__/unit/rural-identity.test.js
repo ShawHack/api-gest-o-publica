@@ -4,7 +4,6 @@ const {
   normalizeCpf,
   isValidCpf,
   ruralCpfIdentity,
-  generateTemporaryPassword,
 } = require('../../helpers/rural-identity')
 const { mapCatalogItem } = require('../../helpers/rural-property-catalog')
 
@@ -29,12 +28,6 @@ describe('rural identity', () => {
     expect(JSON.stringify(identity)).not.toContain('52998224725')
   })
 
-  it('gera senha temporária não derivada do CPF', () => {
-    const first = generateTemporaryPassword()
-    const second = generateTemporaryPassword()
-    expect(first.length).toBeGreaterThanOrEqual(12)
-    expect(first).not.toBe(second)
-  })
 })
 
 describe('rural property catalog mapper', () => {

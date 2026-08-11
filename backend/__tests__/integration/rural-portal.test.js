@@ -52,8 +52,7 @@ describe('Portal do produtor rural', () => {
       .send({ plusCode: '58M5+CFGH', cpf: '52998224725' })
       .expect(201)
 
-    expect(created.body.temporaryPassword).toHaveLength(12)
-    expect(created.body.temporaryPassword).not.toBe('52998224725')
+    expect(created.body.temporaryPassword).toBe('52998224725')
 
     const login = await request(app)
       .post('/api/rotas-rurais/portal/login')
