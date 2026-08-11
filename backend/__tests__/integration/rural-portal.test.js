@@ -49,6 +49,14 @@ describe('Portal do produtor rural', () => {
       property: { codigoUpa: 'UPA-TESTE-001' },
     })
 
+    const mapSearch = await request(app)
+      .get('/api/rotas-rurais/map/properties/search')
+      .query({ q: '001' })
+      .expect(200)
+    expect(mapSearch.body.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ codigoUpa: 'UPA-TESTE-001', name: 'Sitio de Homologacao', location: expect.objectContaining({ latitude: expect.any(Number), longitude: expect.any(Number) }) }),
+    ]))
+
     const created = await request(app)
       .post('/api/rotas-rurais/operator/owners')
       .set('Authorization', `Bearer ${token}`)

@@ -6,8 +6,9 @@ const RuralProfile = require('../models/RuralProfile')
 const User = require('../models/User')
 const validatePassword = require('../helpers/validate-password')
 const { recordAudit } = require('../helpers/audit-log')
-const { findByPlusCode } = require('../helpers/rural-property-catalog')
+const { findByPlusCode, getCatalog } = require('../helpers/rural-property-catalog')
 const { publishRuralProperty } = require('../helpers/rural-property-publisher')
+const { propertyLocation } = require('../helpers/rural-property-location')
 const {
   normalizePlusCode,
   isPlausiblePlusCode,
@@ -32,6 +33,54 @@ function safeAccount(account) {
 }
 
 module.exports = class RuralPortalController {
+  static async searchMapProperties(req, res) {
+    const query = String(req.query?.q || '').trim()
+    if (query.length < 2 || query.length > 80) {
+      return res.status(422).json({ message: 'Informe ao menos 2 caracteres para pesquisar.' })
+    }
+
+    const normalized = query.toUpperCase().replace(/\s+/g, '')
+    const plain = query.replace(/[^a-zA-Z0-9À-ÿ\s_-]/g, '').trim()
+    const escaped = plain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const matcher = escaped ? new RegExp(escaped, 'i') : null
+
+    try {
+      const local = await RuralProperty.find({
+        status: 'active',
+        $or: [
+          { codigoUpa: matcher },
+          { plusCode: normalized },
+          { name: matcher },
+        ],
+      }).limit(20).lean()
+
+      let catalog = []
+      if (!local.length) {
+        try {
+          catalog = (await getCatalog()).filter((item) => matchesMapQuery(item, normalized, matcher)).slice(0, 20)
+        } catch (error) {
+          // A base local continua pesquisável quando o catálogo auxiliar estiver indisponível.
+        }
+      }
+
+      const merged = new Map()
+      for (const property of [...catalog, ...local]) {
+        const key = String(property.codigoUpa || property.plusCode).toUpperCase()
+        const location = propertyLocation(property)
+        if (!location) continue
+        merged.set(key, {
+          codigoUpa: property.codigoUpa,
+          plusCode: property.plusCode,
+          name: property.name || '',
+          location,
+        })
+      }
+      return res.status(200).json({ items: [...merged.values()].slice(0, 20) })
+    } catch (error) {
+      return res.status(500).json({ message: 'Não foi possível pesquisar as UPAs no mapa.' })
+    }
+  }
+
   static async registerModuleApplicant(req, res) {
     try {
       const name = String(req.body?.name || '').trim()
@@ -371,4 +420,11 @@ module.exports = class RuralPortalController {
     )
     return res.status(200).json(profile)
   }
+}
+
+function matchesMapQuery(property, normalized, matcher) {
+  const codigoUpa = String(property.codigoUpa || '')
+  const plusCode = String(property.plusCode || '').toUpperCase().replace(/\s+/g, '')
+  const name = String(property.name || '')
+  return plusCode === normalized || matcher?.test(codigoUpa) || matcher?.test(name)
 }

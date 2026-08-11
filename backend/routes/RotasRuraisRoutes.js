@@ -14,11 +14,18 @@ const ruralLoginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 })
+const ruralMapSearchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: process.env.NODE_ENV === 'test' ? 1000 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // LPR Intelbras (API key)
 router.post('/lpr/intelbras', RotasLprController.ingestIntelbras)
 router.post('/portal/login', ruralLoginLimiter, RuralPortalController.login)
 router.post('/portal/register-operator', ruralLoginLimiter, RuralPortalController.registerModuleApplicant)
+router.get('/map/properties/search', ruralMapSearchLimiter, RuralPortalController.searchMapProperties)
 router.post('/portal/change-password', verifyRuralToken, RuralPortalController.changePassword)
 router.get('/portal/me', verifyRuralToken, RuralPortalController.getProfile)
 router.put('/portal/profile', verifyRuralToken, RuralPortalController.saveProfile)

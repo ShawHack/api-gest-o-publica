@@ -47,6 +47,11 @@ export async function registerRuralOperator(payload) {
   return data
 }
 
+export async function searchRuralMapProperties(query) {
+  const { data } = await publicApi().get(`${BASE}/map/properties/search`, { params: { q: query } })
+  return data
+}
+
 export async function changeRuralPassword(token, password) {
   const { data } = await publicApi().post(
     `${BASE}/portal/change-password`,
