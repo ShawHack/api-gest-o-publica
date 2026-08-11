@@ -35,6 +35,7 @@ test('disponibiliza a página gráfica dos bairros rurais', async () => {
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ type: 'FeatureCollection', features: [] }) })
   render(<RuralMapPage />)
   expect(screen.getByRole('heading', { name: /mapa dos bairros rurais de garça/i })).toBeInTheDocument()
+  expect(screen.getAllByText('Mapa dos bairros')).toHaveLength(1)
   await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/data/bairros-rurais.geojson'))
   expect(screen.getByText(/referência administrativa/i)).toBeInTheDocument()
 })
