@@ -8,12 +8,35 @@ function errorMessage(error) {
   return error?.response?.data?.message || error?.message || 'Não foi possível concluir o cadastro.'
 }
 
+export async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch (error) {
+      // Em HTTP por IP, alguns navegadores expõem a API, mas recusam a cópia.
+    }
+  }
+
+  const field = document.createElement('textarea')
+  field.value = text
+  field.setAttribute('readonly', '')
+  field.style.position = 'fixed'
+  field.style.opacity = '0'
+  document.body.appendChild(field)
+  field.select()
+  const copied = typeof document.execCommand === 'function' && document.execCommand('copy')
+  document.body.removeChild(field)
+  return copied
+}
+
 export default function RuralOperatorPage() {
   const [form, setForm] = useState(initialForm)
   const [property, setProperty] = useState(null)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [copyFeedback, setCopyFeedback] = useState('')
 
   const update = ({ target }) => setForm((current) => ({ ...current, [target.name]: target.value }))
 
@@ -43,7 +66,12 @@ export default function RuralOperatorPage() {
 
   async function copyCredential() {
     const text = `Usuário: ${result.account.username}\nSenha temporária: ${result.temporaryPassword}`
-    await navigator.clipboard.writeText(text)
+    try {
+      const copied = await copyText(text)
+      setCopyFeedback(copied ? 'Acesso copiado.' : 'Não foi possível copiar automaticamente. Selecione os dados acima e copie manualmente.')
+    } catch (copyError) {
+      setCopyFeedback('Não foi possível copiar automaticamente. Selecione os dados acima e copie manualmente.')
+    }
   }
 
   return <main className={styles.page}>
@@ -81,6 +109,7 @@ export default function RuralOperatorPage() {
         <code>Senha temporária: {result.temporaryPassword}</code>
         <p>Entregue ao proprietário. A senha deverá ser trocada no primeiro acesso.</p>
         <button className={styles.buttonSecondary} type="button" onClick={copyCredential}>Copiar acesso</button>
+        {copyFeedback && <p role="status">{copyFeedback}</p>}
       </div>}
     </section>
   </main>

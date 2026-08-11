@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import RuralOperatorPage from './RuralOperatorPage'
+import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
 import { resolveRuralProperty } from '../../../services/ruralPortalService'
 
@@ -46,4 +46,17 @@ test('catálogo indisponível libera cadastro manual pendente de revisão', asyn
   fireEvent.click(screen.getByRole('button', { name: /consultar upa/i }))
   expect(await screen.findByText(/catálogo temporariamente indisponível/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/código da upa/i)).toBeRequired()
+})
+
+test('cópia usa alternativa segura quando Clipboard API não existe', async () => {
+  const originalClipboard = navigator.clipboard
+  const originalExecCommand = document.execCommand
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+  document.execCommand = jest.fn(() => true)
+
+  await expect(copyText('Usuário: teste')).resolves.toBe(true)
+  expect(document.execCommand).toHaveBeenCalledWith('copy')
+
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: originalClipboard })
+  document.execCommand = originalExecCommand
 })
