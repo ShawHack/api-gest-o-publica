@@ -26,8 +26,10 @@ import 'package:share_plus/share_plus.dart';
 
 // Logo animado
 import 'logo_animado.dart';
+import 'rural_api_service.dart';
 
-const String kRotasDatabaseUrl = 'https://upa-rural-default-rtdb.firebaseio.com';
+const String kRotasDatabaseUrl =
+    'https://upa-rural-default-rtdb.firebaseio.com';
 
 Future<FirebaseDatabase> getRotasDatabase() async {
   final app = await ensureRotasFirebaseApp();
@@ -66,7 +68,10 @@ class MyApp extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         hintStyle: const TextStyle(fontSize: 16, color: Colors.black54),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -84,19 +89,14 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      cardTheme: const CardThemeData(
-        elevation: 1.5,
-        margin: EdgeInsets.zero,
-      ),
+      cardTheme: const CardThemeData(elevation: 1.5, margin: EdgeInsets.zero),
     );
 
     return MaterialApp(
       title: 'Rotas Rurais',
       theme: base,
       home: const LogoSplash(),
-      routes: {
-        '/home': (_) => const UpaHomePage(),
-      },
+      routes: {'/home': (_) => const UpaHomePage()},
       debugShowCheckedModeBanner: false,
     );
   }
@@ -120,9 +120,9 @@ class _LogoSplashState extends State<LogoSplash> {
     super.initState();
     _t = Timer(kLogoDuration, () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const UpaHomePage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const UpaHomePage()));
     });
   }
 
@@ -136,9 +136,7 @@ class _LogoSplashState extends State<LogoSplash> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: MyApp.kBlue,
-      body: SafeArea(
-        child: Center(child: LogoAnimadoPage()),
-      ),
+      body: SafeArea(child: Center(child: LogoAnimadoPage())),
     );
   }
 }
@@ -154,6 +152,7 @@ class UpaHomePage extends StatefulWidget {
 
 class _UpaHomePageState extends State<UpaHomePage> {
   final TextEditingController _buscaCtrl = TextEditingController();
+  final RuralApiService _ruralApi = RuralApiService();
   FirebaseDatabase? _db;
   DatabaseReference? _ref;
   late final Future<void> _initFuture = _init();
@@ -163,6 +162,10 @@ class _UpaHomePageState extends State<UpaHomePage> {
 
   /// NEW: evita contar múltiplos acessos da mesma UPA na mesma sessão
   final Set<String> _rotasLogadas = {};
+  Timer? _searchDebounce;
+  List<UpaRecord> _apiResults = const [];
+  bool _searching = false;
+  String? _searchError;
 
   @override
   void initState() {
@@ -187,16 +190,98 @@ class _UpaHomePageState extends State<UpaHomePage> {
   }
 
   void _limparBusca() {
+    _searchDebounce?.cancel();
     _buscaCtrl.clear();
-    setState(() {});
+    setState(() {
+      _apiResults = const [];
+      _searchError = null;
+      _searching = false;
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    final query = value.trim();
+    if (query.length < 2) {
+      setState(() {
+        _apiResults = const [];
+        _searchError = null;
+        _searching = false;
+      });
+      return;
+    }
+    setState(() {
+      _searching = true;
+      _searchError = null;
+    });
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      _searchApi(query);
+    });
+  }
+
+  Future<void> _searchApi(String query) async {
+    try {
+      final properties = await _ruralApi.searchProperties(query);
+      if (!mounted || _buscaCtrl.text.trim() != query) return;
+      setState(() {
+        _apiResults = properties
+            .map((property) {
+              return UpaRecord(
+                codigoUpa: property.codigoUpa,
+                nome: property.name,
+                coord: LatLng(property.latitude, property.longitude),
+                atributos: {
+                  'codigo_upa': property.codigoUpa,
+                  'nome_upa': property.name,
+                  'plus_code': property.plusCode,
+                  'latitude': property.latitude.toString(),
+                  'longitude': property.longitude.toString(),
+                },
+              );
+            })
+            .toList(growable: false);
+        _searching = false;
+      });
+    } catch (error) {
+      if (!mounted || _buscaCtrl.text.trim() != query) return;
+      setState(() {
+        _apiResults = const [];
+        _searchError = error.toString();
+        _searching = false;
+      });
+    }
+  }
+
+  Future<void> _openRuralMap(UpaRecord upa) async {
+    final query = (upa.codigoUpa ?? '').trim().isNotEmpty
+        ? upa.codigoUpa!.trim()
+        : (obterPlusCode(upa.atributos) ?? nomeParaExibir(upa));
+    final uri = Uri.parse(
+      'https://api.garca.sp.gov.br/rotas-rurais/mapa',
+    ).replace(queryParameters: {'q': query});
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível abrir o mapa dos bairros.'),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _ruralApi.close();
+    _buscaCtrl.dispose();
+    super.dispose();
   }
 
   UpaRecord? _upaFromMap(Map<dynamic, dynamic> raw) {
     final Map<String, dynamic> root = {};
     raw.forEach((k, v) => root[k.toString()] = v);
 
-    final Map<String, dynamic> geom =
-    (root['geometry'] is Map)
+    final Map<String, dynamic> geom = (root['geometry'] is Map)
         ? (root['geometry'] as Map).map((k, v) => MapEntry(k.toString(), v))
         : <String, dynamic>{};
 
@@ -206,19 +291,21 @@ class _UpaHomePageState extends State<UpaHomePage> {
         if (v != null) attrs[k] = v.toString();
       });
     }
+
     addAll(root);
     addAll(geom);
 
-    String? codigoUpa = (root['codigo_upa'] ??
-        root['codigo UPA'] ??
-        root['Código UPA'] ??
-        geom['codigo_upa'])
-        ?.toString();
+    String? codigoUpa =
+        (root['codigo_upa'] ??
+                root['codigo UPA'] ??
+                root['Código UPA'] ??
+                geom['codigo_upa'])
+            ?.toString();
     codigoUpa = (codigoUpa?.trim().isEmpty ?? true) ? null : codigoUpa!.trim();
 
     final nome =
-    (root['nome_upa'] ?? geom['nome_upa'] ?? root['nome'] ?? geom['nome'])
-        ?.toString();
+        (root['nome_upa'] ?? geom['nome_upa'] ?? root['nome'] ?? geom['nome'])
+            ?.toString();
 
     LatLng? coord;
     double? tryD(dynamic x) => x == null ? null : double.tryParse(x.toString());
@@ -249,8 +336,10 @@ class _UpaHomePageState extends State<UpaHomePage> {
     String? v;
     for (final k in const ['municipio', 'cidade', 'município']) {
       v ??= attrs.entries
-          .firstWhere((e) => e.key.toLowerCase().trim() == k,
-          orElse: () => const MapEntry('', ''))
+          .firstWhere(
+            (e) => e.key.toLowerCase().trim() == k,
+            orElse: () => const MapEntry('', ''),
+          )
           .value;
       if ((v ?? '').trim().isNotEmpty) break;
     }
@@ -277,7 +366,8 @@ class _UpaHomePageState extends State<UpaHomePage> {
   Future<void> logAcessoRota({
     required UpaRecord upa,
     required String origem, // ex: 'home'
-    String? via, // 'google_maps' | 'waze' | 'apple_maps' | 'navegador' | 'compartilhar'
+    String?
+    via, // 'google_maps' | 'waze' | 'apple_maps' | 'navegador' | 'compartilhar'
   }) async {
     final key = _rotaKey(upa);
     final dia = _hoje();
@@ -332,7 +422,9 @@ class _UpaHomePageState extends State<UpaHomePage> {
     if (alvo == null && plus == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sem Plus Code ou coordenadas disponíveis.')),
+        const SnackBar(
+          content: Text('Sem Plus Code ou coordenadas disponíveis.'),
+        ),
       );
       return;
     }
@@ -355,12 +447,14 @@ class _UpaHomePageState extends State<UpaHomePage> {
 
       urlWazeApp = Uri.parse('waze://?ll=$lat,$lon&navigate=yes');
       urlAppleMaps = Uri.parse('http://maps.apple.com/?ll=$lat,$lon&q=$label');
-      urlNavegador =
-          Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+      urlNavegador = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lon',
+      );
     } else {
       final qp = Uri.encodeComponent(plus!);
-      urlGoogleMapsApp =
-          Uri.parse('https://www.google.com/maps/search/?api=1&query=$qp');
+      urlGoogleMapsApp = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$qp',
+      );
       urlNavegador = urlGoogleMapsApp;
       urlAppleMaps = Uri.parse('http://maps.apple.com/?q=$qp');
       urlWazeApp = null;
@@ -368,16 +462,38 @@ class _UpaHomePageState extends State<UpaHomePage> {
 
     final List<_AbrirOpcao> opcoes = [];
     if (urlGoogleMapsApp != null && await canLaunchUrl(urlGoogleMapsApp)) {
-      opcoes.add(_AbrirOpcao(nome: 'Google Maps', icone: Icons.map, uri: urlGoogleMapsApp));
+      opcoes.add(
+        _AbrirOpcao(
+          nome: 'Google Maps',
+          icone: Icons.map,
+          uri: urlGoogleMapsApp,
+        ),
+      );
     }
     if (urlWazeApp != null && await canLaunchUrl(urlWazeApp)) {
-      opcoes.add(_AbrirOpcao(nome: 'Waze', icone: Icons.directions_car, uri: urlWazeApp));
+      opcoes.add(
+        _AbrirOpcao(nome: 'Waze', icone: Icons.directions_car, uri: urlWazeApp),
+      );
     }
-    if (Platform.isIOS && urlAppleMaps != null && await canLaunchUrl(urlAppleMaps)) {
-      opcoes.add(_AbrirOpcao(nome: 'Apple Maps', icone: Icons.map_outlined, uri: urlAppleMaps));
+    if (Platform.isIOS &&
+        urlAppleMaps != null &&
+        await canLaunchUrl(urlAppleMaps)) {
+      opcoes.add(
+        _AbrirOpcao(
+          nome: 'Apple Maps',
+          icone: Icons.map_outlined,
+          uri: urlAppleMaps,
+        ),
+      );
     }
     if (urlNavegador != null && await canLaunchUrl(urlNavegador)) {
-      opcoes.add(_AbrirOpcao(nome: 'Navegador', icone: Icons.open_in_browser, uri: urlNavegador));
+      opcoes.add(
+        _AbrirOpcao(
+          nome: 'Navegador',
+          icone: Icons.open_in_browser,
+          uri: urlNavegador,
+        ),
+      );
     }
 
     if (opcoes.isEmpty) {
@@ -399,38 +515,52 @@ class _UpaHomePageState extends State<UpaHomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(title: Text('Abrir com', style: TextStyle(fontWeight: FontWeight.w700))),
-            ...opcoes.map((o) => ListTile(
-              leading: Icon(o.icone),
-              title: Text(o.nome),
-              onTap: () async {
-                Navigator.of(ctx).pop();
+            const ListTile(
+              title: Text(
+                'Abrir com',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            ...opcoes.map(
+              (o) => ListTile(
+                leading: Icon(o.icone),
+                title: Text(o.nome),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
 
-                // NEW: registra via escolhida (antes de abrir o app)
-                final via = () {
-                  switch (o.nome.toLowerCase()) {
-                    case 'google maps':
-                      return 'google_maps';
-                    case 'waze':
-                      return 'waze';
-                    case 'apple maps':
-                      return 'apple_maps';
-                    case 'navegador':
-                      return 'navegador';
-                    default:
-                      return 'desconhecido';
-                  }
-                }();
-                logAcessoRota(upa: upa, origem: 'home', via: via); // fire-and-forget
+                  // NEW: registra via escolhida (antes de abrir o app)
+                  final via = () {
+                    switch (o.nome.toLowerCase()) {
+                      case 'google maps':
+                        return 'google_maps';
+                      case 'waze':
+                        return 'waze';
+                      case 'apple maps':
+                        return 'apple_maps';
+                      case 'navegador':
+                        return 'navegador';
+                      default:
+                        return 'desconhecido';
+                    }
+                  }();
+                  logAcessoRota(
+                    upa: upa,
+                    origem: 'home',
+                    via: via,
+                  ); // fire-and-forget
 
-                final ok = await launchUrl(o.uri, mode: LaunchMode.externalApplication);
-                if (!ok && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Falha ao abrir ${o.nome}.')),
+                  final ok = await launchUrl(
+                    o.uri,
+                    mode: LaunchMode.externalApplication,
                   );
-                }
-              },
-            )),
+                  if (!ok && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Falha ao abrir ${o.nome}.')),
+                    );
+                  }
+                },
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -449,7 +579,9 @@ class _UpaHomePageState extends State<UpaHomePage> {
     if (alvo != null) {
       final lat = alvo.lat.toString();
       final lon = alvo.lon.toString();
-      return Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+      return Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lon',
+      );
     }
     if (plus != null && plus.trim().isNotEmpty) {
       final qp = Uri.encodeComponent(plus);
@@ -463,7 +595,9 @@ class _UpaHomePageState extends State<UpaHomePage> {
     if (uri == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sem Plus Code ou coordenadas para compartilhar.')),
+        const SnackBar(
+          content: Text('Sem Plus Code ou coordenadas para compartilhar.'),
+        ),
       );
       return;
     }
@@ -487,7 +621,13 @@ class _UpaHomePageState extends State<UpaHomePage> {
           children: [
             Icon(Icons.agriculture, color: Colors.white),
             SizedBox(width: 8),
-            Text('Estradas Rurais', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+            Text(
+              'Estradas Rurais',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -501,11 +641,7 @@ class _UpaHomePageState extends State<UpaHomePage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Image.asset(
-                      'assets/logo_semit.png',
-                      width: 60,
-                      height: 60,
-                    ),
+                    Image.asset('assets/logo_semit.png', width: 60, height: 60),
                     const Spacer(),
                     const Align(
                       alignment: Alignment.bottomRight,
@@ -525,25 +661,29 @@ class _UpaHomePageState extends State<UpaHomePage> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-
                     ListTile(
                       leading: const Icon(Icons.search),
                       title: const Text('Buscar Avançada'),
                       onTap: () {
                         Navigator.of(context).pop();
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const BuscaAvancadaPage()));
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const BuscaAvancadaPage(),
+                          ),
+                        );
                       },
                     ),
-
 
                     ListTile(
                       leading: const Icon(Icons.bar_chart),
                       title: const Text('Estatísticas'),
                       onTap: () {
                         Navigator.of(context).pop();
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const EstatisticasPage()));
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const EstatisticasPage(),
+                          ),
+                        );
                       },
                     ),
                     ListTile(
@@ -552,7 +692,10 @@ class _UpaHomePageState extends State<UpaHomePage> {
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ServicosPublicosPage()));
+                          MaterialPageRoute(
+                            builder: (_) => const ServicosPublicosPage(),
+                          ),
+                        );
                       },
                     ),
                     ListTile(
@@ -560,8 +703,9 @@ class _UpaHomePageState extends State<UpaHomePage> {
                       title: const Text('Sobre'),
                       onTap: () {
                         Navigator.of(context).pop();
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const SobrePage()));
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const SobrePage()),
+                        );
                       },
                     ),
                   ],
@@ -588,8 +732,12 @@ class _UpaHomePageState extends State<UpaHomePage> {
 
       body: Stack(
         children: [
-          Positioned.fill(child: Image.asset('assets/fundo.jpeg', fit: BoxFit.cover)),
-          Positioned.fill(child: Container(color: Colors.white.withOpacity(0.45))),
+          Positioned.fill(
+            child: Image.asset('assets/fundo.jpeg', fit: BoxFit.cover),
+          ),
+          Positioned.fill(
+            child: Container(color: Colors.white.withOpacity(0.45)),
+          ),
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
@@ -603,12 +751,19 @@ class _UpaHomePageState extends State<UpaHomePage> {
                 const SizedBox(height: 16),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8,
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: const [
-                        BoxShadow(blurRadius: 16, offset: Offset(0, 8), color: Color(0x331565C0)),
+                        BoxShadow(
+                          blurRadius: 16,
+                          offset: Offset(0, 8),
+                          color: Color(0x331565C0),
+                        ),
                       ],
                     ),
                     child: Material(
@@ -623,26 +778,38 @@ class _UpaHomePageState extends State<UpaHomePage> {
                           filled: true,
                           fillColor: Colors.white,
                           hintText: 'Digite o código...',
-                          hintStyle: const TextStyle(fontSize: 17, color: Colors.black54),
+                          hintStyle: const TextStyle(
+                            fontSize: 17,
+                            color: Colors.black54,
+                          ),
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _buscaCtrl.text.isEmpty
                               ? null
                               : IconButton(
-                            onPressed: _limparBusca,
-                            icon: const Icon(Icons.close),
-                            tooltip: 'Limpar',
-                          ),
+                                  onPressed: _limparBusca,
+                                  icon: const Icon(Icons.close),
+                                  tooltip: 'Limpar',
+                                ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0x551565C0), width: 1.2),
+                            borderSide: const BorderSide(
+                              color: Color(0x551565C0),
+                              width: 1.2,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: MyApp.kBlue, width: 2.2),
+                            borderSide: const BorderSide(
+                              color: MyApp.kBlue,
+                              width: 2.2,
+                            ),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
-                        onChanged: (_) => setState(() {}),
+                        onChanged: _onSearchChanged,
                         onSubmitted: (valor) {
                           // se quiser contar Enter sempre, descomente:
                           // logBusca(termo: valor, origem: 'home').catchError((e) => debugPrint('logBusca falhou: $e'));
@@ -672,8 +839,11 @@ class _UpaHomePageState extends State<UpaHomePage> {
                       return StreamBuilder<DatabaseEvent>(
                         stream: _ref!.onValue,
                         builder: (context, snapDb) {
-                          if (snapDb.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (snapDb.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           if (snapDb.hasError) {
                             return Padding(
@@ -686,53 +856,106 @@ class _UpaHomePageState extends State<UpaHomePage> {
                           }
 
                           final val = snapDb.data?.snapshot.value;
-                      final List<UpaRecord> lista = [];
-                      if (val is Map) {
-                        final root = val.cast<dynamic, dynamic>();
-                        root.forEach((_, v) {
-                          if (v is Map) {
-                            final rec = _upaFromMap(v.cast<dynamic, dynamic>());
-                            if (rec != null) lista.add(rec);
+                          final List<UpaRecord> lista = [];
+                          if (val is Map) {
+                            final root = val.cast<dynamic, dynamic>();
+                            root.forEach((_, v) {
+                              if (v is Map) {
+                                final rec = _upaFromMap(
+                                  v.cast<dynamic, dynamic>(),
+                                );
+                                if (rec != null) lista.add(rec);
+                              }
+                            });
                           }
-                        });
-                      }
 
-                      final termo = _buscaCtrl.text.trim().toLowerCase();
-                      final resultado = _filtrar(lista, termo);
+                          final termo = _buscaCtrl.text.trim().toLowerCase();
+                          final resultado = _apiResults;
 
-                      // ---- REGISTRO DE BUSCAS ----
-                      if (termo.length >= 3 && resultado.isNotEmpty && !_termosLogados.contains(termo)) {
-                        _termosLogados.add(termo);
-                        final codigoEncontrado = resultado.length == 1
-                            ? (resultado.first.codigoUpa ?? '').trim()
-                            : null;
+                          if (_searching) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          if (_searchError != null) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.cloud_off,
+                                      size: 52,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _searchError!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    FilledButton.icon(
+                                      onPressed: () =>
+                                          _searchApi(_buscaCtrl.text.trim()),
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Tentar novamente'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
 
-                        // não await para não travar UI
-                        logBusca(
-                          termo: termo,
-                          origem: 'home',
-                          codigoUpa: (codigoEncontrado?.isEmpty ?? true) ? null : codigoEncontrado,
-                        ).catchError((e) => debugPrint('Falha ao registrar estatística: $e'));
-                      }
-                      // -----------------------------
+                          // ---- REGISTRO DE BUSCAS ----
+                          if (termo.length >= 3 &&
+                              resultado.isNotEmpty &&
+                              !_termosLogados.contains(termo)) {
+                            _termosLogados.add(termo);
+                            final codigoEncontrado = resultado.length == 1
+                                ? (resultado.first.codigoUpa ?? '').trim()
+                                : null;
 
-                      if (resultado.isEmpty) {
-                        return _EmptyState(carregou: snap.hasData, total: lista.length);
-                      }
+                            // não await para não travar UI
+                            logBusca(
+                              termo: termo,
+                              origem: 'home',
+                              codigoUpa: (codigoEncontrado?.isEmpty ?? true)
+                                  ? null
+                                  : codigoEncontrado,
+                            ).catchError(
+                              (e) => debugPrint(
+                                'Falha ao registrar estatística: $e',
+                              ),
+                            );
+                          }
+                          // -----------------------------
+
+                          if (resultado.isEmpty) {
+                            return _EmptyState(
+                              carregou: snap.hasData,
+                              total: lista.length,
+                            );
+                          }
 
                           return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                        itemCount: resultado.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, i) {
-                          final upa = resultado[i];
-                          return _UpaCard(
-                            upa: upa,
-                            onAbrir: () => _abrirEscolherApp(upa),
-                            onCompartilhar: () => _compartilharRota(upa), // <-- novo callback
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                            itemCount: resultado.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, i) {
+                              final upa = resultado[i];
+                              return _UpaCard(
+                                upa: upa,
+                                onAbrir: () => _abrirEscolherApp(upa),
+                                onCompartilhar: () => _compartilharRota(upa),
+                                onMapa: () => _openRuralMap(upa),
+                              );
+                            },
                           );
-                        },
-                      );
                         },
                       );
                     },
@@ -753,11 +976,17 @@ class _UpaHomePageState extends State<UpaHomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Text('Secretaria de Inovação e Tecnologia',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.white)),
+                Text(
+                  'Secretaria de Inovação e Tecnologia',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
                 SizedBox(height: 4),
-                Text('© SEMIT 2025',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: Colors.white70)),
+                Text(
+                  '© SEMIT 2025',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: Colors.white70),
+                ),
               ],
             ),
           ),
@@ -785,8 +1014,11 @@ class _EmptyState extends StatelessWidget {
           children: const [
             Icon(Icons.search_off, size: 72, color: Colors.white70),
             SizedBox(height: 12),
-            Text('Digite os 3 últimos dígitos no campo acima.',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.white)),
+            Text(
+              'Digite os 3 últimos dígitos no campo acima.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
           ],
         ),
       ),
@@ -797,8 +1029,14 @@ class _EmptyState extends StatelessWidget {
 class _UpaCard extends StatelessWidget {
   final UpaRecord upa;
   final VoidCallback onAbrir;
-  final VoidCallback onCompartilhar; // NOVO
-  const _UpaCard({required this.upa, required this.onAbrir, required this.onCompartilhar});
+  final VoidCallback onCompartilhar;
+  final VoidCallback onMapa;
+  const _UpaCard({
+    required this.upa,
+    required this.onAbrir,
+    required this.onCompartilhar,
+    required this.onMapa,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -819,14 +1057,31 @@ class _UpaCard extends StatelessWidget {
                 Icon(Icons.location_on, color: cs.primary),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(titulo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 if (upa.codigoUpa != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(12)),
-                    child: Text('UPA: ${upa.codigoUpa}',
-                        style: TextStyle(color: cs.onPrimaryContainer, fontWeight: FontWeight.w600)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'UPA: ${upa.codigoUpa}',
+                      style: TextStyle(
+                        color: cs.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -839,7 +1094,26 @@ class _UpaCard extends StatelessWidget {
                 label: const Text('Localização'),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onMapa,
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('Ver no mapa dos bairros'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  textStyle: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -852,12 +1126,18 @@ class _UpaCard extends StatelessWidget {
                 label: const Text('Compartilhar rota'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 12),
-            const Text('Detalhes', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text(
+              'Detalhes',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 6),
             ...display.map((kv) => kvTile(kv.$1, kv.$2)),
           ],
@@ -872,7 +1152,12 @@ class UpaRecord {
   final String? nome;
   final LatLng? coord;
   final Map<String, String> atributos;
-  UpaRecord({required this.codigoUpa, required this.nome, required this.coord, required this.atributos});
+  UpaRecord({
+    required this.codigoUpa,
+    required this.nome,
+    required this.coord,
+    required this.atributos,
+  });
 }
 
 class LatLng {
@@ -893,13 +1178,21 @@ String nomeParaExibir(UpaRecord upa) {
   if (n.isNotEmpty && n.toLowerCase() != 'sem nome') return n;
 
   final attrs = upa.atributos;
-  final candidatos = ['nome upa', 'nome_upa', 'upa', 'nome', 'propriedade', 'fazenda'];
+  final candidatos = [
+    'nome upa',
+    'nome_upa',
+    'upa',
+    'nome',
+    'propriedade',
+    'fazenda',
+  ];
   for (final k in candidatos) {
     final match = attrs.entries.firstWhere(
-          (e) => e.key.toLowerCase().trim() == k,
+      (e) => e.key.toLowerCase().trim() == k,
       orElse: () => const MapEntry('', ''),
     );
-    if (match.key.isNotEmpty && match.value.trim().isNotEmpty) return match.value.trim();
+    if (match.key.isNotEmpty && match.value.trim().isNotEmpty)
+      return match.value.trim();
   }
 
   if ((upa.codigoUpa ?? '').trim().isNotEmpty) return upa.codigoUpa!.trim();
@@ -929,12 +1222,18 @@ LatLng? decodePlusAsLatLngIfGlobal(String? plus) {
 
 String? obterPlusCode(Map<String, String> attrs) {
   const candidatos = [
-    'global_code', 'plus_code', 'compound_code', 'plus code', 'pluscode',
-    'plus-code', 'plus', 'pluscode upa',
+    'global_code',
+    'plus_code',
+    'compound_code',
+    'plus code',
+    'pluscode',
+    'plus-code',
+    'plus',
+    'pluscode upa',
   ];
   for (final k in candidatos) {
     final entry = attrs.entries.firstWhere(
-          (e) => e.key.toLowerCase().trim() == k,
+      (e) => e.key.toLowerCase().trim() == k,
       orElse: () => const MapEntry('', ''),
     );
     if (entry.key.isNotEmpty && entry.value.trim().isNotEmpty) {
@@ -966,7 +1265,13 @@ Widget kvTile(String k, String v) {
       children: [
         SizedBox(
           width: 140,
-          child: Text(k, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
+          child: Text(
+            k,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
         ),
         Expanded(child: Text(v)),
       ],
@@ -1001,8 +1306,21 @@ List<(String, String)> buildDisplayAttributes(UpaRecord upa) {
   bool ocultar(String k) {
     final n = norm(k);
     const ban = {
-      'codigoupa','códigoupa','geometry','x','y','type','coordinates','cordinates',
-      'globalid','objectid','latitude','longitude','globalcode','pluscode','compoundcode',
+      'codigoupa',
+      'códigoupa',
+      'geometry',
+      'x',
+      'y',
+      'type',
+      'coordinates',
+      'cordinates',
+      'globalid',
+      'objectid',
+      'latitude',
+      'longitude',
+      'globalcode',
+      'pluscode',
+      'compoundcode',
     };
     return ban.contains(n);
   }
@@ -1049,7 +1367,9 @@ List<(String, String)> buildDisplayAttributes(UpaRecord upa) {
 
 String titleCase(String s) {
   final parts = s.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
-  return parts.map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase()).join(' ');
+  return parts
+      .map((p) => p[0].toUpperCase() + p.substring(1).toLowerCase())
+      .join(' ');
 }
 
 List<UpaRecord> _filtrar(List<UpaRecord> base, String termoRaw) {
@@ -1057,11 +1377,16 @@ List<UpaRecord> _filtrar(List<UpaRecord> base, String termoRaw) {
   if (termo.isEmpty) return [];
 
   return base.where((e) {
-    final codigo = (e.codigoUpa ?? '').toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    final codigo = (e.codigoUpa ?? '').toLowerCase().replaceAll(
+      RegExp(r'\s+'),
+      '',
+    );
     if (codigo.isEmpty) return false;
 
     if (termo.length == 3) {
-      final ultimos3 = codigo.length >= 3 ? codigo.substring(codigo.length - 3) : codigo;
+      final ultimos3 = codigo.length >= 3
+          ? codigo.substring(codigo.length - 3)
+          : codigo;
       return ultimos3 == termo;
     }
     return codigo == termo || codigo.contains(termo);
