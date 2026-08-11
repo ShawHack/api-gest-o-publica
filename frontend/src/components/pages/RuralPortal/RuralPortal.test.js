@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import RuralOperatorPage, { copyText } from './RuralOperatorPage'
 import RuralOwnerPage from './RuralOwnerPage'
-import { resolveRuralProperty } from '../../../services/ruralPortalService'
+import { getRuralProfile, resolveRuralProperty } from '../../../services/ruralPortalService'
 
 jest.mock('../../../services/ruralPortalService', () => ({
   createRuralOwner: jest.fn(),
@@ -28,6 +28,17 @@ test('proprietário inicia pela tela de login', () => {
   expect(screen.getByLabelText(/plus code/i)).toBeInTheDocument()
   expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument()
+})
+
+test('formulário do proprietário contém bairro rural', async () => {
+  sessionStorage.setItem('rural_portal_token', 'token-teste')
+  getRuralProfile.mockResolvedValue({
+    account: { mustChangePassword: false },
+    property: {},
+    profile: null,
+  })
+  render(<RuralOwnerPage />)
+  expect(await screen.findByLabelText(/bairro rural/i)).toBeInTheDocument()
 })
 
 test('operador pode cadastrar quando o Plus Code não está no catálogo', async () => {

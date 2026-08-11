@@ -15,6 +15,7 @@ const ruralProfileSchema = new Schema(
     },
     property: {
       name: { type: String, trim: true, default: '' },
+      ruralNeighborhood: { type: String, trim: true, default: '' },
       totalAreaHectares: Number,
       relationship: {
         type: String,

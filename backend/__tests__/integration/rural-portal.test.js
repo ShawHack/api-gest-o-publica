@@ -80,19 +80,20 @@ describe('Portal do produtor rural', () => {
       .set('Authorization', `Bearer ${ruralToken}`)
       .send({
         personal: { fullName: 'Produtor Teste', phone: '16999990000' },
-        property: { name: 'Sitio de Homologacao', activities: ['cafe'] },
+        property: { name: 'Sitio de Homologacao', ruralNeighborhood: 'Bairro do Cafe', activities: ['cafe'] },
         submit: false,
       })
       .expect(200)
 
     expect(draft.body.status).toBe('draft')
+    expect(draft.body.property.ruralNeighborhood).toBe('Bairro do Cafe')
 
     const submitted = await request(app)
       .put('/api/rotas-rurais/portal/profile')
       .set('Authorization', `Bearer ${ruralToken}`)
       .send({
         personal: { fullName: 'Produtor Teste', phone: '16999990000' },
-        property: { name: 'Sitio de Homologacao', activities: ['cafe'] },
+        property: { name: 'Sitio de Homologacao', ruralNeighborhood: 'Bairro do Cafe', activities: ['cafe'] },
         submit: true,
       })
       .expect(200)

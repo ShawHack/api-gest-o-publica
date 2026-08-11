@@ -3,7 +3,7 @@ import { changeRuralPassword, getRuralProfile, ruralLogin, saveRuralProfile } fr
 import styles from './RuralPortal.module.css'
 
 const TOKEN_KEY = 'rural_portal_token'
-const emptyProfile = { fullName: '', phone: '', whatsapp: '', email: '', mailingAddress: '', propertyName: '', totalAreaHectares: '', relationship: 'owner', activities: '', residents: '', accessNotes: '', notes: '' }
+const emptyProfile = { fullName: '', phone: '', whatsapp: '', email: '', mailingAddress: '', propertyName: '', ruralNeighborhood: '', totalAreaHectares: '', relationship: 'owner', activities: '', residents: '', accessNotes: '', notes: '' }
 const messageOf = (error) => error?.response?.data?.message || error?.message || 'Não foi possível concluir a operação.'
 
 export default function RuralOwnerPage() {
@@ -39,6 +39,7 @@ export default function RuralOwnerPage() {
       setProfile({
         ...emptyProfile, ...personal,
         propertyName: ruralProperty.name || data.property?.name || '',
+        ruralNeighborhood: ruralProperty.ruralNeighborhood || '',
         totalAreaHectares: ruralProperty.totalAreaHectares ?? '',
         relationship: ruralProperty.relationship || 'owner',
         activities: (ruralProperty.activities || []).join(', '),
@@ -68,7 +69,7 @@ export default function RuralOwnerPage() {
     await run(async () => {
       const saved = await saveRuralProfile(token, {
         personal: { fullName: profile.fullName, phone: profile.phone, whatsapp: profile.whatsapp, email: profile.email, mailingAddress: profile.mailingAddress },
-        property: { name: profile.propertyName, totalAreaHectares: profile.totalAreaHectares === '' ? null : Number(profile.totalAreaHectares), relationship: profile.relationship, activities: profile.activities.split(',').map((item) => item.trim()).filter(Boolean), residents: profile.residents === '' ? null : Number(profile.residents), accessNotes: profile.accessNotes, notes: profile.notes },
+        property: { name: profile.propertyName, ruralNeighborhood: profile.ruralNeighborhood, totalAreaHectares: profile.totalAreaHectares === '' ? null : Number(profile.totalAreaHectares), relationship: profile.relationship, activities: profile.activities.split(',').map((item) => item.trim()).filter(Boolean), residents: profile.residents === '' ? null : Number(profile.residents), accessNotes: profile.accessNotes, notes: profile.notes },
         submit,
       })
       setStatus(saved.status); setMessage(submit ? 'Cadastro enviado para análise.' : 'Rascunho salvo.')
@@ -103,6 +104,7 @@ export default function RuralOwnerPage() {
       </div><Field label="Endereço para correspondência" name="mailingAddress" value={profile.mailingAddress} onChange={updateProfile} /></section>
       <section className={styles.section}><h2>Dados da propriedade</h2><div className={styles.grid}>
         <Field label="Nome da propriedade" name="propertyName" value={profile.propertyName} onChange={updateProfile} />
+        <Field label="Bairro rural" name="ruralNeighborhood" value={profile.ruralNeighborhood} onChange={updateProfile} />
         <Field label="Área total (hectares)" name="totalAreaHectares" type="number" step="0.01" value={profile.totalAreaHectares} onChange={updateProfile} />
         <label className={styles.field}>Relação com a propriedade<select name="relationship" value={profile.relationship} onChange={updateProfile}><option value="owner">Proprietário</option><option value="tenant">Arrendatário</option><option value="partner">Parceiro</option><option value="possessor">Possuidor</option><option value="other">Outro</option></select></label>
         <Field label="Moradores" name="residents" type="number" value={profile.residents} onChange={updateProfile} />
