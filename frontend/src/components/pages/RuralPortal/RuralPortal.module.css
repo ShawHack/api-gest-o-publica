@@ -51,7 +51,7 @@
 .propertyItem > div:first-child { display: grid; gap: 4px; }
 .propertyItem code { color: #285b34; }
 .propertyItem small { color: #68746b; }
-.loginLink { display: inline-block; margin-top: 18px; padding: 12px 18px; border-radius: 9px; background: #2f773e; color: #fff; font-weight: 700; text-decoration: none; }
+.loginLink { display: inline-block; margin-top: 18px; padding: 12px 18px; border: 0; border-radius: 9px; background: #2f773e; color: #fff; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
 .loginLink:hover { background: #235f32; }
 .navActions { display: flex; align-items: center; gap: 10px; }
 .navLink { color: #f6edcf; font-weight: 700; text-decoration: none; padding: 7px 10px; border-radius: 999px; }
