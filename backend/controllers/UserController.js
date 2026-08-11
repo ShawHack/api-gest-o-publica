@@ -916,7 +916,7 @@ module.exports = class UserController {
       const normalizedRole = String(req.body?.role || '').trim().toLowerCase()
 
       // Validar role
-      const validRoles = ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'admin-votacao', 'sama']
+      const validRoles = ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'sama']
       if (!validRoles.includes(normalizedRole)) {
         return res.status(400).json({ message: 'Role inválido.' })
       }
@@ -1158,7 +1158,7 @@ module.exports = class UserController {
         phone,
         cpf,
         password: passwordHash,
-        role: ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'admin-votacao', 'sama'].includes(normalizedRole)
+        role: ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'sama'].includes(normalizedRole)
           ? normalizedRole
           : 'usuario',
         canManageTrees: normalizedRole === 'sama',

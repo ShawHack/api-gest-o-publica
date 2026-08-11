@@ -166,6 +166,8 @@ export default function UsuarioForm({
               { value: 'concessionario', label: 'concessionario' },
               { value: 'admin', label: 'admin' },
               { value: 'iluminacao_admin', label: 'admin_iluminacao' },
+              { value: 'rotas_operador', label: 'Operador Rotas Rurais' },
+              { value: 'rotas_admin', label: 'Administrador Rotas Rurais' },
               { value: 'sama', label: 'sama' },
               { value: 'admin_cultura', label: 'Admin Cultura (SECULT)' },
             ]}

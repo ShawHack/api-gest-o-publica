@@ -1,0 +1,25 @@
+.page { min-height: 100vh; background: #f4f7f2; padding: 40px 20px; color: #253127; }
+.card { max-width: 760px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(30, 65, 38, .1); padding: 32px; }
+.header { margin-bottom: 28px; }
+.header h1 { margin: 0 0 8px; color: #285b34; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.header p { margin: 0; color: #58655b; line-height: 1.5; }
+.form { display: grid; gap: 18px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.field { display: grid; gap: 7px; }
+.field label { font-weight: 650; }
+.field input, .field select, .field textarea { width: 100%; box-sizing: border-box; border: 1px solid #bdc9bf; border-radius: 9px; padding: 12px 13px; font: inherit; background: #fff; }
+.field textarea { min-height: 110px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 3px solid rgba(55, 125, 68, .18); border-color: #377d44; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.button { border: 0; border-radius: 9px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: #377d44; color: #fff; }
+.buttonSecondary { composes: button; background: #e6eee7; color: #285b34; }
+.button:disabled { opacity: .55; cursor: wait; }
+.message, .error, .success { border-radius: 9px; padding: 13px 15px; margin-top: 18px; }
+.error { background: #fff0f0; color: #9b2525; border: 1px solid #efb6b6; }
+.success { background: #edf8ef; color: #245d30; border: 1px solid #acd4b4; }
+.credential { margin-top: 22px; padding: 20px; border-radius: 12px; background: #edf8ef; border: 1px solid #acd4b4; }
+.credential code { display: block; margin: 8px 0; font-size: 1rem; word-break: break-all; }
+.section { border-top: 1px solid #dce4dd; margin-top: 8px; padding-top: 22px; }
+.section h2 { color: #285b34; font-size: 1.25rem; margin: 0 0 16px; }
+.status { display: inline-flex; padding: 5px 10px; border-radius: 999px; background: #e6eee7; color: #285b34; font-weight: 700; margin-bottom: 18px; }
+@media (max-width: 640px) { .page { padding: 18px 10px; } .card { padding: 22px 16px; } .grid { grid-template-columns: 1fr; } }

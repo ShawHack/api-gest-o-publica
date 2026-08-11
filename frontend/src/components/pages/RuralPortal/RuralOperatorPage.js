@@ -1,0 +1,83 @@
+import { useState } from 'react'
+import { createRuralOwner, resolveRuralProperty } from '../../../services/ruralPortalService'
+import styles from './RuralPortal.module.css'
+
+const initialForm = { plusCode: '', cpf: '', codigoUpa: '', propertyName: '' }
+
+function errorMessage(error) {
+  return error?.response?.data?.message || error?.message || 'Não foi possível concluir o cadastro.'
+}
+
+export default function RuralOperatorPage() {
+  const [form, setForm] = useState(initialForm)
+  const [property, setProperty] = useState(null)
+  const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const update = ({ target }) => setForm((current) => ({ ...current, [target.name]: target.value }))
+
+  async function checkProperty() {
+    if (!form.plusCode.includes('+')) return setError('Informe um Plus Code válido.')
+    setLoading(true); setError(''); setProperty(null)
+    try {
+      const data = await resolveRuralProperty(form.plusCode)
+      setProperty(data)
+      if (data?.property) {
+        setForm((current) => ({
+          ...current,
+          codigoUpa: data.property.codigoUpa || current.codigoUpa,
+          propertyName: data.property.name || current.propertyName,
+        }))
+      }
+    } catch (requestError) { setError(errorMessage(requestError)) }
+    finally { setLoading(false) }
+  }
+
+  async function submit(event) {
+    event.preventDefault(); setLoading(true); setError(''); setResult(null)
+    try { setResult(await createRuralOwner(form)) }
+    catch (requestError) { setError(errorMessage(requestError)) }
+    finally { setLoading(false) }
+  }
+
+  async function copyCredential() {
+    const text = `Usuário: ${result.account.username}\nSenha temporária: ${result.temporaryPassword}`
+    await navigator.clipboard.writeText(text)
+  }
+
+  return <main className={styles.page}>
+    <section className={styles.card}>
+      <header className={styles.header}>
+        <h1>Cadastro de proprietário rural</h1>
+        <p>Uso exclusivo da Casa da Agricultura. Consulte o Plus Code antes de criar o acesso.</p>
+      </header>
+      <form className={styles.form} onSubmit={submit}>
+        <div className={styles.field}>
+          <label htmlFor="plusCode">Plus Code *</label>
+          <input id="plusCode" name="plusCode" value={form.plusCode} onChange={update} required autoComplete="off" />
+        </div>
+        <div className={styles.actions}>
+          <button className={styles.buttonSecondary} type="button" onClick={checkProperty} disabled={loading}>Consultar UPA</button>
+        </div>
+        {property && <div className={property.found ? styles.success : styles.message}>
+          {property.found ? `UPA localizada: ${property.property?.codigoUpa || 'sem código'}.` : 'UPA não localizada. Preencha os dados para um novo cadastro.'}
+        </div>}
+        <div className={styles.grid}>
+          <div className={styles.field}><label htmlFor="cpf">CPF do proprietário *</label><input id="cpf" name="cpf" value={form.cpf} onChange={update} inputMode="numeric" required /></div>
+          <div className={styles.field}><label htmlFor="codigoUpa">Código da UPA</label><input id="codigoUpa" name="codigoUpa" value={form.codigoUpa} onChange={update} /></div>
+        </div>
+        <div className={styles.field}><label htmlFor="propertyName">Nome da propriedade</label><input id="propertyName" name="propertyName" value={form.propertyName} onChange={update} /></div>
+        <div className={styles.actions}><button className={styles.button} disabled={loading}>{loading ? 'Aguarde...' : 'Criar acesso'}</button></div>
+      </form>
+      {error && <div role="alert" className={styles.error}>{error}</div>}
+      {result && <div className={styles.credential}>
+        <strong>Acesso criado</strong>
+        <code>Usuário: {result.account.username}</code>
+        <code>Senha temporária: {result.temporaryPassword}</code>
+        <p>Entregue ao proprietário. A senha deverá ser trocada no primeiro acesso.</p>
+        <button className={styles.buttonSecondary} type="button" onClick={copyCredential}>Copiar acesso</button>
+      </div>}
+    </section>
+  </main>
+}

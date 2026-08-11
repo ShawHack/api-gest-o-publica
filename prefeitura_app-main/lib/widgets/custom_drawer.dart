@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart'; // <-- IMPORTAÇÃO
+import 'package:flutter_material_design_icons/flutter_material_design_icons.dart'; // <-- IMPORTAÇÃO
 
 import '../tiles/drawer_tile.dart';
 import '../screens/mobile/login_screen.dart';

@@ -1,12 +1,29 @@
 const router = require('express').Router()
+const { rateLimit } = require('express-rate-limit')
 const verifyToken = require('../helpers/verify-token')
-const { requireRotasAdmin } = require('../helpers/rotas-auth')
+const { requireRotasAdmin, requireRotasOperator } = require('../helpers/rotas-auth')
 const RotasOwnershipController = require('../controllers/RotasOwnershipController')
 const RuralVehicleController = require('../controllers/RuralVehicleController')
 const RotasLprController = require('../controllers/RotasLprController')
+const RuralPortalController = require('../controllers/RuralPortalController')
+const verifyRuralToken = require('../helpers/verify-rural-token')
+
+const ruralLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === 'test' ? 0 : 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // LPR Intelbras (API key)
 router.post('/lpr/intelbras', RotasLprController.ingestIntelbras)
+router.post('/portal/login', ruralLoginLimiter, RuralPortalController.login)
+router.post('/portal/change-password', verifyRuralToken, RuralPortalController.changePassword)
+router.get('/portal/me', verifyRuralToken, RuralPortalController.getProfile)
+router.put('/portal/profile', verifyRuralToken, RuralPortalController.saveProfile)
+
+router.get('/operator/properties/resolve', verifyToken, requireRotasOperator, RuralPortalController.resolveProperty)
+router.post('/operator/owners', verifyToken, requireRotasOperator, RuralPortalController.createOwner)
 
 router.use(verifyToken)
 

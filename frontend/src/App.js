@@ -35,6 +35,8 @@ import ShiftHandoverDetail from './components/pages/ShiftHandover/ShiftHandoverD
 import CompliancePortal from './components/pages/Compliance/CompliancePortal'
 import EducationPortal from './components/pages/Education/EducationPortal'
 import EducationAdminPortal from './components/pages/Education/admin/EducationAdminPortal'
+import RuralOperatorPage from './components/pages/RuralPortal/RuralOperatorPage'
+import RuralOwnerPage from './components/pages/RuralPortal/RuralOwnerPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -81,6 +83,10 @@ function App() {
                     {/* ==================== EDUCAÇÃO (PORTAL INDEPENDENTE) ==================== */}
                     <Route path="/educacao/admin/*" element={<EducationAdminPortal />} />
                     <Route path="/educacao/*" element={<EducationPortal />} />
+                    <Route path="/rotas-rurais/proprietario" element={<RuralOwnerPage />} />
+                    <Route path="/rotas-rurais/operador" element={
+                        <RequireAuth><RoleGate allow={['admin', 'rotas_admin', 'rotas_operador']}><RuralOperatorPage /></RoleGate></RequireAuth>
+                    } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}
                     <Route

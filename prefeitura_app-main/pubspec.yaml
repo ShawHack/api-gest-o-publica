@@ -80,7 +80,7 @@ dependencies:
   mask_text_input_formatter: ^2.9.0
 
   # Icons
-  material_design_icons_flutter: ^7.0.7296
+  flutter_material_design_icons: ^3.1.0+7447
 
   cupertino_icons: ^1.0.8
   material_symbols_icons: ^4.2719.0

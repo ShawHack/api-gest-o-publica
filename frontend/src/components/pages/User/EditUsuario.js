@@ -192,6 +192,8 @@ export default function EditUsuario() {
             <option value="usuario">Usuário</option>
             <option value="concessionario">Concessionário</option>
             <option value="iluminacao_admin">admin_iluminacao</option>
+            <option value="rotas_operador">Operador Rotas Rurais</option>
+            <option value="rotas_admin">Administrador Rotas Rurais</option>
             <option value="sama">SAMA (cadastro de árvores)</option>
             <option value="admin_cultura">Admin Cultura (SECULT)</option>
             <option value="admin">Admin</option>
