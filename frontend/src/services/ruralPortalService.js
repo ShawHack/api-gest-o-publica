@@ -47,3 +47,13 @@ export async function saveRuralProfile(token, payload) {
   })
   return data
 }
+
+export async function listRuralProperties(status = 'pending_review') {
+  const response = await api.get(`${BASE}/properties`, { params: { status } })
+  return response.data
+}
+
+export async function reviewRuralProperty(id, status) {
+  const response = await api.patch(`${BASE}/properties/${id}`, { status })
+  return response.data
+}

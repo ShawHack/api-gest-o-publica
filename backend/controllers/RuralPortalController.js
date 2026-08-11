@@ -5,6 +5,7 @@ const RuralProperty = require('../models/RuralProperty')
 const RuralProfile = require('../models/RuralProfile')
 const { recordAudit } = require('../helpers/audit-log')
 const { findByPlusCode } = require('../helpers/rural-property-catalog')
+const { publishRuralProperty } = require('../helpers/rural-property-publisher')
 const {
   normalizePlusCode,
   isPlausiblePlusCode,
@@ -108,6 +109,53 @@ module.exports = class RuralPortalController {
       if (error?.code === 11000) return res.status(409).json({ message: 'UPA, CPF ou usuário já cadastrado.' })
       console.error('[rotas] createOwner:', error)
       return res.status(500).json({ message: 'Erro ao criar acesso do proprietário.' })
+    }
+  }
+
+  static async listProperties(req, res) {
+    try {
+      const allowed = ['active', 'pending_review', 'inactive']
+      const status = allowed.includes(String(req.query.status)) ? String(req.query.status) : undefined
+      const properties = await RuralProperty.find(status ? { status } : {})
+        .populate('createdBy', 'name email')
+        .populate('reviewedBy', 'name email')
+        .sort({ createdAt: -1 })
+        .limit(300)
+        .lean()
+      return res.status(200).json({ items: properties })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao listar UPAs para revisão.' })
+    }
+  }
+
+  static async reviewProperty(req, res) {
+    try {
+      const status = String(req.body?.status || '')
+      if (!['active', 'inactive', 'pending_review'].includes(status)) {
+        return res.status(422).json({ message: 'Situação de revisão inválida.' })
+      }
+      const property = await RuralProperty.findById(req.params.id)
+      if (!property) return res.status(404).json({ message: 'UPA não encontrada.' })
+      if (status === 'active' && property.source === 'operator') {
+        try {
+          property.firebaseKey = await publishRuralProperty(property)
+          property.publishedAt = new Date()
+        } catch (publishError) {
+          console.error('[rotas] publishProperty:', publishError.message)
+          return res.status(503).json({ message: 'Não foi possível publicar a UPA no Firebase. Ela continua pendente.' })
+        }
+      }
+      property.status = status
+      property.reviewedBy = operatorId(req)
+      property.reviewedAt = new Date()
+      await property.save()
+      void recordAudit(req, {
+        action: 'rotas.property.review', resourceType: 'rural_property', resourceId: property._id,
+        module: 'rotas-rurais', metadata: { status, codigoUpa: property.codigoUpa, plusCode: property.plusCode, firebaseKey: property.firebaseKey },
+      })
+      return res.status(200).json(property)
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao revisar UPA.' })
     }
   }
 

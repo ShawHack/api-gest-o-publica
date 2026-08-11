@@ -34,6 +34,8 @@ router.get('/vehicles/mine', RuralVehicleController.listMine)
 router.post('/vehicles', RuralVehicleController.createMine)
 
 // Admin SEMIT
+router.get('/properties', requireRotasAdmin, RuralPortalController.listProperties)
+router.patch('/properties/:id', requireRotasAdmin, RuralPortalController.reviewProperty)
 router.get('/ownership', requireRotasAdmin, RotasOwnershipController.listAdmin)
 router.patch('/ownership/:id', requireRotasAdmin, RotasOwnershipController.review)
 router.get('/vehicles', requireRotasAdmin, RuralVehicleController.listAdmin)

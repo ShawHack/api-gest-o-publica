@@ -1,4 +1,7 @@
 const request = require('supertest')
+jest.mock('../../helpers/rural-property-publisher', () => ({
+  publishRuralProperty: jest.fn().mockResolvedValue('portal_test_key'),
+}))
 const {
   setupIntegrationTest,
   teardownIntegrationTest,
@@ -132,6 +135,22 @@ describe('Portal do produtor rural', () => {
       source: 'operator',
       status: 'pending_review',
     })
+
+    const admin = await createVerifiedUser({
+      email: 'admin-rural@test.local',
+      role: 'rotas_admin',
+    })
+    const approved = await request(app)
+      .patch(`/api/rotas-rurais/properties/${manual.body.property._id}`)
+      .set('Authorization', `Bearer ${bearerToken(admin)}`)
+      .send({ status: 'active' })
+      .expect(200)
+
+    expect(approved.body).toMatchObject({
+      status: 'active',
+      firebaseKey: 'portal_test_key',
+    })
+    expect(require('../../helpers/rural-property-publisher').publishRuralProperty).toHaveBeenCalled()
     global.fetch = originalFetch
   })
 })

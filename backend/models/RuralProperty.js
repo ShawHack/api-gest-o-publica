@@ -14,6 +14,9 @@ const ruralPropertySchema = new Schema(
     },
     status: { type: String, enum: ['active', 'pending_review', 'inactive'], default: 'active' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    reviewedAt: Date,
+    publishedAt: Date,
   },
   { timestamps: true },
 )

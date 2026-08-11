@@ -36,6 +36,11 @@
 
 O catálogo usa por padrão `https://upa-rural-default-rtdb.firebaseio.com`. Outro endereço pode ser definido com `ROTAS_FIREBASE_DATABASE_URL`.
 
+Novas UPAs manuais ficam como `pending_review`. Ao aprovar pela área de administração,
+o backend publica o registro em `upas` no Firebase e somente depois muda o status para
+`active`. Configure `GOOGLE_APPLICATION_CREDENTIALS` com uma conta de serviço fora do
+repositório, ou `ROTAS_FIREBASE_SERVICE_ACCOUNT_JSON` em um cofre de segredos.
+
 ## Publicação segura
 
 1. Publicar primeiro em homologação com banco isolado.

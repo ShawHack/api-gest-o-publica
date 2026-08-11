@@ -37,6 +37,7 @@ import EducationPortal from './components/pages/Education/EducationPortal'
 import EducationAdminPortal from './components/pages/Education/admin/EducationAdminPortal'
 import RuralOperatorPage from './components/pages/RuralPortal/RuralOperatorPage'
 import RuralOwnerPage from './components/pages/RuralPortal/RuralOwnerPage'
+import RuralAdminPage from './components/pages/RuralPortal/RuralAdminPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -86,6 +87,9 @@ function App() {
                     <Route path="/rotas-rurais/proprietario" element={<RuralOwnerPage />} />
                     <Route path="/rotas-rurais/operador" element={
                         <RequireAuth><RoleGate allow={['admin', 'rotas_admin', 'rotas_operador']}><RuralOperatorPage /></RoleGate></RequireAuth>
+                    } />
+                    <Route path="/rotas-rurais/admin" element={
+                        <RequireAuth><RoleGate allow={['admin', 'rotas_admin']}><RuralAdminPage /></RoleGate></RequireAuth>
                     } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}

@@ -19,6 +19,7 @@
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
 .button { border: 0; border-radius: 9px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #2f773e, #1f5c32); color: #fff; box-shadow: 0 5px 12px rgba(31, 92, 50, .17); }
 .buttonSecondary { composes: button; background: #e6eee7; color: #285b34; }
+.buttonDanger { composes: button; background: #9b3535; }
 .button:disabled { opacity: .55; cursor: wait; }
 .message, .error, .success { border-radius: 9px; padding: 13px 15px; margin-top: 18px; }
 .error { background: #fff0f0; color: #9b2525; border: 1px solid #efb6b6; }
@@ -28,4 +29,8 @@
 .section { border-top: 1px solid #dce4dd; margin-top: 8px; padding-top: 22px; }
 .section h2 { color: #285b34; font-size: 1.25rem; margin: 0 0 16px; }
 .status { display: inline-flex; padding: 5px 10px; border-radius: 999px; background: #e6eee7; color: #285b34; font-weight: 700; margin-bottom: 18px; }
-@media (max-width: 640px) { .banner { height: 210px; object-position: center; } .navStrip { min-height: 52px; padding: 0 14px; } .brand { font-size: .9rem; } .navSection { font-size: .8rem; } .page { padding: 22px 10px 40px; } .card { padding: 22px 16px; border-radius: 14px; } .grid { grid-template-columns: 1fr; } }
+.reviewList { display: grid; gap: 14px; }
+.reviewItem { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px; border: 1px solid #dce4dd; border-radius: 12px; background: #fbfcfa; }
+.reviewItem > div:first-child { display: grid; gap: 5px; }
+.reviewItem code { color: #285b34; }
+@media (max-width: 640px) { .banner { height: 210px; object-position: center; } .navStrip { min-height: 52px; padding: 0 14px; } .brand { font-size: .9rem; } .navSection { font-size: .8rem; } .page { padding: 22px 10px 40px; } .card { padding: 22px 16px; border-radius: 14px; } .grid { grid-template-columns: 1fr; } .reviewItem { align-items: flex-start; flex-direction: column; } }
