@@ -622,7 +622,7 @@ class _UpaHomePageState extends State<UpaHomePage> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
-                          hintText: 'Digite o código...',
+                          hintText: '3 últimos números da UPA',
                           hintStyle: const TextStyle(fontSize: 17, color: Colors.black54),
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _buscaCtrl.text.isEmpty
@@ -785,7 +785,7 @@ class _EmptyState extends StatelessWidget {
           children: const [
             Icon(Icons.search_off, size: 72, color: Colors.white70),
             SizedBox(height: 12),
-            Text('Digite os 3 últimos dígitos no campo acima.',
+            Text('Digite os 3 últimos números da UPA da propriedade.',
                 textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.white)),
           ],
         ),
