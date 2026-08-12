@@ -6,12 +6,13 @@ import RuralNavbar from './RuralNavbar'
 import styles from './RuralPortal.module.css'
 
 const DEFAULT_CENTER = [-22.23, -49.70]
+const SHARED_QUERY = new URLSearchParams(window.location.search).get('q')?.trim() || ''
 
 export default function RuralMapPage() {
   const [collection, setCollection] = useState(null)
   const [error, setError] = useState('')
   const [selected, setSelected] = useState('')
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(SHARED_QUERY)
   const [results, setResults] = useState([])
   const [locatedProperty, setLocatedProperty] = useState(null)
   const [searching, setSearching] = useState(false)
@@ -38,14 +39,25 @@ export default function RuralMapPage() {
     ], [[Infinity, Infinity], [-Infinity, -Infinity]])
   }, [polygons])
 
+  useEffect(() => {
+    if (!SHARED_QUERY) return
+    searchProperty(SHARED_QUERY)
+    // A consulta compartilhada é processada somente na abertura da página.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function search(event) {
     event.preventDefault()
-    if (query.trim().length < 2) return setSearchError('Informe ao menos 2 caracteres para pesquisar.')
+    await searchProperty(query.trim())
+  }
+
+  async function searchProperty(value) {
+    if (value.length < 2) return setSearchError('Informe ao menos 2 caracteres para pesquisar.')
     setSearching(true)
     setSearchError('')
     setResults([])
     try {
-      const data = await searchRuralMapProperties(query.trim())
+      const data = await searchRuralMapProperties(value)
       const items = data.items || []
       setResults(items)
       if (!items.length) setSearchError('Nenhuma UPA encontrada.')
@@ -63,6 +75,23 @@ export default function RuralMapPage() {
     setSelected(neighborhood?.properties?.name || '')
   }
 
+  async function shareProperty(property) {
+    const payload = propertySharePayload(property, selected)
+    if (window.RuralShare?.postMessage) {
+      window.RuralShare.postMessage(JSON.stringify(payload))
+      return
+    }
+    if (navigator.share) {
+      try { await navigator.share(payload); return } catch (shareError) { if (shareError.name === 'AbortError') return }
+    }
+    try {
+      await navigator.clipboard.writeText(`${payload.text}\n${payload.url}`)
+      window.alert('Dados da propriedade copiados para compartilhar.')
+    } catch (clipboardError) {
+      window.prompt('Copie os dados para compartilhar:', `${payload.text}\n${payload.url}`)
+    }
+  }
+
   return <div className={styles.appShell}>
     <RuralNavbar section="Mapa dos bairros" />
     <main className={styles.mapPage}>
@@ -73,7 +102,7 @@ export default function RuralMapPage() {
         {searchError && <span role="alert">{searchError}</span>}
         {results.length > 1 && <ul className={styles.mapSearchResults}>{results.map((item) => <li key={`${item.codigoUpa}-${item.plusCode}`}><button type="button" onClick={() => selectProperty(item)}><strong>{item.codigoUpa}</strong><span>{item.name || 'Propriedade rural'} · {item.plusCode}</span></button></li>)}</ul>}
       </form>
-      {locatedProperty && <section className={styles.mapPropertyCard} aria-live="polite"><div><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa} · Plus Code: {locatedProperty.plusCode}</span>{selected && <span>Bairro rural: {selected}</span>}</div><div className={styles.mapPropertyActions}><a href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a><button type="button" onClick={() => { setLocatedProperty(null); setSelected('') }}>Limpar marcação</button></div></section>}
+      {locatedProperty && <section className={styles.mapPropertyCard} aria-live="polite"><div><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa} · Plus Code: {locatedProperty.plusCode}</span>{selected && <span>Bairro rural: {selected}</span>}</div><div className={styles.mapPropertyActions}><a href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a><button type="button" onClick={() => shareProperty(locatedProperty)}>Compartilhar</button><button type="button" onClick={() => { setLocatedProperty(null); setSelected('') }}>Limpar marcação</button></div></section>}
       {error && <div role="alert" className={styles.error}>{error}</div>}
       {!collection && !error && <p>Carregando mapa…</p>}
       {collection && <MapContainer center={DEFAULT_CENTER} zoom={10} className={styles.interactiveMap} scrollWheelZoom>
@@ -94,7 +123,7 @@ export default function RuralMapPage() {
           <LayersControl.Overlay checked name="Marcadores do KMZ">
             <FeatureGroup>{markers.map((feature, index) => <CircleMarker key={`${feature.properties.name}-${index}`} center={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]} radius={5} pathOptions={{ color: '#082d22', fillColor: '#f5d547', fillOpacity: 1 }}><Popup>{feature.properties.name}</Popup><Tooltip>{feature.properties.name}</Tooltip></CircleMarker>)}</FeatureGroup>
           </LayersControl.Overlay>
-          {locatedProperty && <LayersControl.Overlay checked name="UPA localizada"><CircleMarker center={[locatedProperty.location.latitude, locatedProperty.location.longitude]} radius={11} pathOptions={{ color: '#fff', weight: 3, fillColor: '#d52222', fillOpacity: 1 }}><Popup><strong>{locatedProperty.name || 'Propriedade rural'}</strong><br />UPA: {locatedProperty.codigoUpa}<br />Plus Code: {locatedProperty.plusCode}{selected && <><br />Bairro: {selected}</>}<br /><a className="rural-property-go" href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a></Popup><Tooltip direction="top" className="rural-property-tooltip" interactive><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa}</span><span>Bairro: {selected || 'Não identificado'}</span><a className="rural-property-go" href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a></Tooltip></CircleMarker></LayersControl.Overlay>}
+          {locatedProperty && <LayersControl.Overlay checked name="UPA localizada"><CircleMarker center={[locatedProperty.location.latitude, locatedProperty.location.longitude]} radius={11} pathOptions={{ color: '#fff', weight: 3, fillColor: '#d52222', fillOpacity: 1 }}><Popup><strong>{locatedProperty.name || 'Propriedade rural'}</strong><br />UPA: {locatedProperty.codigoUpa}<br />Plus Code: {locatedProperty.plusCode}{selected && <><br />Bairro: {selected}</>}<div className="rural-property-buttons"><a className="rural-property-go" href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a><button className="rural-property-share" type="button" onClick={() => shareProperty(locatedProperty)}>Compartilhar</button></div></Popup><Tooltip direction="top" className="rural-property-tooltip" interactive><strong>{locatedProperty.name || 'Propriedade rural'}</strong><span>UPA: {locatedProperty.codigoUpa}</span><span>Bairro: {selected || 'Não identificado'}</span><div className="rural-property-buttons"><a className="rural-property-go" href={directionsUrl(locatedProperty.location)} target="_blank" rel="noopener noreferrer">Ir</a><button className="rural-property-share" type="button" onClick={() => shareProperty(locatedProperty)}>Compartilhar</button></div></Tooltip></CircleMarker></LayersControl.Overlay>}
         </LayersControl>
         <FitBounds bounds={bounds} />
         <FocusProperty property={locatedProperty} />
@@ -162,4 +191,15 @@ function pointInRing([x, y], ring) {
 
 function directionsUrl(location) {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${location.latitude},${location.longitude}`)}&travelmode=driving`
+}
+
+function propertySharePayload(property, neighborhood) {
+  const mapUrl = `${window.location.origin}${window.location.pathname}?q=${encodeURIComponent(property.codigoUpa || property.plusCode)}`
+  const details = [
+    property.name || 'Propriedade rural',
+    `UPA: ${property.codigoUpa}`,
+    `Plus Code: ${property.plusCode}`,
+    neighborhood ? `Bairro rural: ${neighborhood}` : '',
+  ].filter(Boolean).join('\n')
+  return { title: property.name || 'Estradas Rurais Garça', text: details, url: mapUrl }
 }

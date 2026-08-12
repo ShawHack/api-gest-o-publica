@@ -30,6 +30,7 @@ test('localiza a UPA e apresenta a propriedade para marcação', async () => {
   const directions = screen.getAllByRole('link', { name: 'Ir' })
   expect(directions.length).toBeGreaterThanOrEqual(2)
   expect(directions[0]).toHaveAttribute('href', expect.stringContaining('destination=-22.21%2C-49.65'))
+  expect(screen.getAllByRole('button', { name: 'Compartilhar' }).length).toBeGreaterThanOrEqual(2)
   expect(searchRuralMapProperties).toHaveBeenCalledWith('043')
 })
 

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -92,6 +94,31 @@ class _RuralMapPageState extends State<RuralMapPage> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xfff4f7f1))
+      ..addJavaScriptChannel(
+        'RuralShare',
+        onMessageReceived: (message) async {
+          try {
+            final payload = jsonDecode(message.message) as Map<String, dynamic>;
+            final text = [payload['text'], payload['url']]
+                .where((value) => value?.toString().trim().isNotEmpty == true)
+                .join('\n');
+            if (text.isNotEmpty) {
+              await Share.share(
+                text,
+                subject:
+                    payload['title']?.toString() ?? 'Estradas Rurais Garça',
+              );
+            }
+          } catch (_) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Não foi possível compartilhar a propriedade.'),
+              ),
+            );
+          }
+        },
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (progress) {
