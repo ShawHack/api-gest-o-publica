@@ -1,4 +1,4 @@
-package br.sp.garca.estradas_rurais_app
+package br.sp.garca.estradasrurais
 
 import io.flutter.embedding.android.FlutterActivity
 
