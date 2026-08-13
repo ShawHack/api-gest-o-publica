@@ -248,4 +248,32 @@ describe('votação — pleito multi-cargo (v2)', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(403);
   });
+  test('modo teste é zerado de forma auditável antes da votação oficial', async () => {
+    const admin = await createVerifiedUser({ email: 'homologacao-voto@test.local', role: 'admin' });
+    const adminToken = bearerToken(admin);
+    const vot = await Votation.create({
+      title: 'Pleito em homologação',
+      startDate: new Date(Date.now() - 3600000),
+      endDate: new Date(Date.now() + 3600000),
+      status: 'test',
+      bannerUrl: '/images/votacao/banners/homologacao.png',
+    });
+    const cat = await VotingCategory.create({ votationId: vot._id, name: 'Cargo teste' });
+    await VotingCandidate.create({ votationId: vot._id, categoryId: cat._id, number: 1, name: 'Pessoa teste' });
+    await Vote.create({ votationId: vot._id, categoryId: cat._id, voteType: 'blank', ballotVersion: 2 });
+    await VoterParticipation.create({ votationId: vot._id, servidorId: new (require('mongoose').Types.ObjectId)() });
+
+    const res = await request(getApp())
+      .post(`/votacao/admin/votacoes/${vot._id}/prepare-official`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ justification: 'Testes de homologação concluídos pela comissão.' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.votation.status).toBe('ready');
+    expect(res.body.archivedTestSummary.votes).toBe(1);
+    expect(res.body.archivedTestSummary.participations).toBe(1);
+    expect(await Vote.countDocuments({ votationId: vot._id })).toBe(0);
+    expect(await VoterParticipation.countDocuments({ votationId: vot._id })).toBe(0);
+    expect((await Votation.findById(vot._id)).testResetSummary.justification).toMatch(/homologa/);
+  });
 });

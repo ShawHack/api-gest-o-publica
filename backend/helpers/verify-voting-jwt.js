@@ -5,6 +5,7 @@
 const jwt = require('jsonwebtoken')
 const getToken = require('./get-token')
 const VotingServidor = require('../models/VotingServidor')
+const VotingElector = require('../models/VotingElector')
 const { recordVoteEvent } = require('./vote-audit-bridge')
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -47,7 +48,10 @@ const verifyVotingJwt = async (req, res, next) => {
       })
       return res.status(401).json({ message: 'Token inválido para votação.' })
     }
-    const doc = await VotingServidor.findById(decoded.sid).select('_id matriculaHash nome')
+    const isImported = decoded.electorateType === 'imported'
+    const doc = isImported
+      ? await VotingElector.findById(decoded.sid).select('_id identityHash name electorateBaseId')
+      : await VotingServidor.findById(decoded.sid).select('_id matriculaHash nome')
     if (!doc) {
       void recordVoteEvent(req, {
         action: 'auth.invalid_token',
@@ -62,8 +66,10 @@ const verifyVotingJwt = async (req, res, next) => {
     req.votingUser = {
       _id: doc._id.toString(),
       sid: doc._id.toString(),
-      userHash: doc.matriculaHash,
-      nome: doc.nome || '',
+      userHash: doc.identityHash || doc.matriculaHash,
+      nome: doc.name || doc.nome || '',
+      votationId: decoded.votationId || '',
+      electorateType: isImported ? 'imported' : 'legacy_servidores',
     }
     return next()
   } catch (err) {

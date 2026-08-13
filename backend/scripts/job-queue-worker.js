@@ -98,7 +98,7 @@ async function tickVotacaoAutoClose() {
     if (result.closed.length) {
       console.log(
         '[job-worker] votacao auto-close',
-        result.closed.map((c) => `${c.title}:sent=${c.whatsapp?.sent ?? 0}`).join(', ')
+        result.closed.map((c) => c.title).join(', ')
       )
     }
   } catch (err) {

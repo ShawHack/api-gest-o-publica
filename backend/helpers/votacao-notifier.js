@@ -22,6 +22,22 @@ function bannerUrl() {
   return publicAssetUrl('/notificacao-banner/not-votacao.png')
 }
 
+function resolveVotationBannerUrl(votation) {
+  const fallback = bannerUrl()
+  const raw = String(votation?.bannerUrl || '').trim()
+  if (!raw) return fallback
+
+  try {
+    const appUrl = new URL(process.env.APP_URL || 'https://api.garca.sp.gov.br')
+    const resolved = new URL(raw, `${appUrl.origin}/`)
+    const isOfficialOrigin = resolved.origin === appUrl.origin
+    const isVotingBanner = resolved.pathname.startsWith('/images/votacao/banners/')
+    return isOfficialOrigin && isVotingBanner ? resolved.href : fallback
+  } catch {
+    return fallback
+  }
+}
+
 function whatsappModuleEnabled() {
   const flag = String(process.env.VOTACAO_WHATSAPP_ENABLED || 'true').toLowerCase()
   return !(flag === 'false' || flag === '0' || flag === 'off')
@@ -50,10 +66,12 @@ function resultsUrl(votation) {
 /**
  * @param {{ categoryName: string, label: string }[]} lines
  */
-function buildCanhotoCaption({ voterName, votationTitle, votedAt, choiceLines, protocol }) {
+function buildCanhotoCaption({ voterName, votationTitle, votedAt, choiceLines, protocol, isTest = false }) {
   const nome = voterName || 'eleitor(a)'
   const rows = (choiceLines || []).map((l) => `• ${l.categoryName}: ${l.label}`)
   return [
+    isTest ? '⚠️ SEM VALIDADE — VOTO DE TESTE' : null,
+    isTest ? '' : null,
     `Olá, ${nome}!`,
     '',
     'Seu voto foi registrado com sucesso.',
@@ -80,6 +98,7 @@ function buildCanhotoEmailText({
   choiceLines,
   protocol,
   link,
+  isTest = false,
 }) {
   const base = buildCanhotoCaption({
     voterName,
@@ -87,6 +106,7 @@ function buildCanhotoEmailText({
     votedAt,
     choiceLines,
     protocol,
+    isTest,
   })
   const extra = [
     '',
@@ -102,7 +122,7 @@ function buildCanhotoEmailText({
   return `${base}\n${extra}`
 }
 
-function buildClosedCaption({ voterName, votationTitle, link }) {
+function _removedBuildClosedCaption({ voterName, votationTitle, link }) {
   const nome = voterName || 'eleitor(a)'
   return [
     `Olá, ${nome}!`,
@@ -161,24 +181,31 @@ async function finalizeDelivery(key, result) {
   }
 }
 
-async function sendWhatsappWithBanner({ phone, text, module = 'votacao' }) {
-  const media = bannerUrl()
+async function sendWhatsappWithBanner({ phone, text, mediaUrl, module = 'votacao' }) {
+  const media = mediaUrl || bannerUrl()
+  const pathname = (() => {
+    try { return new URL(media).pathname }
+    catch { return '' }
+  })()
+  const extension = (pathname.match(/\.(png|jpe?g|webp)$/i)?.[1] || 'png').toLowerCase()
+  const normalizedExtension = extension === 'jpeg' ? 'jpg' : extension
+  const mimetype = normalizedExtension === 'jpg' ? 'image/jpeg' : `image/${normalizedExtension}`
   const caption = String(text || '').trim()
   const mediaResult = await notifyWhatsappMedia({
     phone,
     mediaUrl: media,
     caption,
     mediatype: 'image',
-    mimetype: 'image/png',
-    fileName: 'not-votacao.png',
+    mimetype,
+    fileName: `capa-pleito.${normalizedExtension}`,
     module,
   })
   const mediaOk = !!(mediaResult?.ok || mediaResult?.queued)
   if (mediaOk) {
-    return { media: mediaResult, text: { skipped: true, reason: 'caption_on_media' } }
+    return { bannerUrl: media, media: mediaResult, text: { skipped: true, reason: 'caption_on_media' } }
   }
   const textResult = await notifyWhatsapp({ phone, message: text, module })
-  return { media: mediaResult, text: textResult }
+  return { bannerUrl: media, media: mediaResult, text: textResult }
 }
 
 function canNotifyServidor(servidor) {
@@ -222,6 +249,7 @@ async function notifyBallotReceipt({
   const servidorId = servidor?._id || servidor?.id
   const protocol = participationId ? String(participationId).slice(-8).toUpperCase() : ''
   const results = { whatsapp: null, email: null }
+  const receiptBannerUrl = resolveVotationBannerUrl(votation)
 
   const wantWhatsapp =
     whatsappModuleEnabled() &&
@@ -242,15 +270,20 @@ async function notifyBallotReceipt({
     if (!claim.ok) {
       results.whatsapp = { skipped: true, reason: 'duplicate' }
     } else {
-      const caption = buildCanhotoCaption({
+        const caption = buildCanhotoCaption({
         voterName: servidor.nome,
         votationTitle: votation?.title,
         votedAt,
         choiceLines,
-        protocol,
+          protocol,
+          isTest: votation?.status === 'test',
       })
       try {
-        const wa = await sendWhatsappWithBanner({ phone, text: caption })
+        const wa = await sendWhatsappWithBanner({
+          phone,
+          text: caption,
+          mediaUrl: receiptBannerUrl,
+        })
         results.whatsapp = { sent: true, ...wa }
         await finalizeDelivery(key, results.whatsapp)
       } catch (err) {
@@ -280,13 +313,14 @@ async function notifyBallotReceipt({
     if (!claim.ok) {
       results.email = { skipped: true, reason: 'duplicate' }
     } else {
-      const text = buildCanhotoEmailText({
+        const text = buildCanhotoEmailText({
         voterName: servidor.nome,
         votationTitle: votation?.title,
         votedAt,
         choiceLines,
         protocol,
-        link: resultsUrl(votation),
+          link: resultsUrl(votation),
+          isTest: votation?.status === 'test',
       })
       try {
         const { sendMail } = require('./mailer')
@@ -294,7 +328,7 @@ async function notifyBallotReceipt({
           to,
           subject: `Canhoto do voto — ${votation?.title || 'Pleito'}`,
           text,
-          html: text.replace(/\n/g, '<br/>'),
+          html: `<img src="${receiptBannerUrl}" alt="Capa do pleito" style="display:block;max-width:100%;height:auto;margin:0 0 20px"/><div>${text.replace(/\n/g, '<br/>')}</div>`,
         })
         results.email = { sent: true, ...mail }
         await finalizeDelivery(key, results.email)
@@ -322,94 +356,13 @@ async function notifyBallotReceipt({
   return { sent: anySent, ...results }
 }
 
-/**
- * Ao encerrar o pleito: notifica somente quem votou (VoterParticipation).
- */
-async function notifyElectionClosed({ votation } = {}) {
-  if (!whatsappModuleEnabled()) {
-    return { skipped: true, reason: 'whatsapp_module_disabled', sent: 0, total: 0 }
-  }
-  if (!votation?._id && !votation?.id) {
-    return { skipped: true, reason: 'missing_votation', sent: 0, total: 0 }
-  }
-  if (votation.whatsappNotifyEnabled === false) {
-    return { skipped: true, reason: 'votation_whatsapp_disabled', sent: 0, total: 0 }
-  }
-
-  const VoterParticipation = require('../models/VoterParticipation')
-  const VotingServidor = require('../models/VotingServidor')
-
-  const votationId = votation._id || votation.id
-  const parts = await VoterParticipation.find({ votationId }).select('servidorId').lean()
-  const sids = [...new Set(parts.map((p) => String(p.servidorId)).filter(Boolean))]
-  if (!sids.length) {
-    return { sent: 0, total: 0, skipped: true, reason: 'no_participants' }
-  }
-
-  const servidores = await VotingServidor.find({
-    _id: { $in: sids },
-    active: { $ne: false },
-  })
-    .select('nome whatsapp whatsappOptIn')
-    .lean()
-
-  const link = resultsUrl(votation)
-  let sent = 0
-  let skipped = 0
-  const errors = []
-
-  for (const servidor of servidores) {
-    if (!canNotifyServidor(servidor)) {
-      skipped += 1
-      continue
-    }
-    const phone = normalizePhone(servidor.whatsapp)
-    const key = `${votationId}:closed:${servidor._id}:whatsapp`
-    const claim = await claimDeliveryKey({
-      key,
-      votationId,
-      servidorId: servidor._id,
-      event: 'closed',
-      channel: 'whatsapp',
-      phone,
-    })
-    if (!claim.ok) {
-      skipped += 1
-      continue
-    }
-
-    const caption = buildClosedCaption({
-      voterName: servidor.nome,
-      votationTitle: votation.title,
-      link,
-    })
-
-    try {
-      const wa = await sendWhatsappWithBanner({ phone, text: caption })
-      await finalizeDelivery(key, { sent: true, ...wa })
-      if (wa?.media?.queued || wa?.media?.ok || wa?.text?.queued || wa?.text?.ok) {
-        sent += 1
-      } else {
-        skipped += 1
-      }
-    } catch (err) {
-      const message = err?.message || String(err)
-      await finalizeDelivery(key, { error: true, message })
-      errors.push({ servidorId: String(servidor._id), message })
-    }
-  }
-
-  return { sent, skipped, total: sids.length, errors }
-}
-
 module.exports = {
   bannerUrl,
+  resolveVotationBannerUrl,
   whatsappModuleEnabled,
   buildCanhotoCaption,
   buildCanhotoEmailText,
-  buildClosedCaption,
   notifyBallotReceipt,
-  notifyElectionClosed,
   canNotifyServidor,
   canNotifyServidorEmail,
   normalizeEmail,

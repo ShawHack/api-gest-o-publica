@@ -9,7 +9,7 @@ const VotationSchema = new Schema(
     endDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['draft', 'active', 'closed'],
+      enum: ['draft', 'test', 'ready', 'active', 'closed'],
       default: 'draft',
       index: true,
     },
@@ -20,8 +20,13 @@ const VotationSchema = new Schema(
     bannerUrl: { type: String, default: '' },
     voterInstructions: { type: String, default: '' },
     themeColor: { type: String, default: '#1e3a8a' },
-    /** Se false, desliga WhatsApp (canhoto/encerramento) neste pleito. */
+    /** Se false, desliga o envio do canhoto por WhatsApp neste pleito. */
     whatsappNotifyEnabled: { type: Boolean, default: true },
+    /** Ausente = base legada de servidores públicos. */
+    electorateBaseId: { type: Schema.Types.ObjectId, ref: 'VotingElectorateBase', index: true },
+    testResetAt: { type: Date },
+    testResetBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    testResetSummary: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true }
 )

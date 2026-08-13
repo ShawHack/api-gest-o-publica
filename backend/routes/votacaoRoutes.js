@@ -12,6 +12,7 @@ const VotingElectionAdminController = require('../controllers/VotingElectionAdmi
 const VotingBallotController = require('../controllers/VotingBallotController')
 const VotingLandingController = require('../controllers/VotingLandingController')
 const VotingAuditorController = require('../controllers/VotingAuditorController')
+const VotingElectorateController = require('../controllers/VotingElectorateController')
 const {
   requireVotingStaff,
   requireVotingPleitoRead,
@@ -44,6 +45,13 @@ router.get('/pleitos/:slug', VotingLandingController.publicLanding)
 router.post('/pleitos/:slug/unlock', authLimiter, VotingLandingController.unlockWithCpf)
 
 router.get('/admin/me', verifyToken, requireVotingStaff, VotingAuditorController.me)
+router.get('/admin/electorate-bases', verifyToken, requireVotingAdmin, VotingElectorateController.list)
+router.post('/admin/electorate-bases/import', verifyToken, requireVotingAdmin, VotingElectorateController.createAndImport)
+router.get('/admin/electorate-bases/:baseId/electors', verifyToken, requireVotingAdmin, VotingElectorateController.listElectors)
+router.post('/admin/electorate-bases/:baseId/electors', verifyToken, requireVotingAdmin, VotingElectorateController.createElector)
+router.patch('/admin/electorate-bases/:baseId/electors/:electorId', verifyToken, requireVotingAdmin, VotingElectorateController.updateElector)
+router.delete('/admin/electorate-bases/:baseId/electors/:electorId', verifyToken, requireVotingAdmin, VotingElectorateController.deleteElector)
+router.patch('/admin/votacoes/:id/electorate-base', verifyToken, requireVotingPleitoWrite, VotingElectorateController.assign)
 router.get(
   '/admin/votacoes/:id/auditores',
   verifyToken,
@@ -62,18 +70,19 @@ router.patch(
   requireVotingPleitoWrite,
   VotingAuditorController.revoke
 )
+router.post(
+  '/admin/votacoes/:id/auditores/:membershipId/reset-password',
+  verifyToken,
+  requireVotingPleitoWrite,
+  VotingAuditorController.resetPassword
+)
 router.get('/admin/dashboard', verifyToken, requireVotingStaff, VotingAdminController.dashboard)
 router.get('/admin/votacoes', verifyToken, requireVotingStaff, VotingAdminController.listVotations)
 router.post('/admin/votacoes', verifyToken, requireVotingAdmin, VotingAdminController.createVotation)
 router.get('/admin/votacoes/:id/export.csv', verifyToken, requireVotingAdmin, VotingAdminController.exportCsv)
 router.get('/admin/votacoes/:id', verifyToken, requireVotingPleitoRead, VotingAdminController.getVotation)
 router.patch('/admin/votacoes/:id', verifyToken, requireVotingAdmin, votingBannerUploadMiddleware, VotingAdminController.patchVotation)
-router.post(
-  '/admin/votacoes/:id/notify-closed',
-  verifyToken,
-  requireVotingAdmin,
-  VotingAdminController.notifyClosedWhatsapp
-)
+router.post('/admin/votacoes/:id/prepare-official', verifyToken, requireVotingAdmin, VotingAdminController.prepareOfficial)
 router.post('/admin/votacoes/:id/candidates', verifyToken, requireVotingAdmin, VotingAdminController.addCandidate)
 router.delete(
   '/admin/votacoes/:id/candidates/:candidateDocId',
@@ -94,13 +103,13 @@ router.post(
 router.get(
   '/admin/votacoes/:id/detail',
   verifyToken,
-  requireVotingAdmin,
+  requireVotingPleitoRead,
   VotingElectionAdminController.getElectionDetail
 )
 router.get(
   '/admin/votacoes/:id/categories',
   verifyToken,
-  requireVotingAdmin,
+  requireVotingPleitoRead,
   VotingElectionAdminController.listCategories
 )
 router.post(
@@ -144,7 +153,7 @@ router.delete(
 router.get(
   '/admin/votacoes/:id/resultado-v2',
   verifyToken,
-  requireVotingAdmin,
+  requireVotingPleitoRead,
   VotingElectionAdminController.resultsV2
 )
 router.get(

@@ -10,16 +10,16 @@ function hashRefresh(raw) {
   return crypto.createHash('sha256').update(raw, 'utf8').digest('hex')
 }
 
-function signAccess(servidorId) {
-  return jwt.sign({ scope: 'votacao', sid: String(servidorId) }, JWT_SECRET, { expiresIn: ACCESS_TTL })
+function signAccess(servidorId, context = {}) {
+  return jwt.sign({ scope: 'votacao', sid: String(servidorId), ...context }, JWT_SECRET, { expiresIn: ACCESS_TTL })
 }
 
-async function issueVotingSession(servidorId, nome = '') {
-  const accessToken = signAccess(servidorId)
+async function issueVotingSession(servidorId, nome = '', context = {}) {
+  const accessToken = signAccess(servidorId, context)
   const rawRefresh = crypto.randomBytes(48).toString('hex')
   const tokenHash = hashRefresh(rawRefresh)
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 86400 * 1000)
-  await VotingRefreshToken.create({ servidorId, tokenHash, expiresAt })
+  await VotingRefreshToken.create({ servidorId, tokenHash, expiresAt, votationId: context.votationId, electorateType: context.electorateType || 'legacy_servidores' })
   return {
     accessToken,
     refreshToken: rawRefresh,

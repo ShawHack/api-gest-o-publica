@@ -57,17 +57,20 @@ async function findServidorByNomeAndCpf(nome, cpf) {
 async function assertElectionActive(votationId) {
   const v = await Votation.findById(votationId).lean()
   if (!v) return { error: { status: 404, message: 'Pleito não encontrado.' } }
-  if (v.status !== 'active') {
+  if (!['test', 'active'].includes(v.status)) {
     return { error: { status: 403, message: 'Pleito não está ativo.' } }
   }
-  if (!nowInRange(v)) {
+  if (v.status === 'active' && !nowInRange(v)) {
     return { error: { status: 403, message: 'Fora do período de votação.' } }
   }
   return { votation: v }
 }
 
-async function hasParticipated(votationId, servidorId) {
-  const row = await VoterParticipation.findOne({ votationId, servidorId }).lean()
+async function hasParticipated(votationId, servidorId, electorateType = 'legacy_servidores') {
+  const row = await VoterParticipation.findOne({
+    votationId,
+    ...(electorateType === 'imported' ? { electorId: servidorId } : { servidorId }),
+  }).lean()
   return !!row
 }
 
@@ -110,11 +113,11 @@ async function buildBallot(votationId) {
 /**
  * choices: [{ categoryId, voteType: 'candidate'|'blank'|'null', candidateId? }]
  */
-async function submitBallot({ votationId, servidorId, choices }) {
+async function submitBallot({ votationId, servidorId, electorateType = 'legacy_servidores', choices }) {
   const active = await assertElectionActive(votationId)
   if (active.error) return active
 
-  if (await hasParticipated(votationId, servidorId)) {
+  if (await hasParticipated(votationId, servidorId, electorateType)) {
     return { error: { status: 409, message: 'Voto já registrado para este pleito.' } }
   }
 
@@ -180,6 +183,8 @@ async function submitBallot({ votationId, servidorId, choices }) {
     const participation = await VoterParticipation.create({
       votationId,
       servidorId,
+      ...(electorateType === 'imported' ? { electorId: servidorId } : {}),
+      electorateType,
       votedAt: new Date(),
     })
     try {
@@ -233,16 +238,15 @@ function compareCandidatesByVotesThenNumber(a, b) {
 function pickWinners(rankedCandidates, winnersCount) {
   const n = normalizeWinnersCount(winnersCount, 1)
   const withVotes = (rankedCandidates || []).filter((r) => Number(r.votes) > 0)
-  if (!withVotes.length) return []
-  if (withVotes.length <= n) {
-    return withVotes.map((r, i) => ({ ...r, place: i + 1, isWinner: true }))
-  }
-  const cutoffVotes = withVotes[n - 1].votes
-  const selected = withVotes.filter((r, i) => i < n || r.votes === cutoffVotes)
+  const selected = withVotes.slice(0, n)
   return selected.map((r, i) => ({ ...r, place: i + 1, isWinner: true }))
 }
 
 async function tallyElection(votationId) {
+  const Votation = require('../models/Votation')
+  const VotingElector = require('../models/VotingElector')
+  const votation = await Votation.findById(votationId).select('electorateBaseId').lean()
+  if (!votation) throw Object.assign(new Error('Pleito não encontrado.'), { status: 404 })
   const categories = await VotingCategory.find({ votationId }).sort({ order: 1, name: 1 }).lean()
   const candidates = await VotingCandidate.find({ votationId }).lean()
 
@@ -262,7 +266,9 @@ async function tallyElection(votationId) {
   ])
 
   const participants = await VoterParticipation.countDocuments({ votationId })
-  const eligible = await VotingServidor.countDocuments({ active: { $ne: false } })
+  const eligible = votation.electorateBaseId
+    ? await VotingElector.countDocuments({ electorateBaseId: votation.electorateBaseId, active: { $ne: false } })
+    : await VotingServidor.countDocuments({ active: { $ne: false } })
 
   const categoryResults = categories.map((cat) => {
     const catVotes = voteRows.filter((r) => String(r._id.categoryId) === String(cat._id))

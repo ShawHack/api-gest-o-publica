@@ -113,9 +113,18 @@ module.exports = {
       const rawNew = crypto.randomBytes(48).toString('hex')
       const newHash = hashRefresh(rawNew)
       const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 86400 * 1000)
-      await VotingRefreshToken.create({ servidorId: row.servidorId, tokenHash: newHash, expiresAt })
+      await VotingRefreshToken.create({
+        servidorId: row.servidorId,
+        tokenHash: newHash,
+        expiresAt,
+        votationId: row.votationId,
+        electorateType: row.electorateType || 'legacy_servidores',
+      })
 
-      const accessToken = signAccess(row.servidorId)
+      const accessToken = signAccess(row.servidorId, {
+        ...(row.votationId ? { votationId: String(row.votationId) } : {}),
+        electorateType: row.electorateType || 'legacy_servidores',
+      })
       void recordVoteEvent(req, {
         action: 'auth.refresh_success',
         resourceType: 'session',

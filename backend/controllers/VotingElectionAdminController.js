@@ -308,12 +308,23 @@ module.exports = {
       const categories = await VotingCategory.find({ votationId: v._id }).sort({ order: 1, name: 1 }).lean()
       const candidates = await VotingCandidate.find({ votationId: v._id }).sort({ order: 1, number: 1 }).lean()
       const participants = await VoterParticipation.countDocuments({ votationId: v._id })
-      const eligible = await VotingServidor.countDocuments({ active: { $ne: false } })
+      let eligible
+      let electorateBase = { id: 'legacy-servidores', name: 'Servidores públicos municipais', type: 'legacy_servidores' }
+      if (v.electorateBaseId) {
+        const VotingElector = require('../models/VotingElector')
+        const VotingElectorateBase = require('../models/VotingElectorateBase')
+        eligible = await VotingElector.countDocuments({ electorateBaseId: v.electorateBaseId, active: { $ne: false } })
+        const base = await VotingElectorateBase.findById(v.electorateBaseId).lean()
+        if (base) electorateBase = { id: String(base._id), name: base.name, type: base.type }
+      } else {
+        eligible = await VotingServidor.countDocuments({ active: { $ne: false } })
+      }
       return res.json({
         votation: v,
         categories,
         candidates,
         stats: { participants, eligible, abstentions: Math.max(0, eligible - participants) },
+        electorateBase,
       })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao carregar pleito.' })

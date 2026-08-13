@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Votação — Pleito</title>
+  <style>
+    :root { --primary: #1e3a8a; --bg: #f0f4fa; --card: #fff; --muted: #64748b; --ok: #0f766e; --danger: #b91c1c; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: #1f2937; }
+    .page-hero { background: linear-gradient(135deg, var(--primary), #0f172a); color: #fff; }
+    .banner-wrap { display: none; background: #0f172a; border-bottom: 1px solid #1e293b; }
+    .banner-wrap img { width: 100%; height: auto; max-height: min(52vw, 420px); object-fit: contain; object-position: center; display: block; margin: 0 auto; }
+    .hero-head { padding: 24px 16px; }
+    .hero-head .wrap-inner { max-width: 760px; margin: 0 auto; }
+    .page-hero.has-banner .hero-head { background: #fff; color: #1f2937; border-bottom: 1px solid #dbe3f2; }
+    .page-hero.has-banner h1 { color: var(--primary); }
+    .page-hero.has-banner .hero-period { color: #64748b !important; }
+    .page-hero:not(.has-banner) .badge:not(.open):not(.closed) { background: rgba(255,255,255,.2); color: #fff; }
+    h1 { margin: 0 0 8px; font-size: 1.5rem; line-height: 1.25; }
+    .hero-period { margin: 0; font-size: 0.9rem; }
+    .card { background: var(--card); border: 1px solid #dbe3f2; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+    input, button { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; }
+    button { background: var(--primary); color: #fff; border-color: var(--primary); cursor: pointer; width: auto; }
+    button.secondary { background: #fff; color: var(--primary); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .ok { color: var(--ok); }
+    .danger { color: var(--danger); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; background: #e2e8f0; color: #334155; }
+    .badge.open { background: #ccfbf1; color: #0f766e; }
+    .badge.closed { background: #fee2e2; color: #b91c1c; }
+    .instructions { white-space: pre-wrap; line-height: 1.5; }
+    .lock-panel { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; background: #f8fafc; }
+    .category { border-top: 1px solid #e2e8f0; padding: 14px 0; }
+    .opt { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; }
+    .opt input { width: auto; }
+    .cand-line { display: flex; align-items: center; gap: 12px; }
+    .cand-photo { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid #e2e8f0; }
+    .candidate-search { margin: 12px 0; }
+    .candidate-search input { background: #fff; }
+    .candidate-search-count { margin: 6px 0 0; }
+    .candidate-empty { display: none; padding: 12px; margin: 8px 0; border-radius: 8px; background: #f8fafc; }
+    .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+    .step { flex: 1; text-align: center; padding: 6px; border-radius: 6px; background: #e2e8f0; font-size: 0.8rem; }
+    .step.on { background: var(--primary); color: #fff; }
+    .review-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .success { text-align: center; padding: 24px; }
+    .confirm-summary { text-align: left; margin: 16px auto 0; max-width: 520px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+    .footer-links { text-align: center; font-size: 0.85rem; margin-top: 16px; }
+    .results-card h2 { margin: 0 0 8px; font-size: 1.15rem; color: var(--primary); }
+    .results-cat { border-top: 1px solid #e2e8f0; padding: 12px 0; }
+    .results-cat:first-of-type { border-top: none; }
+    .bar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 4px; }
+    .bar > span { display: block; height: 100%; background: var(--primary); }
+    @media (max-width: 480px) { .row { flex-direction: column; } button { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="page-hero" id="pageHero">
+    <div class="banner-wrap" id="bannerWrap">
+      <img id="bannerImg" alt="" />
+    </div>
+    <div class="hero-head">
+      <div class="wrap-inner">
+        <span class="badge" id="statusBadge">Carregando...</span>
+        <h1 id="pleitoTitle">Votação</h1>
+        <p id="pleitoPeriodo" class="hero-period muted"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="max-width:760px;margin:0 auto;padding:16px;">
+    <div class="card" id="infoCard">
+      <p id="pleitoDesc" class="muted"></p>
+      <div id="instructionsBlock" style="display:none; margin-top:12px;">
+        <strong>Instruções aos eleitores</strong>
+        <div id="pleitoInstructions" class="instructions muted"></div>
+      </div>
+    </div>
+
+    <div class="card" id="unlockCard">
+      <div class="lock-panel">
+        <h2 style="margin:0 0 8px; font-size:1.1rem;">Identificação do eleitor</h2>
+        <p class="muted">Para acessar a cédula de votação, informe seu CPF. A votação permanece bloqueada até a confirmação da sua elegibilidade.</p>
+        <div style="margin-top:12px;">
+          <label>CPF</label>
+          <input id="cpf" inputmode="numeric" autocomplete="off" placeholder="Somente números" />
+        </div>
+        <div style="margin-top:12px;">
+          <label>WhatsApp (para canhoto e resultado)</label>
+          <input id="whatsapp" inputmode="tel" autocomplete="tel" placeholder="(14) 99999-9999" />
+          <p class="muted" style="margin:6px 0 0;">Ao informar o número, você autoriza receber o canhoto do voto e o link do resultado ao encerrar o pleito.</p>
+        </div>
+        <div style="margin-top:12px;">
+          <label>E-mail (para canhoto do voto)</label>
+          <input id="email" type="email" autocomplete="email" placeholder="seu@email.com" />
+          <p class="muted" style="margin:6px 0 0;">Ao informar o e-mail, você autoriza receber o canhoto do voto com o link da página (o resultado fica disponível após o encerramento).</p>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button type="button" id="btnUnlock">Continuar</button>
+        </div>
+        <p id="unlockMsg" class="muted" style="margin-top:10px;"></p>
+      </div>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <div class="results-card" id="resultado">
+        <h2>Resultado do pleito</h2>
+        <p id="resultsMeta" class="muted"></p>
+        <div id="resultsBody"></div>
+      </div>
+    </div>
+
+    <div class="card" id="ballotCard" style="display:none;">
+      <div class="steps">
+        <div class="step on" id="st1">1. Cédula</div>
+        <div class="step" id="st2">2. Revisão</div>
+        <div class="step" id="st3">3. Confirmação</div>
+      </div>
+      <p id="welcomeMsg" class="ok"></p>
+      <div id="ballotBody"></div>
+      <div id="reviewBody" style="display:none;"></div>
+      <div id="confirmBody" style="display:none;" class="success">
+        <h2 style="color:var(--ok);">Voto registrado!</h2>
+        <div id="confirmSummary" class="confirm-summary"></div>
+      </div>
+      <p id="ballotMsg" class="muted"></p>
+      <div class="row" id="ballotActions">
+        <button id="btnReview" disabled>Revisar cédula</button>
+        <button id="btnBack" class="secondary" style="display:none;">Voltar</button>
+        <button id="btnConfirm" style="display:none;">Confirmar voto</button>
+      </div>
+    </div>
+
+    <p class="footer-links muted" style="display:none" hidden><a href="/votacao/">Portal geral de votação</a></p>
+  </div>
+
+  <script>
+    const API = '/api/votacao';
+    const slug = (location.pathname.match(/\/votacao\/p\/([^/]+)/) || [])[1] || '';
+    const storageKey = `votacao_${slug}`;
+    const S = {
+      pleito: null,
+      accessToken: localStorage.getItem(`${storageKey}_access`) || '',
+      refreshToken: localStorage.getItem(`${storageKey}_refresh`) || '',
+      votationId: null,
+      ballot: [],
+      choices: {},
+      step: 1,
+      unlocked: false,
+    };
+    const el = (id) => document.getElementById(id);
+
+    function fmtDate(d) {
+      return new Date(d).toLocaleString('pt-BR');
+    }
+
+    function applyTheme(color) {
+      document.documentElement.style.setProperty('--primary', color || '#1e3a8a');
+    }
+
+    async function api(path, opts = {}, auth = true) {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (auth && S.accessToken) headers.Authorization = `Bearer ${S.accessToken}`;
+      const r = await fetch(`${API}${path}`, { ...opts, headers });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const err = new Error(data.message || `Erro ${r.status}`);
+        err.reason = data.reason;
+        err.status = r.status;
+        throw err;
+      }
+      return data;
+    }
+
+    async function loadLanding() {
+      if (!slug) {
+        el('pleitoTitle').textContent = 'Pleito não encontrado';
+        return;
+      }
+      const data = await api(`/pleitos/${slug}`, {}, false);
+      S.pleito = data;
+      S.votationId = data.id;
+      document.title = data.title;
+      applyTheme(data.themeColor);
+      el('pleitoTitle').textContent = data.title;
+      el('pleitoDesc').textContent = data.description || '';
+      el('pleitoPeriodo').textContent = `Período: ${fmtDate(data.startDate)} até ${fmtDate(data.endDate)}`;
+      if (data.voterInstructions) {
+        el('instructionsBlock').style.display = 'block';
+        el('pleitoInstructions').textContent = data.voterInstructions;
+      }
+      const badge = el('statusBadge');
+      const startMs = data.startDate ? new Date(data.startDate).getTime() : 0;
+      const endMs = data.endDate ? new Date(data.endDate).getTime() : 0;
+      const nowMs = Date.now();
+      const waitingStart = data.status === 'active' && startMs && nowMs < startMs;
+      const afterEnd = data.status === 'active' && endMs && nowMs > endMs;
+
+      if (data.votingOpen) {
+        badge.textContent = 'Votação aberta';
+        badge.className = 'badge open';
+      } else if (data.status === 'closed' || afterEnd) {
+        badge.textContent = 'Pleito encerrado';
+        badge.className = 'badge closed';
+      } else if (waitingStart) {
+        badge.textContent = 'Aguardando início';
+        badge.className = 'badge';
+      } else if (data.status === 'draft') {
+        badge.textContent = 'Em preparação';
+        badge.className = 'badge';
+      } else {
+        badge.textContent = 'Fora do período';
+        badge.className = 'badge';
+      }
+      if (data.bannerUrl) {
+        el('bannerImg').src = data.bannerUrl;
+        el('bannerWrap').style.display = 'block';
+        el('pageHero').classList.add('has-banner');
+      }
+      if (!data.votingOpen) {
+        el('btnUnlock').disabled = true;
+        if (data.status === 'draft') {
+          el('unlockMsg').textContent = 'Este pleito ainda não foi publicado para votação.';
+        } else if (data.status === 'closed' || afterEnd) {
+          el('unlockMsg').textContent = 'A votação foi encerrada. Consulte o resultado abaixo.';
+        } else if (waitingStart) {
+          el('unlockMsg').textContent =
+            `A votação se inicia às ${fmtDate(data.startDate)}. Aguarde o horário oficial para votar.`;
+        } else {
+          el('unlockMsg').textContent = 'A votação não está disponível no momento.';
+        }
+        if (data.status === 'closed' || afterEnd) {
+          el('unlockCard').style.display = 'none';
+          await loadResults();
+        }
+      }
+    }
+
+    async function loadResults() {
+      try {
+        const data = await api(`/votacoes/${S.votationId}/resultado-v2`, {}, false);
+        el('resultsCard').style.display = 'block';
+        el('resultsMeta').textContent = data.partial
+          ? 'Apuração parcial.'
+          : `Participantes: ${data.participants || 0} · Aptos: ${data.eligibleVoters || 0}`;
+        const cats = data.categories || [];
+        el('resultsBody').innerHTML = cats.map((cat) => {
+          const winnersCount = cat.winnersCount || 1;
+          const winners = cat.winners || (cat.candidates || []).filter((c) => c.isWinner);
+          const winnersHtml = winners.length
+            ? `<p style="margin:8px 0;color:#0f766e;"><strong>Eleitos (top ${winnersCount}):</strong> ${
+                winners.map((c) => `${c.place || ''}º ${c.number != null ? c.number + ' — ' : ''}${c.name}`).join(' · ')
+              }</p>`
+            : '';
+          const candHtml = (cat.candidates || []).map((c) => `
+            <div style="margin:8px 0;">
+              <div style="display:flex;justify-content:space-between;gap:8px;">
+                <span><strong>${c.number != null ? c.number + ' — ' : ''}${c.name}</strong>${c.isWinner ? ' ✓' : ''}</span>
+                <span>${c.votes} (${c.percent}%)</span>
+              </div>
+              <div class="bar"><span style="width:${Math.min(100, c.percent || 0)}%;background:${c.isWinner ? 'var(--ok,#0f766e)' : 'var(--primary)'}"></span></div>
+            </div>
+          `).join('');
+          return `
+            <div class="results-cat">
+              <strong>${cat.name}</strong>
+              <span class="muted"> · elege ${winnersCount}</span>
+              ${winnersHtml}
+              ${candHtml || '<p class="muted">Sem votos nominais.</p>'}
+              <p class="muted" style="margin:8px 0 0;">Brancos: ${cat.blank || 0} · Nulos: ${cat.null || 0}</p>
+            </div>
+          `;
+        }).join('') || '<p class="muted">Sem dados de apuração.</p>';
+        if (location.hash === '#resultado') {
+          el('resultado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (e) {
+        el('resultsCard').style.display = 'block';
+        el('resultsMeta').textContent = e.message || 'Resultado indisponível.';
+      }
+    }
+
+    function clearSession() {
+      S.accessToken = '';
+      S.refreshToken = '';
+      S.unlocked = false;
+      S.ballot = [];
+      S.choices = {};
+      localStorage.removeItem(`${storageKey}_access`);
+      localStorage.removeItem(`${storageKey}_refresh`);
+    }
+
+    function isAuthError(e) {
+      if (e?.status === 401) return true;
+      const msg = String(e?.message || '').toLowerCase();
+      return msg.includes('sessão') || msg.includes('token') || msg.includes('login');
+    }
+
+    function returnToUnlock(message) {
+      clearSession();
+      el('ballotCard').style.display = 'none';
+      el('ballotBody').innerHTML = '';
+      el('reviewBody').innerHTML = '';
+      el('ballotMsg').textContent = '';
+      el('welcomeMsg').textContent = '';
+      el('ballotActions').style.display = 'flex';
+      setStep(1);
+      el('unlockCard').style.display = 'block';
+      el('btnUnlock').disabled = !S.pleito?.votingOpen;
+      if (message) {
+        el('unlockMsg').innerHTML = `<span class="danger">${message}</span>`;
+      }
+      el('unlockCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showUnlocked(nome) {
+      S.unlocked = true;
+      el('unlockCard').style.display = 'none';
+      el('ballotCard').style.display = 'block';
+      el('welcomeMsg').textContent = nome ? `Bem-vindo(a), ${nome}.` : '';
+    }
+
+    async function unlock() {
+      const cpf = el('cpf').value.trim();
+      const whatsapp = el('whatsapp')?.value?.trim() || '';
+      const email = el('email')?.value?.trim() || '';
+      if (!cpf) { el('unlockMsg').textContent = 'Informe seu CPF.'; return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        el('unlockMsg').textContent = 'Informe um e-mail válido ou deixe o campo em branco.';
+        return;
+      }
+      el('unlockMsg').textContent = 'Validando...';
+      el('btnUnlock').disabled = true;
+      try {
+        const data = await api(`/pleitos/${slug}/unlock`, {
+          method: 'POST',
+          body: JSON.stringify({ cpf, whatsapp, email }),
+        }, false);
+        S.accessToken = data.accessToken;
+        S.refreshToken = data.refreshToken;
+        S.votationId = data.votationId;
+        localStorage.setItem(`${storageKey}_access`, data.accessToken);
+        localStorage.setItem(`${storageKey}_refresh`, data.refreshToken);
+        showUnlocked(data.nome);
+        await openBallot();
+      } catch (e) {
+        if (e.status === 409 && e.reason === 'already_voted') {
+          el('unlockMsg').innerHTML = '<span class="danger">Você já registrou seu voto neste pleito.</span>';
+          el('btnUnlock').disabled = true;
+          return;
+        }
+        el('unlockMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+        el('btnUnlock').disabled = !S.pleito?.votingOpen;
+      }
+    }
+
+    function setStep(n) {
+      S.step = n;
+      ['st1','st2','st3'].forEach((id, i) => el(id).classList.toggle('on', i + 1 === n));
+      el('ballotBody').style.display = n === 1 ? 'block' : 'none';
+      el('reviewBody').style.display = n === 2 ? 'block' : 'none';
+      el('confirmBody').style.display = n === 3 ? 'block' : 'none';
+      el('btnReview').style.display = n === 1 ? 'inline-block' : 'none';
+      el('btnBack').style.display = n === 2 ? 'inline-block' : 'none';
+      el('btnConfirm').style.display = n === 2 ? 'inline-block' : 'none';
+    }
+
+    function choiceLabel(cat, choice) {
+      if (choice.voteType === 'blank') return 'Voto em branco';
+      if (choice.voteType === 'null') return 'Voto nulo';
+      const c = (cat.candidates || []).find((x) => x.id === choice.candidateId);
+      return c ? `${c.number} — ${c.name}` : 'Candidato';
+    }
+
+    function normalizeCandidateSearch(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    function filterCandidates(catId, value) {
+      const category = S.ballot.find((cat) => cat.id === catId);
+      if (!category) return;
+      const term = normalizeCandidateSearch(value);
+      let visible = 0;
+      document.querySelectorAll(`[data-candidate-category="${catId}"]`).forEach((option) => {
+        const candidateId = option.getAttribute('data-candidate-id');
+        const candidate = (category.candidates || []).find((item) => item.id === candidateId);
+        const matches = !term || normalizeCandidateSearch(candidate?.name).includes(term);
+        option.style.display = matches ? 'flex' : 'none';
+        if (matches) visible += 1;
+      });
+      const count = el(`candidateCount_${catId}`);
+      if (count) count.textContent = term
+        ? `${visible} candidato(s) encontrado(s)`
+        : `${(category.candidates || []).length} candidato(s)`;
+      const empty = el(`candidateEmpty_${catId}`);
+      if (empty) empty.style.display = visible ? 'none' : 'block';
+    }
+
+    function renderBallot() {
+      el('ballotBody').innerHTML = S.ballot.map((cat) => `
+        <div class="category">
+          <h3>${cat.name}</h3>
+          ${cat.description ? `<p class="muted">${cat.description}</p>` : ''}
+          ${(cat.candidates || []).length > 20 ? `
+            <div class="candidate-search">
+              <label for="candidateSearch_${cat.id}">Pesquisar candidato por nome</label>
+              <input id="candidateSearch_${cat.id}" type="search" autocomplete="off"
+                placeholder="Digite o nome do candidato"
+                oninput="filterCandidates('${cat.id}', this.value)" />
+              <p class="muted candidate-search-count" id="candidateCount_${cat.id}">${(cat.candidates || []).length} candidato(s)</p>
+            </div>
+          ` : ''}
+          ${(cat.candidates || []).map((c) => `
+            <label class="opt cand-line" data-candidate-category="${cat.id}" data-candidate-id="${c.id}">
+              <input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'candidate', '${c.id}')" />
+              ${c.photoUrl ? `<img class="cand-photo" src="${c.photoUrl}" alt="" />` : ''}
+              <span><strong>${c.number}</strong> — ${c.name}</span>
+            </label>
+          `).join('')}
+          ${(cat.candidates || []).length > 20 ? `<p class="muted candidate-empty" id="candidateEmpty_${cat.id}">Nenhum candidato encontrado com esse nome.</p>` : ''}
+          <label class="opt"><input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'blank')" /> Voto em branco</label>
+          <label class="opt"><input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'null')" /> Voto nulo</label>
+        </div>
+      `).join('');
+      updateReviewBtn();
+    }
+
+    function pick(catId, voteType, candidateId) {
+      S.choices[catId] = { categoryId: catId, voteType, candidateId: candidateId || null };
+      updateReviewBtn();
+    }
+
+    function updateReviewBtn() {
+      el('btnReview').disabled = !S.ballot.every((c) => S.choices[c.id]);
+    }
+
+    function renderChoicesSummary(targetId, footerHtml) {
+      const host = el(targetId);
+      if (!S.ballot.length) { host.innerHTML = ''; return; }
+      const rows = S.ballot.map((cat) => {
+        const ch = S.choices[cat.id];
+        if (!ch) return '';
+        let detail = choiceLabel(cat, ch);
+        if (ch.voteType === 'candidate') {
+          const c = (cat.candidates || []).find((x) => x.id === ch.candidateId);
+          if (c?.photoUrl) {
+            detail = `<span class="cand-line">${c.photoUrl ? `<img class="cand-photo" src="${c.photoUrl}" alt="" />` : ''}<strong>${choiceLabel(cat, ch)}</strong></span>`;
+          }
+        }
+        return `<div class="review-row"><span>${cat.name}</span><div>${detail}</div></div>`;
+      }).join('');
+      host.innerHTML = rows + (footerHtml || '');
+    }
+
+    function renderReview() {
+      renderChoicesSummary('reviewBody', '<p class="muted" style="margin-top:12px;">Confira suas escolhas. Após confirmar, não será possível alterar.</p>');
+    }
+
+    function renderConfirmSummary() {
+      renderChoicesSummary(
+        'confirmSummary',
+        '<p class="muted" style="margin-top:12px;text-align:center;">Obrigado pela participação. Seu voto foi registrado com sigilo.</p>'
+      );
+    }
+
+    async function openBallot() {
+      setStep(1);
+      el('ballotMsg').textContent = 'Carregando cédula...';
+      try {
+        const status = await api(`/votacoes/${S.votationId}/status`);
+        if (status.voted) {
+          setStep(3);
+          el('ballotBody').innerHTML = '';
+          el('reviewBody').style.display = 'none';
+          el('ballotActions').style.display = 'none';
+          el('ballotMsg').innerHTML = '<span class="ok">Seu voto já foi registrado neste pleito.</span>';
+          return;
+        }
+        const data = await api(`/votacoes/${S.votationId}/ballot`);
+        S.ballot = data.ballot || [];
+        S.choices = {};
+        renderBallot();
+        el('ballotActions').style.display = 'flex';
+        el('ballotMsg').textContent = '';
+      } catch (e) {
+        if (isAuthError(e)) {
+          returnToUnlock(e.message || 'Sessão expirada. Informe seu CPF novamente.');
+          return;
+        }
+        el('ballotMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    async function confirmVote() {
+      el('ballotMsg').textContent = 'Registrando voto...';
+      try {
+        const choices = S.ballot.map((c) => S.choices[c.id]);
+        await api(`/votacoes/${S.votationId}/ballot`, { method: 'POST', body: JSON.stringify({ choices }) });
+        renderConfirmSummary();
+        setStep(3);
+        el('ballotActions').style.display = 'none';
+        el('ballotMsg').innerHTML =
+          '<span class="ok">Voto registrado. Se informou WhatsApp, o canhoto será enviado em instantes.</span>';
+        clearSession();
+      } catch (e) {
+        if (e.status === 409) {
+          setStep(3);
+          el('ballotActions').style.display = 'none';
+          el('ballotMsg').innerHTML = '<span class="ok">Seu voto já foi registrado neste pleito.</span>';
+          clearSession();
+          return;
+        }
+        if (isAuthError(e)) {
+          returnToUnlock(e.message || 'Sessão expirada. Informe seu CPF novamente.');
+          return;
+        }
+        el('ballotMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    window.pick = pick;
+    window.filterCandidates = filterCandidates;
+
+    el('btnUnlock').addEventListener('click', unlock);
+    el('btnReview').addEventListener('click', () => { renderReview(); setStep(2); });
+    el('btnBack').addEventListener('click', () => setStep(1));
+    el('btnConfirm').addEventListener('click', confirmVote);
+
+    loadLanding().then(async () => {
+      if (S.accessToken && S.pleito?.votingOpen) {
+        showUnlocked('');
+        await openBallot();
+      }
+    }).catch((e) => {
+      el('pleitoTitle').textContent = 'Pleito não encontrado';
+      el('unlockMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      el('btnUnlock').disabled = true;
+    });
+  </script>
+</body>
+</html>

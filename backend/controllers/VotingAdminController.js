@@ -32,7 +32,7 @@ function csvEscape(s) {
 module.exports = {
   async createVotation(req, res) {
     try {
-      const { title, description, startDate, endDate, status, allowPartialResults } = req.body || {}
+      const { title, description, startDate, endDate, status, allowPartialResults, electorateBaseId } = req.body || {}
       if (!title) return res.status(422).json({ message: 'Título obrigatório.' })
       const start = startDate ? new Date(startDate) : null
       const end = endDate ? new Date(endDate) : null
@@ -41,6 +41,13 @@ module.exports = {
       }
       if (end <= start) return res.status(422).json({ message: 'Data fim deve ser após início.' })
       const slug = await buildVotationSlug(Votation, title)
+      const VotingElectorateBase = require('../models/VotingElectorateBase')
+      let selectedBaseId
+      if (electorateBaseId && electorateBaseId !== 'legacy-servidores') {
+        const selected = await VotingElectorateBase.findOne({ _id: electorateBaseId, status: 'active' })
+        if (!selected) return res.status(422).json({ message: 'Base eleitoral inválida.' })
+        selectedBaseId = selected._id
+      }
       const doc = await Votation.create({
         title: String(title).trim(),
         description: String(description || '').trim(),
@@ -49,6 +56,7 @@ module.exports = {
         status: status || 'draft',
         allowPartialResults: !!allowPartialResults,
         slug,
+        ...(selectedBaseId ? { electorateBaseId: selectedBaseId } : {}),
       })
       void recordVoteEvent(req, {
         action: 'admin.votation_create',
@@ -107,7 +115,9 @@ module.exports = {
         eventType: 'VIEW',
         meta: { candidateCount: candidates.length },
       })
-      return res.json({ votation: v, candidates })
+      const VotingElectorateBase = require('../models/VotingElectorateBase')
+      const base = v.electorateBaseId ? await VotingElectorateBase.findById(v.electorateBaseId).lean() : null
+      return res.json({ votation: v, candidates, electorateBase: base ? { id: String(base._id), name: base.name, type: base.type } : { id: 'legacy-servidores', name: 'Servidores públicos municipais', type: 'legacy_servidores' } })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao carregar.' })
     }
@@ -152,10 +162,23 @@ module.exports = {
       if (themeColor != null) v.themeColor = normalizeThemeColor(themeColor)
       if (whatsappNotifyEnabled != null) v.whatsappNotifyEnabled = !!whatsappNotifyEnabled
       if (req.file) v.bannerUrl = votingBannerPublicUrl(req.file.filename)
+      if (status && status !== before.status) {
+        const allowed = {
+          draft: ['test'],
+          test: ['draft'],
+          ready: ['active', 'draft'],
+          active: ['closed'],
+          closed: [],
+        }
+        if (!(allowed[before.status] || []).includes(status)) {
+          return res.status(422).json({
+            message: `Transição de ${before.status} para ${status} não permitida. Use “Preparar votação oficial” para sair do modo de teste.`,
+          })
+        }
+      }
       if (v.endDate <= v.startDate) {
         return res.status(422).json({ message: 'Data fim deve ser após início.' })
       }
-      const closedNow = status === 'closed' && before.status !== 'closed'
       await v.save()
       void recordVoteEvent(req, {
         votationId: v._id,
@@ -188,21 +211,9 @@ module.exports = {
         eventType: status && status !== before.status ? 'UPDATE' : 'UPDATE',
       })
 
-      let whatsappClosed = null
-      if (closedNow) {
-        try {
-          const { notifyElectionClosed } = require('../helpers/votacao-notifier')
-          whatsappClosed = await notifyElectionClosed({ votation: v.toObject() })
-        } catch (err) {
-          console.error('[VotingAdmin.patchVotation] whatsapp closed:', err?.message || err)
-          whatsappClosed = { error: true, message: err?.message || String(err) }
-        }
-      }
-
       return res.json({
         votation: v,
         landingUrl: v.slug ? landingPath(v.slug) : null,
-        whatsappClosed,
       })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao atualizar.' })
@@ -421,7 +432,10 @@ module.exports = {
    * Query/body `force=1` remove as chaves de idempotência `closed` do pleito
    * (necessário quando o job foi enfileirado mas a Evolution falhou com Connection Closed).
    */
-  async notifyClosedWhatsapp(req, res) {
+  /* Encerramento não possui notificação. Mantido fora da API deliberadamente. */
+  async _removedNotifyClosedWhatsapp(req, res) {
+    return res.status(410).json({ message: 'Notificação de encerramento desativada.' })
+    /*
     try {
       const v = await Votation.findById(req.params.id)
       if (!v) return res.status(404).json({ message: 'Votação não encontrada.' })
@@ -448,8 +462,8 @@ module.exports = {
         cleared = del?.deletedCount || 0
       }
 
-      const { notifyElectionClosed } = require('../helpers/votacao-notifier')
-      const whatsapp = await notifyElectionClosed({ votation: v.toObject() })
+      return res.status(410).json({ message: 'Notificação de encerramento desativada.' })
+      const whatsapp = null
       void recordVoteEvent(req, {
         votationId: v._id,
         action: 'admin.notify_closed_whatsapp',
@@ -468,6 +482,74 @@ module.exports = {
     } catch (e) {
       console.error('[VotingAdmin.notifyClosedWhatsapp]', e)
       return res.status(500).json({ message: 'Erro ao notificar encerramento.' })
+    }
+    */
+  },
+
+  async prepareOfficial(req, res) {
+    try {
+      const justification = String(req.body?.justification || '').trim()
+      if (justification.length < 20) {
+        return res.status(422).json({ message: 'Informe uma justificativa com pelo menos 20 caracteres.' })
+      }
+
+      const v = await Votation.findById(req.params.id)
+      if (!v) return res.status(404).json({ message: 'Votação não encontrada.' })
+      if (v.status !== 'test') {
+        return res.status(422).json({ message: 'Somente pleitos em teste podem ser preparados para votação oficial.' })
+      }
+
+      const VotingCategory = require('../models/VotingCategory')
+      const VoterParticipation = require('../models/VoterParticipation')
+      const VotingRefreshToken = require('../models/VotingRefreshToken')
+      const VotacaoNotifyDelivery = require('../models/VotacaoNotifyDelivery')
+      const categories = await VotingCategory.find({ votationId: v._id, active: { $ne: false } }).select('_id').lean()
+      const candidates = await VotingCandidate.countDocuments({ votationId: v._id, active: { $ne: false } })
+      if (!v.bannerUrl || !categories.length || !candidates) {
+        return res.status(422).json({ message: 'Complete a capa, os cargos e os candidatos antes de preparar a votação oficial.' })
+      }
+
+      const [votes, participations, receipts, sessions] = await Promise.all([
+        Vote.countDocuments({ votationId: v._id }),
+        VoterParticipation.countDocuments({ votationId: v._id }),
+        VotacaoNotifyDelivery.countDocuments({ votationId: String(v._id), event: 'canhoto' }),
+        VotingRefreshToken.countDocuments({ votationId: v._id }),
+      ])
+      const summary = { votes, participations, receipts, sessions, justification, preparedAt: new Date() }
+
+      await Promise.all([
+        Vote.deleteMany({ votationId: v._id }),
+        VoterParticipation.deleteMany({ votationId: v._id }),
+        VotacaoNotifyDelivery.deleteMany({ votationId: String(v._id), event: 'canhoto' }),
+        VotingRefreshToken.deleteMany({ votationId: v._id }),
+      ])
+
+      v.status = 'ready'
+      v.testResetAt = summary.preparedAt
+      v.testResetBy = req.user?._id || req.user?.id
+      v.testResetSummary = summary
+      await v.save()
+
+      await recordVoteEvent(req, {
+        votationId: v._id,
+        action: 'admin.prepare_official',
+        resourceType: 'votation',
+        resourceId: v._id,
+        eventType: 'UPDATE',
+        before: { status: 'test', votes, participations, receipts, sessions },
+        after: { status: 'ready', votes: 0, participations: 0, receipts: 0, sessions: 0 },
+        fields: ['status', 'votes', 'participations', 'receipts', 'sessions'],
+        meta: { justification },
+      })
+
+      return res.json({
+        message: 'Dados de teste arquivados na auditoria. Pleito pronto para votação oficial.',
+        votation: v,
+        archivedTestSummary: summary,
+      })
+    } catch (e) {
+      console.error('[VotingAdmin.prepareOfficial]', e)
+      return res.status(500).json({ message: 'Erro ao preparar votação oficial.' })
     }
   },
 }

@@ -3,10 +3,9 @@
  * Pensado para rodar periodicamente no job-worker.
  */
 const Votation = require('../models/Votation')
-const { notifyElectionClosed } = require('./votacao-notifier')
 
 /**
- * @returns {Promise<{ checked: number, closed: Array<{ id: string, title: string, whatsapp: object }> }>}
+ * @returns {Promise<{ checked: number, closed: Array<{ id: string, title: string }> }>}
  */
 async function closeExpiredVotations({ now = new Date() } = {}) {
   const expired = await Votation.find({
@@ -25,9 +24,8 @@ async function closeExpiredVotations({ now = new Date() } = {}) {
 
     if (!updated) continue
 
-    let whatsapp = null
-    try {
-      whatsapp = await notifyElectionClosed({ votation: updated.toObject() })
+    /* O encerramento altera somente o estado do pleito. Nenhuma notificação é enviada. */
+    /*
       console.log(
         `[votacao-auto-close] Encerrado "${updated.title}" (${updated._id}) → whatsapp sent=${whatsapp?.sent ?? 0}/${whatsapp?.total ?? 0}`
       )
@@ -38,13 +36,13 @@ async function closeExpiredVotations({ now = new Date() } = {}) {
         err?.message || err
       )
     }
+    */
 
     closed.push({
       id: String(updated._id),
       title: updated.title,
       slug: updated.slug,
       endDate: updated.endDate,
-      whatsapp,
     })
   }
 

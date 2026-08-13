@@ -45,10 +45,11 @@ async function buildChoiceLines(votationId, choiceMap) {
 module.exports = {
   async ballot(req, res) {
     try {
+      if (req.votingUser.votationId && String(req.votingUser.votationId) !== String(req.params.id)) return res.status(403).json({ message: 'Sessão não autorizada para este pleito.' })
       const active = await assertElectionActive(req.params.id)
       if (active.error) return res.status(active.error.status).json({ message: active.error.message })
 
-      const participated = await hasParticipated(req.params.id, req.votingUser.sid)
+      const participated = await hasParticipated(req.params.id, req.votingUser.sid, req.votingUser.electorateType)
       if (participated) {
         return res.status(409).json({ message: 'Voto já registrado para este pleito.', voted: true })
       }
@@ -76,10 +77,12 @@ module.exports = {
 
   async submit(req, res) {
     try {
+      if (req.votingUser.votationId && String(req.votingUser.votationId) !== String(req.params.id)) return res.status(403).json({ message: 'Sessão não autorizada para este pleito.' })
       const { choices } = req.body || {}
       const result = await submitBallot({
         votationId: req.params.id,
         servidorId: req.votingUser.sid,
+        electorateType: req.votingUser.electorateType,
         choices,
       })
       if (result.error) {
@@ -99,16 +102,17 @@ module.exports = {
       // Canhoto WhatsApp e/ou e-mail (efêmero — não grava choices no comparecimento).
       void (async () => {
         try {
+          const voterQuery = req.votingUser.electorateType === 'imported'
+            ? require('../models/VotingElector').findById(req.votingUser.sid).select('name phone email').lean()
+            : VotingServidor.findById(req.votingUser.sid).select('nome whatsapp whatsappOptIn email emailOptIn').lean()
           const [votation, servidor, choiceLines] = await Promise.all([
             Votation.findById(req.params.id).lean(),
-            VotingServidor.findById(req.votingUser.sid)
-              .select('nome whatsapp whatsappOptIn email emailOptIn')
-              .lean(),
+            voterQuery,
             buildChoiceLines(req.params.id, result.choiceMap),
           ])
           await notifyBallotReceipt({
             votation,
-            servidor,
+            servidor: servidor ? { ...servidor, nome: servidor.nome || servidor.name, whatsapp: servidor.whatsapp || servidor.phone } : null,
             participationId: result.participationId,
             choiceLines,
             votedAt: result.votedAt,
@@ -132,7 +136,7 @@ module.exports = {
     try {
       const v = await Votation.findById(req.params.id).lean()
       if (!v) return res.status(404).json({ message: 'Pleito não encontrado.' })
-      const voted = await hasParticipated(v._id, req.votingUser.sid)
+      const voted = await hasParticipated(v._id, req.votingUser.sid, req.votingUser.electorateType)
       return res.json({ voted })
     } catch (e) {
       return res.status(500).json({ message: 'Erro ao consultar status.' })

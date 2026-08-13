@@ -6,6 +6,7 @@ const { nowInRange, hasParticipated } = require('../helpers/voting-election-serv
 const { issueVotingSession } = require('../helpers/voting-auth-session')
 const { landingPath } = require('../helpers/voting-slug')
 const { recordVoteEvent } = require('../helpers/vote-audit-bridge')
+const { findEligibleVoter } = require('../helpers/voting-electorate-service')
 
 function publicVotationFields(v) {
   return {
@@ -30,7 +31,7 @@ module.exports = {
       if (!vot) return res.status(404).json({ message: 'Pleito não encontrado.' })
 
       const inPeriod = nowInRange(vot)
-      const votingOpen = vot.status === 'active' && inPeriod
+      const votingOpen = vot.status === 'test' || (vot.status === 'active' && inPeriod)
 
       return res.json({
         ...publicVotationFields(vot),
@@ -51,13 +52,13 @@ module.exports = {
       const vot = await Votation.findOne({ slug })
       if (!vot) return res.status(404).json({ message: 'Pleito não encontrado.' })
 
-      if (vot.status !== 'active') {
+      if (!['test', 'active'].includes(vot.status)) {
         return res.status(403).json({
           reason: 'not_active',
           message: 'Este pleito ainda não está aberto para votação.',
         })
       }
-      if (!nowInRange(vot)) {
+      if (vot.status === 'active' && !nowInRange(vot)) {
         const now = Date.now()
         const startLabel = new Date(vot.startDate).toLocaleString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
@@ -87,9 +88,10 @@ module.exports = {
         return res.status(422).json({ reason: 'invalid_cpf', message: 'CPF inválido. Verifique os números informados.' })
       }
 
-      const doc = await VotingServidor.findOne({
-        cpfHash: computeCpfHash(cpfClean),
-        active: { $ne: false },
+      const doc = await findEligibleVoter(vot, {
+        cpf: cpfClean,
+        name: req.body?.nome,
+        identifier: req.body?.identificador,
       })
       if (!doc) {
         void recordVoteEvent(req, {
@@ -102,7 +104,7 @@ module.exports = {
         })
         return res.status(401).json({
           reason: 'not_eligible',
-          message: 'CPF não consta na lista de servidores habilitados a votar.',
+          message: 'CPF não consta na base eleitoral deste pleito.',
         })
       }
 
@@ -129,8 +131,8 @@ module.exports = {
       let dirty = false
       const phoneDigits = String(whatsapp || '').replace(/\D/g, '')
       if (phoneDigits.length >= 10) {
-        doc.whatsapp = phoneDigits
-        doc.whatsappOptIn = true
+        if (vot.electorateBaseId) doc.phone = phoneDigits
+        else { doc.whatsapp = phoneDigits; doc.whatsappOptIn = true }
         dirty = true
       }
       const emailNorm = String(email || '')
@@ -138,21 +140,26 @@ module.exports = {
         .toLowerCase()
       if (emailNorm && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
         doc.email = emailNorm
-        doc.emailOptIn = true
+        if (!vot.electorateBaseId) doc.emailOptIn = true
         dirty = true
       }
       if (dirty) await doc.save()
 
-      const session = await issueVotingSession(doc._id, doc.nome || '')
-      req.votingUser = { sid: doc._id.toString(), nome: doc.nome || '' }
+      const voterName = doc.name || doc.nome || ''
+      const electorateType = vot.electorateBaseId ? 'imported' : 'legacy_servidores'
+      const session = await issueVotingSession(doc._id, voterName, {
+        votationId: String(vot._id),
+        electorateType,
+      })
+      req.votingUser = { sid: doc._id.toString(), nome: voterName }
       void recordVoteEvent(req, {
         votationId: vot._id,
         action: 'auth.unlock_success',
         resourceType: 'servidor',
         resourceId: doc._id,
         eventType: 'LOGIN',
-        actor: { _id: doc._id, id: doc._id, name: doc.nome || 'Servidor', role: 'votacao_servidor' },
-        meta: { slug, hasWhatsapp: !!doc.whatsapp, hasEmail: !!doc.email },
+        actor: { _id: doc._id, id: doc._id, name: voterName || 'Eleitor', role: 'votacao_eleitor' },
+        meta: { slug, electorateType, hasWhatsapp: !!(doc.phone || doc.whatsapp), hasEmail: !!doc.email },
       })
 
       return res.status(200).json({
@@ -161,8 +168,8 @@ module.exports = {
         votationId: String(vot._id),
         ...session,
         pleito: publicVotationFields(vot),
-        nome: doc.nome || '',
-        needsWhatsapp: !doc.whatsapp,
+        nome: voterName,
+        needsWhatsapp: !(doc.phone || doc.whatsapp),
         needsEmail: !doc.email,
       })
     } catch (e) {

@@ -127,6 +127,21 @@ describe('votação — auditor por pleito', () => {
       .set('Authorization', `Bearer ${audToken}`)
     expect(readOk.status).toBe(200)
 
+    const detailOk = await request(getApp())
+      .get(`/votacao/admin/votacoes/${pleitoA._id}/detail`)
+      .set('Authorization', `Bearer ${audToken}`)
+    expect(detailOk.status).toBe(200)
+
+    const categoriesOk = await request(getApp())
+      .get(`/votacao/admin/votacoes/${pleitoA._id}/categories`)
+      .set('Authorization', `Bearer ${audToken}`)
+    expect(categoriesOk.status).toBe(200)
+
+    const tallyOk = await request(getApp())
+      .get(`/votacao/admin/votacoes/${pleitoA._id}/resultado-v2`)
+      .set('Authorization', `Bearer ${audToken}`)
+    expect(tallyOk.status).toBe(200)
+
     const readDenied = await request(getApp())
       .get(`/votacao/admin/votacoes/${pleitoB._id}`)
       .set('Authorization', `Bearer ${audToken}`)
@@ -152,6 +167,11 @@ describe('votação — auditor por pleito', () => {
       .get('/votacao/admin/servidores')
       .set('Authorization', `Bearer ${audToken}`)
     expect(eleitoresDenied.status).toBe(403)
+
+    const exportDenied = await request(getApp())
+      .get(`/votacao/admin/votacoes/${pleitoA._id}/export-comparecimento.csv`)
+      .set('Authorization', `Bearer ${audToken}`)
+    expect(exportDenied.status).toBe(403)
 
     const inviteDenied = await request(getApp())
       .post(`/votacao/admin/votacoes/${pleitoA._id}/auditores`)
@@ -247,6 +267,44 @@ describe('votação — auditor por pleito', () => {
     expect(list.status).toBe(200)
     expect(list.body.items).toHaveLength(1)
     expect(list.body.items[0].status).toBe('active')
+  })
+
+  test('gestor redefine a senha do auditor com justificativa e exibição única', async () => {
+    const admin = await createVerifiedUser({
+      email: 'semit-gestor-reset@test.local',
+      role: 'admin-votacao',
+    })
+    const adminToken = bearerToken(admin)
+    const pleito = await createPleito(adminToken, 'Pleito Redefinição')
+    const invite = await request(getApp())
+      .post(`/votacao/admin/votacoes/${pleito._id}/auditores`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        email: 'auditor.reset@test.local',
+        name: 'Auditor Reset',
+        justification: 'Designação formal para validar a redefinição segura de senha.',
+      })
+    expect(invite.status).toBe(201)
+
+    const shortReason = await request(getApp())
+      .post(`/votacao/admin/votacoes/${pleito._id}/auditores/${invite.body.membership.id}/reset-password`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ justification: 'esqueci' })
+    expect(shortReason.status).toBe(422)
+
+    const reset = await request(getApp())
+      .post(`/votacao/admin/votacoes/${pleito._id}/auditores/${invite.body.membership.id}/reset-password`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ justification: 'Solicitação formal do auditor por perda da credencial anterior.' })
+    expect(reset.status).toBe(200)
+    expect(reset.body.temporaryPassword).toBeTruthy()
+    expect(reset.body.temporaryPassword).not.toBe(invite.body.temporaryPassword)
+
+    const user = await User.findOne({ email: 'auditor.reset@test.local' })
+    expect(await require('bcrypt').compare(reset.body.temporaryPassword, user.password)).toBe(true)
+    expect(await require('bcrypt').compare(invite.body.temporaryPassword, user.password)).toBe(false)
+    const audit = await waitForAudit({ action: 'votacao.admin.auditor_password_reset' })
+    expect(audit).toBeTruthy()
   })
 
   test('não rebaixa admin-votacao nem altera perfil incompatível', async () => {

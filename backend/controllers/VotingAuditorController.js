@@ -306,4 +306,58 @@ module.exports = class VotingAuditorController {
       return res.status(500).json({ message: 'Erro ao revogar auditor.' })
     }
   }
+
+  /** Gera uma nova senha temporária para uma conta dedicada de auditor. */
+  static async resetPassword(req, res) {
+    try {
+      const vot = await Votation.findById(req.params.id)
+      if (!vot) return res.status(404).json({ message: 'Pleito não encontrado.' })
+
+      const membership = await VotingPleitoMembership.findOne({
+        _id: req.params.membershipId,
+        votationId: vot._id,
+        role: 'auditor',
+      })
+      if (!membership) return res.status(404).json({ message: 'Vínculo não encontrado.' })
+
+      const justification = String(req.body?.justification || '').trim()
+      if (justification.length < 20) {
+        return res.status(422).json({
+          message: 'Informe uma justificativa com pelo menos 20 caracteres.',
+        })
+      }
+
+      const user = await User.findById(membership.userId)
+      if (!user) return res.status(404).json({ message: 'Usuário do auditor não encontrado.' })
+      if (user.role !== VOTING_AUDITOR_ROLE) {
+        return res.status(422).json({
+          message: 'A senha de administradores ou de outros perfis deve ser redefinida na gestão central de usuários.',
+        })
+      }
+
+      const temporaryPassword = generateTempPassword()
+      user.password = await bcrypt.hash(temporaryPassword, 12)
+      await user.save()
+
+      void recordVoteEvent(req, {
+        votationId: vot._id,
+        action: 'admin.auditor_password_reset',
+        resourceType: 'user',
+        resourceId: user._id,
+        eventType: 'SECURITY',
+        meta: {
+          membershipId: String(membership._id),
+          justification,
+        },
+      })
+
+      return res.json({
+        message: 'Senha temporária gerada. Ela será exibida somente nesta resposta.',
+        temporaryPassword,
+      })
+    } catch (e) {
+      console.error('[VotingAuditor.resetPassword]', e)
+      return res.status(500).json({ message: 'Erro ao redefinir senha do auditor.' })
+    }
+  }
 }

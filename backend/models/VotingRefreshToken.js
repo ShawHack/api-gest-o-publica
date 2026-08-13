@@ -3,7 +3,9 @@ const { Schema } = mongoose
 
 const VotingRefreshTokenSchema = new Schema(
   {
-    servidorId: { type: Schema.Types.ObjectId, ref: 'VotingServidor', required: true, index: true },
+    servidorId: { type: Schema.Types.ObjectId, required: true, index: true },
+    votationId: { type: Schema.Types.ObjectId, ref: 'Votation' },
+    electorateType: { type: String, enum: ['legacy_servidores', 'imported'], default: 'legacy_servidores' },
     tokenHash: { type: String, required: true, unique: true },
     expiresAt: { type: Date, required: true },
   },

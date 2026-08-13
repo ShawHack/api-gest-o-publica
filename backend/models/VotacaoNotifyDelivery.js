@@ -5,7 +5,6 @@ const { Schema } = mongoose
  * Idempotência de notificações WhatsApp do módulo votação.
  * Chaves típicas:
  *   `{participationId}:canhoto:whatsapp`
- *   `{votationId}:closed:{servidorId}:whatsapp`
  */
 const VotacaoNotifyDeliverySchema = new Schema(
   {
