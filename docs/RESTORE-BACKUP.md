@@ -1,15 +1,71 @@
-# Restauração de backup — API-SEMIT
+# Restauração de backup — API SEMIT
 
-Procedimento para homologação ou desastre. Os comandos destrutivos estão identificados e exigem autorização explícita.
+Dois caminhos: **mesmo servidor** (incidente local) e **host novo** (desastre).
+Os comandos destrutivos exigem autorização explícita.
 
-## Localização e objetivo
+## O que o backup diário passa a incluir
 
-- Repositório: `/home/semit/Documentos/api-gestao-publica`
-- Backups: `/home/semit/Documentos/backups-completos/YYYY-MM-DD_HH-MM-SS/`
-- Agendamento: diariamente às **01:15** (`crontab` do usuário `semit`)
-- RPO nominal: até 24 horas; RTO de referência: 2–8 horas
+- Código do projeto e da API
+- Dump MongoDB (`apicemiterio`, `govcidadao`, `semit`, `teatro_db`)
+- Uploads (`/data/apicemiterio`)
+- Frontend publicado, Nginx, certificados Let's Encrypt
+- **Segredos em arquivo real** (`full/secrets/`, permissão 600) — não é mais symlink
+- Árvore `runtime/` (assets + secrets)
+- Persistência Redis
+- Imagens Docker (`docker-images-*.tar.gz`) para subir sem rebuild
+- `inventory.json` (compose, volumes, commit)
 
-## 1. Validação sem alterar produção
+Agendamento: **01:15** no crontab do usuário `semit`.  
+RPO nominal: até 24 h. Retenção local: **3 gerações**.
+
+Pasta: `~/Documentos/backups-completos/YYYY-MM-DD_HH-MM-SS/`
+
+## A. Desastre — subir em outro servidor
+
+Requisitos no host novo: Docker Engine + plugin Compose, `rsync`, espaço livre
+(cerca de 15–20 GB além do tamanho do backup).
+
+1. Copie a pasta do backup (payload `.tar.gz` **e** `docker-images-*.tar.gz` + `.sha256`).
+2. Confira os checksums:
+
+```bash
+cd /caminho/do/backup
+sha256sum -c api-semit-backup-*.tar.gz.sha256
+sha256sum -c docker-images-*.tar.gz.sha256
+tar -tzf api-semit-backup-*.tar.gz >/dev/null
+```
+
+3. Extraia o payload se a pasta `full/` ainda não existir:
+
+```bash
+tar -xzf api-semit-backup-*.tar.gz
+```
+
+4. Restaure (destrutivo no destino):
+
+```bash
+# No servidor NOVO — recusa rodar no hostname SEMIT
+bash /caminho/do/projeto/scripts/restore-host-novo.sh \
+  --backup-dir /caminho/do/backup \
+  --target "$HOME/Documentos/api-gestao-publica" \
+  --runtime "$HOME/runtime/api-gestao-publica" \
+  --iniciar \
+  --eu-autorizo-restore
+```
+
+O script: carrega imagens, recria projeto e runtime, inicia `rs0`,
+`mongorestore --drop`, devolve uploads/Redis/TLS e sobe a stack.
+
+5. DNS: aponte `api.garca.sp.gov.br` para o IP novo. Confira:
+
+```bash
+curl -fsS http://127.0.0.1:5000/readyz
+curl -fsS https://api.garca.sp.gov.br/health
+```
+
+6. Teste login admin e uma foto de sepultado/pet.
+
+## B. Mesmo servidor (homologação / rollback de dados)
 
 ```bash
 cd /home/semit/Documentos/api-gestao-publica
@@ -17,55 +73,25 @@ BASE_DIR=/home/semit/Documentos/backups-completos bash scripts/verificar-backup.
 UPDATE_LOG=1 bash scripts/teste-restore-homologacao.sh
 ```
 
-O segundo comando cria um Mongo temporário sem rede, restaura e consulta o conteúdo, depois remove o contêiner. Não usa o Mongo de produção.
+O segundo comando usa Mongo temporário e **não** altera produção.
 
-## 2. Preparação para desastre
-
-1. Registre o backup escolhido e seu tamanho.
-2. Confirme espaço livre e guarde uma cópia do estado atual antes de sobrescrever dados.
-3. Abra janela de manutenção e bloqueie escritas.
+Restore destrutivo no Mongo de produção (só com autorização):
 
 ```bash
-cd /home/semit/Documentos/api-gestao-publica
 docker compose stop api govcidadao-api job-worker email-worker
-```
-
-## 3. Restaurar MongoDB — destrutivo
-
-Substitua `<DATA>` por uma pasta já validada. `mongorestore --drop` apaga as coleções atuais; execute somente com autorização.
-
-```bash
 BACKUP_DIR="/home/semit/Documentos/backups-completos/<DATA>/full/mongo/backup"
 docker cp "$BACKUP_DIR/." mongo:/data/restore_dump/
 docker exec mongo mongorestore --drop /data/restore_dump
+docker compose start api govcidadao-api job-worker email-worker
 ```
 
-## 4. Restaurar uploads
+## Segurança
 
-Descubra primeiro o volume real, sem presumir o prefixo:
-
-```bash
-docker inspect api --format '{{range .Mounts}}{{println .Name "->" .Destination}}{{end}}'
-```
-
-Depois copie `full/images/` para o destino exibido para `/data/apicemiterio`, preservando antes uma cópia do volume atual.
-
-## 5. Código, configuração e certificados
-
-Use `full/project/`, `full/project-root/`, `full/nginx/` e `full/letsencrypt/` como fontes. Compare antes de copiar; variáveis de ambiente e certificados contêm segredos. Recrie os serviços com o `docker-compose.yml` restaurado somente após validar caminhos, volumes e imagens.
-
-## 6. Subir e validar
-
-```bash
-cd /home/semit/Documentos/api-gestao-publica
-docker compose up -d
-bash scripts/uptime-check.sh
-curl -fsS https://api.garca.sp.gov.br/readyz
-docker exec mongo mongosh --quiet --eval 'print(db.getSiblingDB("apicemiterio").users.countDocuments())'
-```
-
-Também valide login administrativo e ao menos uma imagem em cada área crítica.
+- Diretórios de backup `700`; tar, segredos e env dumps `600`.
+- Não publique `full/secrets/` nem `env_runtime_api.txt` em repositório Git.
+- Mantenha a cópia Windows (recibo SHA-256) **e** as 3 gerações locais.
 
 ## Rollback
 
-Se falhar, mantenha os serviços de escrita parados. Restaure a cópia prévia do banco/volume ou repita com o backup validado imediatamente anterior. Não apague o backup que falhou nem os logs; registre o incidente em `docs/RESTORE-BACKUP-LOG.md`.
+Se o restore falhar, não apague o backup nem os logs. Use a geração
+anterior em `backups-completos/` e registre em `docs/RESTORE-BACKUP-LOG.md`.
