@@ -16,3 +16,4 @@
 ```
 
 Ver procedimento completo: [RESTORE-BACKUP.md](./RESTORE-BACKUP.md).
+| 2026-08-18 | teste automatizado | `2026-08-18_01-15-01` | 27s | **OK** | Mongo isolado (`mongo:6`); databases=4 collections=92 documents=149784 |

@@ -11,6 +11,8 @@ const PnabCycleSchema = new mongoose.Schema({
   descricao: { type: String, trim: true },
   bannerUrl: { type: String },
   imagemUrl: { type: String },
+  /** Link “Consulte a Lei neste Link” na página pública do ciclo. */
+  linkOficial: { type: String, trim: true, default: '' },
   dataInicio: { type: Date },
   dataFim: { type: Date },
   /** Anos de execução/repasse abrangidos (rótulos livres). */

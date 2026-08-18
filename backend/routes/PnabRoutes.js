@@ -72,6 +72,7 @@ router.post('/ciclos', ...adminChain, async (req, res) => {
       descricao,
       bannerUrl,
       imagemUrl,
+      linkOficial,
       dataInicio,
       dataFim,
       anosAbrangidos,
@@ -115,6 +116,7 @@ router.post('/ciclos', ...adminChain, async (req, res) => {
       if (descricao !== undefined) trashed.descricao = descricao
       if (bannerUrl !== undefined) trashed.bannerUrl = bannerUrl
       if (imagemUrl !== undefined) trashed.imagemUrl = imagemUrl
+      if (linkOficial !== undefined) trashed.linkOficial = linkOficial
       trashed.dataInicio = dataInicio ? new Date(dataInicio) : trashed.dataInicio
       trashed.dataFim = dataFim ? new Date(dataFim) : trashed.dataFim
       trashed.anosAbrangidos = anosNorm
@@ -153,6 +155,7 @@ router.post('/ciclos', ...adminChain, async (req, res) => {
       descricao,
       bannerUrl,
       imagemUrl,
+      linkOficial,
       dataInicio: dataInicio ? new Date(dataInicio) : undefined,
       dataFim: dataFim ? new Date(dataFim) : undefined,
       anosAbrangidos: anosNorm,
@@ -194,6 +197,7 @@ router.put('/ciclos/:id', ...adminChain, async (req, res) => {
       'descricao',
       'bannerUrl',
       'imagemUrl',
+      'linkOficial',
       'decretoReferencia',
       'status',
       'requisitosProximoCiclo',
@@ -361,6 +365,53 @@ router.get('/area-tipos', (_req, res) => {
 const PnabDocCategory = require('../models/PnabDocCategory')
 const { DEFAULT_DOC_CATEGORIES } = require('../helpers/pnab-doc-category-defaults')
 
+router.get('/ciclos/:id/pagina', async (req, res) => {
+  try {
+    const ciclo = await PnabCycle.findOne({ _id: req.params.id, deleted: false }).lean()
+    if (!ciclo) return res.status(404).json({ message: 'Ciclo não encontrado.' })
+
+    const cats = await PnabDocCategory.find({
+      ciclo: ciclo._id,
+      deleted: false,
+      publicado: true,
+    })
+      .sort({ ordem: 1, titulo: 1 })
+      .lean()
+
+    const catIds = cats.map((c) => c._id)
+    const docs = catIds.length
+      ? await PnabDocument.find({ categoria: { $in: catIds }, deleted: false })
+          .sort({ dataCriacao: -1 })
+          .lean()
+      : []
+
+    const byCat = {}
+    docs.forEach((doc) => {
+      const key = String(doc.categoria || '')
+      if (!byCat[key]) byCat[key] = []
+      byCat[key].push(doc)
+    })
+
+    const merged = []
+    const indexByTitle = {}
+    cats.forEach((cat) => {
+      const key = `${cat.titulo || ''}||${cat.subtitulo || ''}`
+      const documentos = byCat[String(cat._id)] || []
+      if (indexByTitle[key] == null) {
+        indexByTitle[key] = merged.length
+        merged.push({ ...cat, documentos })
+      } else {
+        merged[indexByTitle[key]].documentos = merged[indexByTitle[key]].documentos.concat(documentos)
+      }
+    })
+
+    res.json({ ciclo, categorias: merged })
+  } catch (e) {
+    console.error('[pnab.ciclo.pagina]', e)
+    res.status(500).json({ message: 'Erro ao montar página do ciclo.' })
+  }
+})
+
 // -------------------------------------------------------------------------
 // 0b. ANOS DENTRO DO CICLO + CATEGORIAS DE DOCUMENTOS (cards)
 // -------------------------------------------------------------------------
@@ -384,36 +435,66 @@ router.post('/ciclos/:cicloId/anos', ...adminChain, async (req, res) => {
     const { nome, descricao, bannerUrl, imagemUrl, status, ordem } = req.body
     if (!nome) return res.status(400).json({ message: 'Nome do ano é obrigatório.' })
 
-    const exists = await PnabYear.findOne({ nome, deleted: false })
+    const nomeNorm = String(nome).trim()
+    if (!/^\d{4}$/.test(nomeNorm)) {
+      return res.status(400).json({ message: 'Informe um ano válido com 4 dígitos (ex.: 2026).' })
+    }
+
+    const exists = await PnabYear.findOne({ nome: nomeNorm, deleted: false })
     if (exists) {
       if (exists.ciclo && String(exists.ciclo) !== String(ciclo._id)) {
         return res.status(400).json({ message: 'Este ano já está vinculado a outro ciclo.' })
       }
+      // Vincula somente este exercício ao ciclo — não altera dados de outros anos.
       exists.ciclo = ciclo._id
-      if (descricao !== undefined) exists.descricao = descricao
-      if (bannerUrl !== undefined) exists.bannerUrl = bannerUrl
-      if (imagemUrl !== undefined) exists.imagemUrl = imagemUrl
-      if (status) exists.status = status
-      if (ordem !== undefined) exists.ordem = Number(ordem) || 0
+      // Metadados: só atualiza se o cliente enviou valor explícito não vazio.
+      if (typeof descricao === 'string' && descricao.trim()) exists.descricao = descricao.trim()
+      if (typeof bannerUrl === 'string' && bannerUrl.trim()) exists.bannerUrl = bannerUrl.trim()
+      if (typeof imagemUrl === 'string' && imagemUrl.trim()) exists.imagemUrl = imagemUrl.trim()
+      if (status === 'ativo' || status === 'inativo') exists.status = status
+      if (ordem !== undefined && ordem !== null && String(ordem).trim() !== '') {
+        exists.ordem = Number(ordem) || 0
+      }
       exists.dataAtualizacao = Date.now()
       await exists.save()
-      await logPnabAudit(req, 'UPDATE', 'PnabYear', exists._id, `Vinculou ano ${nome} ao ciclo ${ciclo.nome}`)
+      await logPnabAudit(req, 'UPDATE', 'PnabYear', exists._id, `Vinculou ano ${nomeNorm} ao ciclo ${ciclo.nome}`)
       return res.json(exists)
     }
 
+    const trashed = await PnabYear.findOne({ nome: nomeNorm, deleted: true })
+    if (trashed) {
+      trashed.deleted = false
+      trashed.ciclo = ciclo._id
+      if (typeof descricao === 'string' && descricao.trim()) trashed.descricao = descricao.trim()
+      if (typeof bannerUrl === 'string' && bannerUrl.trim()) trashed.bannerUrl = bannerUrl.trim()
+      if (typeof imagemUrl === 'string' && imagemUrl.trim()) trashed.imagemUrl = imagemUrl.trim()
+      if (status === 'ativo' || status === 'inativo') trashed.status = status
+      else trashed.status = 'ativo'
+      if (ordem !== undefined && ordem !== null && String(ordem).trim() !== '') {
+        trashed.ordem = Number(ordem) || 0
+      }
+      trashed.dataAtualizacao = Date.now()
+      await trashed.save()
+      await logPnabAudit(req, 'UPDATE', 'PnabYear', trashed._id, `Restaurou e vinculou ano ${nomeNorm} ao ciclo ${ciclo.nome}`)
+      return res.status(200).json({ ...trashed.toObject(), restored: true })
+    }
+
     const year = await PnabYear.create({
-      nome: String(nome).trim(),
-      descricao,
+      nome: nomeNorm,
+      descricao: typeof descricao === 'string' ? descricao.trim() : descricao,
       bannerUrl,
       imagemUrl,
       status: status || 'ativo',
       ordem: Number(ordem) || 0,
       ciclo: ciclo._id,
     })
-    await logPnabAudit(req, 'CREATE', 'PnabYear', year._id, `Criou ano ${nome} no ciclo ${ciclo.nome}`)
+    await logPnabAudit(req, 'CREATE', 'PnabYear', year._id, `Criou ano ${nomeNorm} no ciclo ${ciclo.nome}`)
     res.status(201).json(year)
   } catch (e) {
     console.error(e)
+    if (e && (e.code === 11000 || e.code === '11000')) {
+      return res.status(400).json({ message: 'Já existe um exercício com este ano.' })
+    }
     res.status(500).json({ message: 'Erro ao cadastrar ano no ciclo.' })
   }
 })
@@ -540,7 +621,7 @@ router.post('/ciclos/:cicloId/anos/:anoId/seed-categorias', ...adminChain, async
           ciclo: ciclo._id,
           ano: ano._id,
           ...item,
-          publicado: false,
+          publicado: true,
           autor: pnabUserName(req.user),
         })
       )
@@ -565,10 +646,20 @@ router.get('/anos', async (req, res) => {
   try {
     const query = { deleted: false }
     if (req.query.ciclo) query.ciclo = req.query.ciclo
-    const list = await PnabYear.find(query).sort({ ordem: 1, nome: -1 });
+    const list = await PnabYear.find(query).sort({ nome: -1, ordem: 1 });
     res.json(list);
   } catch (e) {
     res.status(500).json({ message: 'Erro ao buscar anos.' });
+  }
+});
+
+router.get('/anos/:id', async (req, res) => {
+  try {
+    const year = await PnabYear.findOne({ _id: req.params.id, deleted: false });
+    if (!year) return res.status(404).json({ message: 'Exercício não encontrado.' });
+    res.json(year);
+  } catch (e) {
+    res.status(500).json({ message: 'Erro ao buscar exercício.' });
   }
 });
 
@@ -577,27 +668,82 @@ router.post('/anos', ...adminChain, async (req, res) => {
     const { nome, descricao, bannerUrl, imagemUrl, status, ordem, ciclo } = req.body;
     if (!nome) return res.status(400).json({ message: 'Nome é obrigatório.' });
 
-    const exists = await PnabYear.findOne({ nome, deleted: false });
-    if (exists) return res.status(400).json({ message: 'Exercício já cadastrado.' });
+    const nomeNorm = String(nome).trim()
+    if (!/^\d{4}$/.test(nomeNorm)) {
+      return res.status(400).json({ message: 'Informe um ano válido com 4 dígitos (ex.: 2026).' })
+    }
 
-    const newYear = new PnabYear({ nome, descricao, bannerUrl, imagemUrl, status, ordem, ciclo: ciclo || undefined });
+    const exists = await PnabYear.findOne({ nome: nomeNorm, deleted: false });
+    if (exists) {
+      return res.status(409).json({
+        message: 'Exercício já cadastrado para este ano. Edite o registro existente.',
+        existingId: exists._id,
+        year: exists,
+      })
+    }
+
+    const trashed = await PnabYear.findOne({ nome: nomeNorm, deleted: true })
+    if (trashed) {
+      trashed.deleted = false
+      trashed.descricao = typeof descricao === 'string' ? descricao : trashed.descricao
+      if (bannerUrl !== undefined) trashed.bannerUrl = bannerUrl
+      if (imagemUrl !== undefined) trashed.imagemUrl = imagemUrl
+      trashed.status = status === 'inativo' ? 'inativo' : 'ativo'
+      if (ordem !== undefined) trashed.ordem = Number(ordem) || 0
+      if (ciclo) trashed.ciclo = ciclo
+      trashed.dataAtualizacao = Date.now()
+      await trashed.save()
+      await logPnabAudit(req, 'UPDATE', 'PnabYear', trashed._id, `Restaurou o exercício ${nomeNorm} da lixeira`)
+      return res.status(200).json({ ...trashed.toObject(), restored: true })
+    }
+
+    const newYear = new PnabYear({
+      nome: nomeNorm,
+      descricao: typeof descricao === 'string' ? descricao : '',
+      bannerUrl,
+      imagemUrl,
+      status: status === 'inativo' ? 'inativo' : 'ativo',
+      ordem: Number(ordem) || 0,
+      ciclo: ciclo || undefined,
+    });
     await newYear.save();
 
-    await logPnabAudit(req, 'CREATE', 'PnabYear', newYear._id, `Criou o exercício ${nome}`);
+    await logPnabAudit(req, 'CREATE', 'PnabYear', newYear._id, `Criou o exercício ${nomeNorm}`);
     res.status(201).json(newYear);
   } catch (e) {
+    console.error(e)
+    if (e && (e.code === 11000 || e.code === '11000')) {
+      return res.status(400).json({
+        message: 'Já existe um exercício com este nome (inclusive na lixeira). Edite o existente ou escolha outro ano.',
+      })
+    }
     res.status(500).json({ message: 'Erro ao cadastrar ano.' });
   }
 });
 
 router.put('/anos/:id', ...adminChain, async (req, res) => {
   try {
-    const updated = await PnabYear.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Ano não encontrado.' });
+    const year = await PnabYear.findOne({ _id: req.params.id, deleted: false });
+    if (!year) return res.status(404).json({ message: 'Ano não encontrado.' });
 
-    await logPnabAudit(req, 'UPDATE', 'PnabYear', updated._id, `Atualizou o exercício ${updated.nome}`);
-    res.json(updated);
+    // Atualiza SOMENTE este documento. O nome (ano) é imutável para evitar
+    // misturar/renomear exercícios e afetar vínculos de serviços.
+    const { descricao, bannerUrl, imagemUrl, status, ordem, ciclo } = req.body;
+
+    if (descricao !== undefined) year.descricao = descricao;
+    if (bannerUrl !== undefined) year.bannerUrl = bannerUrl;
+    if (imagemUrl !== undefined) year.imagemUrl = imagemUrl;
+    if (status === 'ativo' || status === 'inativo') year.status = status;
+    if (ordem !== undefined) year.ordem = Number(ordem) || 0;
+    if (ciclo !== undefined) year.ciclo = ciclo || undefined;
+    year.dataAtualizacao = Date.now();
+
+    await year.save();
+
+    await logPnabAudit(req, 'UPDATE', 'PnabYear', year._id, `Atualizou o exercício ${year.nome}`);
+    res.json(year);
   } catch (e) {
+    console.error(e);
     res.status(500).json({ message: 'Erro ao atualizar ano.' });
   }
 });
@@ -608,6 +754,7 @@ router.delete('/anos/:id', ...adminChain, async (req, res) => {
     if (!item) return res.status(404).json({ message: 'Ano não encontrado.' });
     
     item.deleted = true;
+    item.dataAtualizacao = Date.now();
     await item.save();
 
     await logPnabAudit(req, 'DELETE', 'PnabYear', item._id, `Moveu para lixeira o exercício ${item.nome}`);
@@ -664,9 +811,19 @@ router.get('/editais/:id', async (req, res) => {
 
 router.post('/editais', ...adminChain, pnabUpload.any(), async (req, res) => {
   try {
-    const { titulo, programa, ano, descricao, statusEdital, statusWorkflow, destacado, ordem, tags, observacoes, dataPublicacao } = req.body;
+    const { titulo, programa, ano, descricao, statusEdital, statusWorkflow, destacado, ordem, tags, observacoes, dataPublicacao, anoName } = req.body;
     if (!titulo || !ano || !descricao) {
       return res.status(400).json({ message: 'Título, Ano e Descrição são obrigatórios.' });
+    }
+
+    const yearDoc = await PnabYear.findOne({ _id: ano, deleted: false });
+    if (!yearDoc) {
+      return res.status(400).json({ message: 'Exercício (ano) inválido ou excluído.' });
+    }
+    if (anoName && String(anoName).trim() && String(yearDoc.nome) !== String(anoName).trim()) {
+      return res.status(400).json({
+        message: `Inconsistência de ano: o exercício selecionado é ${yearDoc.nome}, não ${anoName}.`,
+      });
     }
 
     let bannerUrl = '';
@@ -732,6 +889,19 @@ router.put('/editais/:id', ...adminChain, pnabUpload.any(), async (req, res) => 
         else edital[f] = req.body[f];
       }
     });
+
+    if (req.body.ano) {
+      const yearDoc = await PnabYear.findOne({ _id: req.body.ano, deleted: false });
+      if (!yearDoc) {
+        return res.status(400).json({ message: 'Exercício (ano) inválido ou excluído.' });
+      }
+      if (req.body.anoName && String(req.body.anoName).trim() && String(yearDoc.nome) !== String(req.body.anoName).trim()) {
+        return res.status(400).json({
+          message: `Inconsistência de ano: o exercício selecionado é ${yearDoc.nome}, não ${req.body.anoName}.`,
+        });
+      }
+      edital.ano = yearDoc._id;
+    }
 
     if (req.body.tags) {
       try { edital.tags = JSON.parse(req.body.tags); } catch(e) { edital.tags = req.body.tags.split(',').map(t => t.trim()); }
@@ -916,10 +1086,10 @@ router.post('/documentos', ...adminChain, pnabUpload.any(), async (req, res) => 
       folderLabel = area.titulo
       auditLabel = `${area.titulo} (${area.ciclo?.nome || 'ciclo'})`
     } else {
-      const edObj = await PnabEdital.findById(edital).populate('ano');
-      if (!edObj) return res.status(400).json({ message: 'Edital inválido.' });
-      req.body.anoName = edObj.ano.nome;
-      req.body.editalTitle = edObj.titulo;
+    const edObj = await PnabEdital.findById(edital).populate('ano');
+    if (!edObj) return res.status(400).json({ message: 'Edital inválido.' });
+    req.body.anoName = edObj.ano.nome;
+    req.body.editalTitle = edObj.titulo;
       folderLabel = edObj.titulo
       auditLabel = edObj.titulo
     }
@@ -992,8 +1162,8 @@ router.put('/documentos/:id', ...adminChain, pnabUpload.any(), async (req, res) 
         req.body.anoName = doc.cicloArea.ciclo?.nome || 'ciclo'
         req.body.editalTitle = doc.cicloArea.titulo
       } else if (doc.edital) {
-        req.body.anoName = doc.edital.ano.nome;
-        req.body.editalTitle = doc.edital.titulo;
+      req.body.anoName = doc.edital.ano.nome;
+      req.body.editalTitle = doc.edital.titulo;
       } else {
         req.body.anoName = 'geral'
         req.body.editalTitle = doc.titulo
