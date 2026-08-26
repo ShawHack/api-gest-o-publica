@@ -163,6 +163,12 @@ router.get(
   VotingElectionAdminController.exportVotesV2
 )
 router.get(
+  '/admin/votacoes/:id/export-resultado-v2.csv',
+  verifyToken,
+  requireVotingPleitoRead,
+  VotingElectionAdminController.exportResultsV2
+)
+router.get(
   '/admin/votacoes/:id/export-comparecimento.csv',
   verifyToken,
   requireVotingAdmin,

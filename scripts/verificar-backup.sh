@@ -56,6 +56,30 @@ fi
 [ -d "$LATEST/full/letsencrypt/etc_letsencrypt/live" ] && ok "TLS Let's Encrypt presente" \
   || fail "certificados TLS ausentes"
 
+for volume in tv-semit-data grafana-data prometheus-data certbot-www; do
+  archive="$LATEST/full/docker-volumes/${volume}.tar.gz"
+  if [ -s "$archive" ]; then
+    gzip -t -- "$archive" && ok "volume ${volume} presente e íntegro" \
+      || fail "volume ${volume} corrompido"
+  else
+    fail "volume ${volume} ausente ou vazio"
+  fi
+done
+[ -s "$LATEST/full/docker-volumes/MANIFEST.tsv" ] \
+  && ok "manifesto de volumes presente" || fail "manifesto de volumes ausente"
+[ -s "$LATEST/full/tv-corporativa/container-inspect.json" ] \
+  && ok "configuração do container da TV presente" || fail "configuração da TV ausente"
+
+for image in api-semit-tv-semit grafana/grafana prom/prometheus; do
+  grep -Fq "$image" "$LATEST/docker-images.txt" 2>/dev/null \
+    && ok "imagem ${image} listada" || fail "imagem ${image} ausente da lista Docker"
+done
+
+for container in tv-semit grafana prometheus; do
+  grep -Fq "\"container\": \"${container}\"" "$LATEST/full/inventory.json" \
+    && ok "container ${container} no inventário" || fail "container ${container} ausente do inventário"
+done
+
 IMG_ARCH="$(find "$LATEST" -maxdepth 1 -type f -name 'docker-images-*.tar.gz' -size +0c | head -1)"
 if [ -n "$IMG_ARCH" ]; then
   ok "arquivo de imagens Docker presente"

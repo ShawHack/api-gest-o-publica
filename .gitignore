@@ -44,8 +44,12 @@ full/
 backend.pre_sync_bak.*/
 *.bak
 *.bak.*
+*.bak-*
 *.backup
 *.backup.*
+*.before-*
+.backup-*/
+MAPA_DO_TESOURO.md.antes-*
 *.zip
 *.tar
 *.tar.gz

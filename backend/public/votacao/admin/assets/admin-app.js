@@ -1101,14 +1101,16 @@
   }
 
   async function renderApuracao(main, pleitoId) {
+    const write = V.canWrite()
     main.innerHTML = `
       <div class="card">
         <h2>Apuração</h2>
         <p class="muted">Resultados deste pleito apenas — sem seletor de outro processo.</p>
         <div class="row">
           <button type="button" id="btnApurar">Atualizar</button>
-          <button type="button" class="secondary" id="btnExportVotos">Exportar votos</button>
-          <button type="button" class="secondary" id="btnExportPresenca">Exportar comparecimento</button>
+          ${write ? '<button type="button" class="secondary" id="btnExportVotos">Exportar votos</button>' : ''}
+          ${write ? '<button type="button" class="secondary" id="btnExportPresenca">Exportar comparecimento</button>' : ''}
+          <button type="button" class="secondary" id="btnExportApuracao">Exportar apuração (planilha)</button>
         </div>
         <p id="apurMsg" class="muted">Carregando...</p>
         <div id="apurDashboard"></div>
@@ -1126,11 +1128,16 @@
       }
     }
     el('btnApurar').addEventListener('click', run)
-    el('btnExportVotos').addEventListener('click', () =>
-      downloadExport(pleitoId, 'export-votos-v2.csv', 'votos.csv'),
-    )
-    el('btnExportPresenca').addEventListener('click', () =>
-      downloadExport(pleitoId, 'export-comparecimento.csv', 'comparecimento.csv'),
+    if (write) {
+      el('btnExportVotos').addEventListener('click', () =>
+        downloadExport(pleitoId, 'export-votos-v2.csv', 'votos.csv'),
+      )
+      el('btnExportPresenca').addEventListener('click', () =>
+        downloadExport(pleitoId, 'export-comparecimento.csv', 'comparecimento.csv'),
+      )
+    }
+    el('btnExportApuracao').addEventListener('click', () =>
+      downloadExport(pleitoId, 'export-resultado-v2.csv', 'apuracao.csv'),
     )
     await run()
   }

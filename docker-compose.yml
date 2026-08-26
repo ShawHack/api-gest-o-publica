@@ -179,6 +179,9 @@ services:
       - "80:80"
       - "443:443" # HTTPS
       - "8080:8080"
+      - "8088:8088"
+      - "8082:8082"
+      - "8090:8090"
     volumes:
       - ${FRONTEND_BUILD_DIR:-./frontend/build}:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro

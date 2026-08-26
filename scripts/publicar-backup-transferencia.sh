@@ -39,7 +39,7 @@ fi
 SIZE="$(stat -c %s "$DIR/$ARCHIVE")"
 ENTRIES="$(tar -tzf "$DIR/$ARCHIVE" | wc -l)"
 CREATED="$(date -Iseconds -r "$DIR/$ARCHIVE")"
-CONTENT='["project","api","images","mongodb","frontend","nginx","tls","secrets","runtime","redis","docker-images","inventory"]'
+CONTENT='["project","api","images","mongodb","frontend","nginx","tls","secrets","runtime","redis","tv-corporativa","grafana","prometheus","docker-volumes","docker-images","inventory"]'
 
 cat > "$DIR/manifest.json.tmp" <<EOF
 {

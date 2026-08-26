@@ -12,11 +12,15 @@ Os comandos destrutivos exigem autorização explícita.
 - **Segredos em arquivo real** (`full/secrets/`, permissão 600) — não é mais symlink
 - Árvore `runtime/` (assets + secrets)
 - Persistência Redis
+- TV corporativa: volume de dados, configuração do container, fonte e imagem Docker
+- Grafana: volume persistente e imagem Docker
+- Prometheus: volume persistente e imagem Docker
+- Volumes auxiliares do Certbot e do MongoDB
 - Imagens Docker (`docker-images-*.tar.gz`) para subir sem rebuild
 - `inventory.json` (compose, volumes, commit)
 
 Agendamento: **01:15** no crontab do usuário `semit`.  
-RPO nominal: até 24 h. Retenção local: **3 gerações**.
+RPO nominal: até 24 h. Retenção local padrão: **14 dias**.
 
 Pasta: `~/Documentos/backups-completos/YYYY-MM-DD_HH-MM-SS/`
 
@@ -53,8 +57,9 @@ bash /caminho/do/projeto/scripts/restore-host-novo.sh \
   --eu-autorizo-restore
 ```
 
-O script: carrega imagens, recria projeto e runtime, inicia `rs0`,
-`mongorestore --drop`, devolve uploads/Redis/TLS e sobe a stack.
+O script carrega as imagens, recria projeto e runtime, inicia `rs0`, executa
+`mongorestore --drop`, devolve uploads/Redis/TLS e restaura os volumes da TV,
+Grafana, Prometheus e Certbot antes de subir a stack.
 
 5. DNS: aponte `api.garca.sp.gov.br` para o IP novo. Confira:
 
@@ -63,7 +68,17 @@ curl -fsS http://127.0.0.1:5000/readyz
 curl -fsS https://api.garca.sp.gov.br/health
 ```
 
-6. Teste login admin e uma foto de sepultado/pet.
+6. Valide todos os componentes:
+
+```bash
+docker ps --format 'table {{.Names}}\t{{.Status}}'
+curl -fsS http://127.0.0.1:3050/health || curl -fsS http://127.0.0.1:3050/
+curl -fsS http://IP_DO_SERVIDOR:3001/api/health
+curl -fsS http://IP_DO_SERVIDOR:9090/-/ready
+```
+
+Teste também login admin, uma foto de sepultado/pet, programação da TV,
+dashboards do Grafana e consultas do Prometheus.
 
 ## B. Mesmo servidor (homologação / rollback de dados)
 
@@ -89,7 +104,7 @@ docker compose start api govcidadao-api job-worker email-worker
 
 - Diretórios de backup `700`; tar, segredos e env dumps `600`.
 - Não publique `full/secrets/` nem `env_runtime_api.txt` em repositório Git.
-- Mantenha a cópia Windows (recibo SHA-256) **e** as 3 gerações locais.
+- Mantenha a cópia externa confirmada por SHA-256 e as gerações locais.
 
 ## Rollback
 

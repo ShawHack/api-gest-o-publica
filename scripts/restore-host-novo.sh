@@ -21,7 +21,8 @@ Uso:
   restore-host-novo.sh --backup-dir DIR [--target DIR] [--runtime DIR]
                        [--sem-imagens] [--iniciar] --eu-autorizo-restore
 
-Restaura projeto, segredos, certificados, Mongo, uploads, Redis e imagens Docker.
+Restaura projeto, segredos, certificados, Mongo, uploads, Redis, TV corporativa,
+Grafana, Prometheus e imagens Docker.
 Exige Docker. Recusa rodar no hostname SEMIT (produção), salvo ALLOW_ON_SEMIT=1.
 EOF
 }
@@ -57,6 +58,10 @@ docker compose version >/dev/null 2>&1 || die "Instale o plugin docker compose."
 FULL="$BACKUP_DIR/full"
 [ -f "$FULL/secrets/production.env" ] || die "Falta full/secrets/production.env (backup incompleto)."
 [ -d "$FULL/mongo/backup" ] || die "Falta dump Mongo."
+for required_volume in tv-semit-data grafana-data prometheus-data certbot-www; do
+  [ -s "$FULL/docker-volumes/${required_volume}.tar.gz" ] \
+    || die "Falta full/docker-volumes/${required_volume}.tar.gz"
+done
 
 ok "Backup: $BACKUP_DIR"
 ok "Destino: $TARGET"
@@ -129,6 +134,22 @@ COMPOSE=(docker compose -p "$COMPOSE_PROJECT" -f docker-compose.yml)
 if [ -f monitoring/docker-compose.monitoring.yml ]; then
   COMPOSE+=(-f monitoring/docker-compose.monitoring.yml)
 fi
+
+# Torna persistentes no host novo os mounts que no host antigo eram anônimos.
+RESTORE_OVERRIDE="$TARGET/docker-compose.restore-volumes.yml"
+cat > "$RESTORE_OVERRIDE" <<'YAML'
+services:
+  mongo:
+    volumes:
+      - mongo-configdb:/data/configdb
+  certbot:
+    volumes:
+      - certbot-lib:/var/lib/letsencrypt
+volumes:
+  mongo-configdb:
+  certbot-lib:
+YAML
+COMPOSE+=(-f "$RESTORE_OVERRIDE")
 
 ok "Subindo mongo, redis e volumes..."
 "${COMPOSE[@]}" up -d mongo redis
@@ -203,11 +224,38 @@ if [ -d "$FULL/letsencrypt/etc_letsencrypt" ]; then
 fi
 
 ########################################
-# 9) Subir stack
+# 9) Volumes complementares
+########################################
+restore_volume_archive() {
+  local logical_name="$1" volume_name="$2"
+  local archive="$FULL/docker-volumes/${logical_name}.tar.gz"
+  [ -s "$archive" ] || return 0
+  ok "Restaurando volume ${volume_name}..."
+  docker volume create "$volume_name" >/dev/null
+  docker run --rm -v "${volume_name}:/data" -v "$archive:/backup/archive.tar.gz:ro" alpine \
+    sh -c 'rm -rf /data/* /data/.[!.]* /data/..?* 2>/dev/null || true; tar -xzf /backup/archive.tar.gz -C /data'
+}
+
+restore_volume_archive certbot-www "${COMPOSE_PROJECT}_certbot-www"
+restore_volume_archive certbot-lib "${COMPOSE_PROJECT}_certbot-lib"
+restore_volume_archive mongo-configdb "${COMPOSE_PROJECT}_mongo-configdb"
+restore_volume_archive grafana-data "${COMPOSE_PROJECT}_grafana-data"
+restore_volume_archive prometheus-data "${COMPOSE_PROJECT}_prometheus-data"
+restore_volume_archive tv-semit-data "${COMPOSE_PROJECT}_tv-semit-data"
+
+########################################
+# 10) Subir stack e TV corporativa
 ########################################
 if [ "$START" = 1 ]; then
   ok "Subindo serviços restantes..."
   "${COMPOSE[@]}" up -d
+  if ! docker inspect tv-semit >/dev/null 2>&1; then
+    ok "Subindo TV corporativa..."
+    docker run -d --name tv-semit --restart unless-stopped \
+      --network "${COMPOSE_PROJECT}_stack" -p 3050:3050 \
+      -v "${COMPOSE_PROJECT}_tv-semit-data:/app/data" \
+      api-semit-tv-semit:latest
+  fi
   ok "Aguardando API..."
   for i in $(seq 1 36); do
     st="$(docker inspect -f '{{.State.Health.Status}}' api 2>/dev/null || echo starting)"
@@ -217,6 +265,12 @@ if [ "$START" = 1 ]; then
   done
   curl -fsS http://127.0.0.1:5000/health || die "health local falhou"
   curl -fsS http://127.0.0.1:5000/readyz || die "readyz falhou"
+  docker inspect -f '{{.State.Status}}' tv-semit | grep -qx running \
+    || die "TV corporativa não iniciou"
+  docker inspect -f '{{.State.Status}}' grafana | grep -qx running \
+    || die "Grafana não iniciou"
+  docker inspect -f '{{.State.Status}}' prometheus | grep -qx running \
+    || die "Prometheus não iniciou"
   echo
   ok "Restore concluído. Aponte o DNS de api.garca.sp.gov.br para este host e confira HTTPS."
 else

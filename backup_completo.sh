@@ -8,6 +8,9 @@ MONGO_C="${MONGO_C:-mongo}"
 REDIS_C="${REDIS_C:-redis}"
 NGINX_C="${NGINX_C:-nginx}"
 CERTBOT_C="${CERTBOT_C:-certbot}"
+TV_C="${TV_C:-tv-semit}"
+GRAFANA_C="${GRAFANA_C:-grafana}"
+PROMETHEUS_C="${PROMETHEUS_C:-prometheus}"
 
 PROJ_DIR="${PROJ_DIR:-$HOME/Documentos/api-gestao-publica}"
 BASE_DIR="${BASE_DIR:-$HOME/Documentos/backups-completos}"
@@ -241,7 +244,61 @@ else
 fi
 
 ########################################
-# 12) Inventário do host (sem segredos)
+# 12) Volumes persistentes dos serviços complementares
+########################################
+ok "Copiando volumes da TV, monitoramento e volumes auxiliares..."
+VOLUME_BACKUP_DIR="${WORK}/docker-volumes"
+mkdir -p "${VOLUME_BACKUP_DIR}"
+
+backup_container_mount() {
+  local container="$1" destination="$2" logical_name="$3" required="${4:-1}"
+  local volume_name archive
+  volume_name="$(docker inspect -f "{{range .Mounts}}{{if eq .Destination \"${destination}\"}}{{.Name}}{{end}}{{end}}" "${container}" 2>/dev/null || true)"
+  archive="${VOLUME_BACKUP_DIR}/${logical_name}.tar.gz"
+  if [ -z "${volume_name}" ]; then
+    if [ "${required}" = "1" ]; then
+      die "Volume de ${container}:${destination} não encontrado."
+    fi
+    warn "Volume opcional de ${container}:${destination} não encontrado."
+    return 0
+  fi
+  docker run --rm -v "${volume_name}:/source:ro" -v "${VOLUME_BACKUP_DIR}:/backup" \
+    alpine sh -c "cd /source && tar -czf /backup/${logical_name}.tar.gz ."
+  [ -s "${archive}" ] || die "Backup do volume ${logical_name} ficou vazio."
+  printf '%s\t%s\t%s\t%s\n' "${logical_name}" "${container}" "${destination}" "${volume_name}" \
+    >> "${VOLUME_BACKUP_DIR}/MANIFEST.tsv"
+}
+
+backup_container_mount "${TV_C}" /app/data tv-semit-data 1
+backup_container_mount "${GRAFANA_C}" /var/lib/grafana grafana-data 1
+backup_container_mount "${PROMETHEUS_C}" /prometheus prometheus-data 1
+backup_container_mount "${CERTBOT_C}" /var/www/certbot certbot-www 1
+backup_container_mount "${CERTBOT_C}" /var/lib/letsencrypt certbot-lib 0
+backup_container_mount "${MONGO_C}" /data/configdb mongo-configdb 0
+chmod 600 "${VOLUME_BACKUP_DIR}"/*
+
+# Código-fonte da TV fica em outro checkout no host atual.
+TV_SOURCE_DIR="${TV_SOURCE_DIR:-$HOME/Documentos/api-semit/tv_corporativa}"
+if [ -d "${TV_SOURCE_DIR}" ]; then
+  mkdir -p "${WORK}/tv-corporativa/source"
+  rsync -a --exclude=node_modules --exclude=.git --exclude=dist --exclude=build \
+    "${TV_SOURCE_DIR}/" "${WORK}/tv-corporativa/source/"
+else
+  warn "Fonte da TV não encontrado em ${TV_SOURCE_DIR}; restore usará a imagem Docker."
+fi
+for tv_client_dir in "$HOME/Documentos/semit_tv_app" "$HOME/Documentos/semit_tv_native"; do
+  if [ -d "${tv_client_dir}" ]; then
+    target_name="$(basename "${tv_client_dir}")"
+    mkdir -p "${WORK}/tv-corporativa/${target_name}"
+    rsync -a --exclude=.git --exclude=build --exclude=.dart_tool \
+      "${tv_client_dir}/" "${WORK}/tv-corporativa/${target_name}/"
+  fi
+done
+docker inspect "${TV_C}" > "${WORK}/tv-corporativa/container-inspect.json"
+chmod 600 "${WORK}/tv-corporativa/container-inspect.json"
+
+########################################
+# 13) Inventário do host (sem segredos)
 ########################################
 ok "Gravando inventário para restore em host novo..."
 python3 - << PY
@@ -256,7 +313,8 @@ images = []
 compose_files = ""
 working_dir = "${PROJ_DIR}"
 project = "api-semit"
-for name in ["api","mongo","redis","nginx","certbot","email-worker","job-worker","govcidadao-api","govcidadao-frontend","ferramentas"]:
+names, _ = sh(["docker", "ps", "-a", "--format", "{{.Names}}"])
+for name in sorted(filter(None, names.splitlines())):
     out, rc = sh(["docker","inspect",name])
     if rc != 0:
         continue
@@ -295,7 +353,7 @@ print("inventory.json escrito")
 PY
 
 ########################################
-# 13) Imagens Docker (air-gap)
+# 14) Imagens Docker (air-gap)
 ########################################
 IMG_LIST=(
   "api-semit-api:latest"
@@ -304,10 +362,14 @@ IMG_LIST=(
   "api-semit-govcidadao-api:latest"
   "api-semit-govcidadao-frontend:latest"
   "api-semit-ferramentas:latest"
+  "api-semit-tv-semit:latest"
   "mongo:6"
   "redis:7-alpine"
   "nginx:alpine"
   "certbot/certbot"
+  "grafana/grafana:11.4.0"
+  "prom/prometheus:v2.55.1"
+  "alpine:latest"
 )
 SAVE_IMGS=()
 if [ "${INCLUDE_DOCKER_IMAGES}" = "1" ]; then
@@ -329,7 +391,7 @@ else
 fi
 
 ########################################
-# 14) Compactar payload full/
+# 15) Compactar payload full/
 ########################################
 ok "Compactando payload full/..."
 cd "${OUT_DIR}"
@@ -339,7 +401,7 @@ chmod 600 "${TARBALL}" "${LOG}"
 chmod 700 "${WORK}" "${OUT_DIR}"
 
 ########################################
-# 15) Resumo
+# 16) Resumo
 ########################################
 ok "Tamanhos:"
 du -sh "${WORK}"/* "${OUT_DIR}"/*.tar.gz 2>/dev/null || true

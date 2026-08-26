@@ -123,7 +123,7 @@ function parsePdfText(text) {
     if (/^Página \d/i.test(line)) continue;
 
     const farmaciaMatch = line.match(
-      /^(CENTRAL DE ASSISTENCIA|USF\s.+|UBS\s.+|FARMACIA\s.+|POSTO\s.+)/i,
+      /^(CENTRAL DE ASSISTENCIA|USF\s.+|UBS\s.+|FARM[AÁ]CIA\s*[\-\–]?\s*.+|POSTO\s.+)/i,
     );
     if (farmaciaMatch) {
       currentFarmacia = { nome: line, medicamentos: [] };
