@@ -2,7 +2,7 @@
 
 > Guia universal de arquitetura, operação, continuidade e recuperação.
 >
-> Estado observado em 26/08/2026 no servidor `10.15.25.28`.
+> Estado observado e atualizado em 27/08/2026 no servidor `10.15.25.28`.
 > Este documento não contém senhas, tokens, chaves privadas nem valores secretos.
 
 ## 1. Finalidade
@@ -60,7 +60,7 @@ Arquivos Compose efetivos:
 /home/semit/Documentos/api-gestao-publica/monitoring/docker-compose.monitoring.yml
 ```
 
-Commit observado: `bb421508`.
+Commit observado: `f0c69e57`.
 
 ### 3.2 Divergência documental
 
@@ -72,12 +72,23 @@ O checkout `api-semit` ainda não pode ser descartado: a TV corporativa foi cria
 /home/semit/Documentos/api-semit/tv_corporativa
 ```
 
+Em 27/08/2026 foi confirmada uma segunda dependência operacional desse checkout: embora o Compose seja controlado por `api-gestao-publica`, o container `nginx` mantém binds de publicação apontando para:
+
+```text
+/home/semit/Documentos/api-semit/frontend/build -> /usr/share/nginx/html
+/home/semit/Documentos/api-semit/backend/public -> /opt/backend-public
+/home/semit/Documentos/api-semit/nginx/nginx.conf -> /etc/nginx/conf.d/default.conf
+```
+
+Portanto, alterar ou compilar apenas `api-gestao-publica/frontend/build` não atualiza automaticamente o site em produção. Essa divergência deve ser eliminada futuramente de forma planejada; até lá, todo deploy web deve conferir os mounts efetivos do `nginx`.
+
 Regra operacional:
 
 - stack principal: trabalhar em `api-gestao-publica`;
 - TV corporativa: confirmar o checkout e o Compose de origem antes de reconstruir;
+- frontend/Nginx: compilar a partir da fonte versionada em `api-gestao-publica` e publicar de modo controlado no caminho efetivamente montado de `api-semit`;
 - nunca sincronizar os dois diretórios indiscriminadamente;
-- antes de qualquer deploy, confirmar `com.docker.compose.project.working_dir` com `docker inspect api`.
+- antes de qualquer deploy, confirmar `com.docker.compose.project.working_dir` com `docker inspect api` e os binds com `docker inspect nginx`.
 
 ## 4. Visão da arquitetura
 
@@ -194,6 +205,8 @@ Não apagar containers desconhecidos sem identificar proprietário, dados e fina
 ### 7.5 Estradas Rurais
 
 - UPAs e vínculos de proprietários;
+- portal do produtor, login de operadores e administração;
+- mapa público dos bairros rurais e localização/compartilhamento de propriedades;
 - whitelist de veículos;
 - alertas de placas desconhecidas;
 - webhook Intelbras LPR;
@@ -285,6 +298,8 @@ Rotas relevantes:
 | `/painel-senhas/`, `/painel/`, `/triagem/`, `/senhas/`, `/sga/` | `10.15.25.31` |
 
 Portas publicadas pelo Nginx: `80`, `443`, `8080`, `8082`, `8088` e `8090`. Não modificar os proxies de `.29` e `.31` sem coordenar com os responsáveis por esses servidores.
+
+Para Estradas Rurais, o build deve referenciar assets sob `/rotas-rurais/static/`. A regra Nginx correspondente usa alias para `/usr/share/nginx/html/static/`. Se o `index.html` apontar para `/static/`, a requisição pode receber o HTML de fallback em vez de JavaScript/CSS e a aplicação React ficará vazia.
 
 ## 10. Segredos e configuração
 
@@ -486,6 +501,25 @@ Antes de qualquer deploy:
 6. atualizar apenas serviços em escopo;
 7. validar `/health`, `/readyz` e fluxos afetados.
 
+### Publicação segura do frontend estático
+
+Procedimento validado em 27/08/2026:
+
+1. confirmar que a fonte versionada está limpa e sincronizada;
+2. instalar dependências conforme o lockfile; atualmente o frontend exige `npm ci --legacy-peer-deps` por conflito de peer dependency entre React 19 e `@emoji-mart/react`;
+3. executar testes dirigidos dos módulos afetados;
+4. gerar novo `frontend/build` com `npm run build`;
+5. conferir que o build informa hospedagem em `/rotas-rurais/` e que o `index.html` referencia `/rotas-rurais/static/js/` e `/rotas-rurais/static/css/`;
+6. validar sintaxe do bundle principal e existência de todos os assets referenciados;
+7. criar cópia integral do build atualmente montado pelo Nginx;
+8. copiar primeiro os novos assets sem excluir os antigos, preservando sessões abertas;
+9. substituir `index.html` por rename atômico somente depois dos assets;
+10. testar conteúdo e MIME de HTML, JavaScript, CSS e imagens;
+11. validar em navegador o fluxo afetado e pelo menos um fluxo principal não relacionado;
+12. conferir saúde dos containers e manter o rollback até o encerramento da observação.
+
+Não é necessário reiniciar Nginx, API, MongoDB ou Redis para substituir apenas arquivos estáticos. Não usar sincronização com exclusão enquanto houver clientes com a versão anterior aberta.
+
 ## 17. Testes e qualidade
 
 Ferramentas existentes:
@@ -578,6 +612,31 @@ Logs operacionais ficam em `backups-completos/_logs/`.
 3. diagnosticar a aplicação no servidor `.31`;
 4. não procurar banco/código do painel no backup deste servidor.
 
+### Estradas Rurais abre somente cabeçalho e rodapé
+
+Diagnóstico registrado em 27/08/2026:
+
+1. confirmar que `/api/rotas-rurais/map/properties/search` responde; isso separa falha da API de falha visual;
+2. conferir o hash do bundle referenciado pelo `index.html` efetivamente montado no container `nginx`;
+3. verificar se JavaScript e CSS retornam seus MIME corretos, e não `text/html` de fallback;
+4. confirmar que o build publicado contém as rotas `/rotas-rurais/login`, `/proprietario`, `/operador`, `/admin` e `/mapa`;
+5. testar `/rotas-rurais/banner-estradas.png`;
+6. comparar `/home/semit/Documentos/api-gestao-publica/frontend/build` com `/home/semit/Documentos/api-semit/frontend/build`;
+7. seguir o procedimento de publicação estática segura da seção 16.
+
+Ocorrência de 27/08/2026: o Nginx servia um build de 31/07/2026 pelo checkout `api-semit`, enquanto a fonte e o build mais recentes estavam em `api-gestao-publica`. Uma primeira cópia revelou também que o build antigo apontava para `/static/`, retornando HTML no lugar do JavaScript. O frontend foi recompilado a partir da fonte versionada, 16 testes rurais passaram e a publicação final passou a usar o bundle `main.cb40049b.js` sob `/rotas-rurais/static/`.
+
+Evidências da validação final:
+
+- login rural renderizado com e-mail, senha, entrada e cadastro;
+- mapa com o título “Mapa dos bairros rurais de Garça”;
+- banner, JavaScript, API e HTML respondendo `200` com tipos corretos;
+- login principal do Memorial renderizado sem erro de console;
+- API, MongoDB, Redis e GovCidadão saudáveis;
+- Nginx aprovado em teste de configuração;
+- nenhum container foi reiniciado;
+- rollback preservado em `/home/semit/Documentos/deploy-rollbacks/frontend-build-before-rural-20260827-080655`.
+
 ## 21. Riscos e dívidas técnicas conhecidas
 
 1. `docs/FONTE-CANONICA.md` diverge da stack efetiva.
@@ -588,6 +647,9 @@ Logs operacionais ficam em `backups-completos/_logs/`.
 6. Existem containers antigos/indeterminados que precisam de classificação formal.
 7. O repositório possui arquivos de backup e mudanças locais; limpeza deve ser controlada.
 8. A recuperação completa atualizada precisa ser testada periodicamente em host isolado.
+9. Os binds de frontend, arquivos públicos e configuração do Nginx ainda apontam para `api-semit`, apesar de a fonte principal estar em `api-gestao-publica`.
+10. O frontend usa React 19 com dependência que declara suporte somente até React 18; a instalação reproduzível exige `--legacy-peer-deps` até a compatibilidade ser resolvida.
+11. O build registra avisos ESLint e o Node.js 18 é inferior ao requisito declarado pelo React Router 7; atualizar runtime e dependências exige homologação própria.
 
 ## 22. Checklist de continuidade
 
