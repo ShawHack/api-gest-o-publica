@@ -1163,7 +1163,8 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 
 - [ ] Completar calendários, exceções, feriados, férias, pausas e buffers.
 - [x] Suportar capacidade de 1 a 20 vagas com faixas exclusivas e proteção contra concorrência.
-- [ ] Implementar cadastro e reserva de atendentes, salas e equipamentos.
+- [x] Implementar cadastro, listagem e desativação de atendentes, salas e equipamentos por unidade.
+- [ ] Vincular recursos aos serviços e às reservas com exclusividade concorrente.
 - [x] Criar listagem e edição administrativa de unidades e serviços com escopo por unidade.
 - [x] Criar listagem, concessão e revogação auditável de vínculos operacionais.
 - [ ] Completar exclusão lógica, paginação e telas do CRUD administrativo.

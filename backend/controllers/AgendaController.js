@@ -6,6 +6,7 @@ const AgendaService = require('../models/AgendaService')
 const AgendaAppointment = require('../models/AgendaAppointment')
 const AgendaUserAssignment = require('../models/AgendaUserAssignment')
 const AgendaAvailabilityException = require('../models/AgendaAvailabilityException')
+const AgendaResource = require('../models/AgendaResource')
 const {
   validateBookableStart,
   zonedParts,
@@ -520,6 +521,82 @@ module.exports = class AgendaController {
     if (req.query?.active === 'false') filter.active = false
     const services = await AgendaService.find(filter).populate('unitId', 'name slug timezone active').sort({ name: 1 }).lean()
     return res.status(200).json({ items: services })
+  }
+
+  static async adminListResources(req, res) {
+    const filter = agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
+    if (req.query?.unitId) {
+      const unitId = String(req.query.unitId)
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      filter.unitId = unitId
+    }
+    if (req.query?.type) {
+      if (!['attendant', 'room', 'equipment'].includes(String(req.query.type))) return res.status(422).json({ message: 'Tipo de recurso inválido.' })
+      filter.type = String(req.query.type)
+    }
+    if (req.query?.active === 'true') filter.active = true
+    if (req.query?.active === 'false') filter.active = false
+    const items = await AgendaResource.find(filter).populate('unitId', 'name slug active').sort({ name: 1 }).lean()
+    return res.status(200).json({ items })
+  }
+
+  static async createResource(req, res) {
+    try {
+      const unitId = String(req.body?.unitId || '')
+      const name = String(req.body?.name || '').trim()
+      const slug = normalizeSlug(req.body?.slug || name)
+      const type = String(req.body?.type || '')
+      if (!mongoose.Types.ObjectId.isValid(unitId) || !name || !slug || !['attendant', 'room', 'equipment'].includes(type)) {
+        return res.status(422).json({ message: 'Unidade, nome e tipo de recurso são obrigatórios.' })
+      }
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      if (!(await AgendaUnit.exists({ _id: unitId, active: true }))) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      const resource = await AgendaResource.create({
+        unitId, name, slug, type,
+        description: String(req.body?.description || '').trim(),
+        createdBy: actorId(req),
+      })
+      void recordAudit(req, {
+        action: 'agenda.resource.create', resourceType: 'agenda_resource', resourceId: resource._id,
+        module: 'agenda-garca', eventType: 'CREATE', metadata: { unitId, type },
+      })
+      return res.status(201).json({ resource })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Já existe esse recurso na unidade.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do recurso inválidos.' })
+      return res.status(500).json({ message: 'Não foi possível criar o recurso.' })
+    }
+  }
+
+  static async updateResource(req, res) {
+    try {
+      const resourceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(resourceId)) return res.status(422).json({ message: 'Recurso inválido.' })
+      const current = await AgendaResource.findById(resourceId).lean()
+      if (!current) return res.status(404).json({ message: 'Recurso não encontrado.' })
+      if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const update = { updatedBy: actorId(req) }
+      if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
+      if (req.body?.slug !== undefined) update.slug = normalizeSlug(req.body.slug)
+      if (req.body?.description !== undefined) update.description = String(req.body.description).trim()
+      if (req.body?.active !== undefined) update.active = req.body.active === true
+      if (req.body?.type !== undefined) {
+        if (!['attendant', 'room', 'equipment'].includes(String(req.body.type))) return res.status(422).json({ message: 'Tipo de recurso inválido.' })
+        update.type = String(req.body.type)
+      }
+      if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
+      const resource = await AgendaResource.findByIdAndUpdate(resourceId, { $set: update }, { new: true, runValidators: true })
+      void recordAudit(req, {
+        action: 'agenda.resource.update', resourceType: 'agenda_resource', resourceId: resource._id,
+        module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId), fields: Object.keys(update) },
+      })
+      return res.status(200).json({ resource })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Já existe esse recurso na unidade.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do recurso inválidos.' })
+      return res.status(500).json({ message: 'Não foi possível atualizar o recurso.' })
+    }
   }
 
   static async createService(req, res) {

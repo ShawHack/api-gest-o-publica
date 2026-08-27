@@ -31,6 +31,9 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `GET` | `/admin/services` | gestor da Agenda | listar serviços do seu escopo, inclusive inativos |
 | `POST` | `/admin/services` | administrador da Agenda | criar serviço e agenda semanal |
 | `PATCH` | `/admin/services/:id` | gestor da unidade | editar regras, agenda semanal ou ativação |
+| `GET` | `/admin/resources` | gestor da unidade | listar atendentes, salas e equipamentos do escopo |
+| `POST` | `/admin/resources` | gestor da unidade | cadastrar recurso na unidade |
+| `PATCH` | `/admin/resources/:id` | gestor da unidade | editar ou desativar recurso preservando histórico |
 | `PUT` | `/admin/services/:id/availability-exception` | administrador da Agenda | fechar uma data ou definir horário especial |
 | `GET` | `/admin/assignments` | administrador da Agenda | listar vínculos permitidos pelo escopo |
 | `POST` | `/admin/assignments` | administrador global | vincular papel da Agenda a usuário existente |
