@@ -35,6 +35,11 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `GET` | `/admin/assignments` | administrador da Agenda | listar vínculos permitidos pelo escopo |
 | `POST` | `/admin/assignments` | administrador global | vincular papel da Agenda a usuário existente |
 | `PATCH` | `/admin/assignments/:id/revoke` | administrador global | revogar vínculo sem apagar seu histórico |
+| `GET` | `/admin/appointments` | atendente da unidade | agenda paginada com filtros de unidade, serviço, usuário, período e status |
+| `PATCH` | `/admin/appointments/:id/status` | atendente da unidade | confirmar, concluir, registrar ausência ou cancelar |
+| `GET` | `/admin/reports/summary` | gestor da Agenda | totais operacionais agrupados por status |
+
+Transições aceitas: `booked → confirmed/cancelled` e `confirmed → completed/no_show/cancelled`. Estados finais não podem ser reabertos por esse endpoint. Cada mudança registra autor, data, motivo e auditoria.
 
 ## Criação de agendamento
 

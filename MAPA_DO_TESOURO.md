@@ -1168,8 +1168,10 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 - [ ] Completar exclusão lógica, paginação e telas do CRUD administrativo.
 - [x] Implementar reagendamento atômico do cidadão.
 - [ ] Implementar agendamento manual pelo atendente.
-- [ ] Implementar estados e transições formais do atendimento.
-- [ ] Criar relatórios e auditoria operacional.
+- [x] Implementar estados e transições formais do atendimento.
+- [x] Criar agenda operacional paginada e filtrada por escopo.
+- [x] Criar resumo por status e auditoria das transições.
+- [ ] Completar indicadores avançados, exportação e painéis históricos.
 
 #### Fase C — Portal React
 
@@ -1225,7 +1227,7 @@ Fundação criada:
 
 Validação inicial concluída:
 
-- 11 testes próprios da Agenda aprovados;
+- 12 testes próprios da Agenda aprovados;
 - identidade carregada exclusivamente de `users`;
 - tentativa de enviar outro `userId` ignorada e vínculo mantido com o usuário autenticado;
 - cidadão impedido de criar unidades ou conceder permissões;
@@ -1237,7 +1239,7 @@ Validação inicial concluída:
 - criação e reagendamento possuem chaves de idempotência; cancelamento repetido é seguro;
 - reagendamento troca o intervalo atomicamente e preserva a reserva original quando há conflito;
 - 26 testes de regressão de cadastro, login, refresh token, autorização e Estradas Rurais aprovados;
-- conjunto final com 37 testes aprovados em 7 suítes;
+- conjunto final com 38 testes aprovados em 7 suítes;
 - sintaxe dos modelos, helpers, controller, rotas, teste e servidor validada;
 - nenhuma imagem foi reconstruída e nenhum container de produção foi reiniciado.
 

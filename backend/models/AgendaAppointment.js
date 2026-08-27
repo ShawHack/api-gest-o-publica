@@ -31,6 +31,16 @@ const agendaAppointmentSchema = new Schema(
     cancelledAt: Date,
     cancelledBy: { type: Schema.Types.ObjectId, ref: 'User' },
     cancellationReason: { type: String, trim: true, maxlength: 500 },
+    confirmedAt: Date,
+    completedAt: Date,
+    noShowAt: Date,
+    statusUpdatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    statusHistory: [{
+      status: { type: String, enum: ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'], required: true },
+      at: { type: Date, required: true },
+      by: { type: Schema.Types.ObjectId, ref: 'User' },
+      reason: { type: String, trim: true, maxlength: 500 },
+    }],
   },
   { timestamps: true },
 )

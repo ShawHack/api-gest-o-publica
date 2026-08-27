@@ -132,6 +132,19 @@ function serviceUnitFilter(req) {
   return agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
 }
 
+function operatorUnitAllowed(req, unitId) {
+  if (req.agenda?.isGlobalAdmin) return true
+  return req.agenda?.assignments?.some((assignment) => (
+    ['agenda_admin', 'agenda_manager', 'agenda_attendant'].includes(assignment.role)
+    && (!assignment.unitId || String(assignment.unitId) === String(unitId))
+  ))
+}
+
+function validRangeDate(value) {
+  const date = value ? new Date(value) : null
+  return date && !Number.isNaN(date.getTime()) ? date : null
+}
+
 module.exports = class AgendaController {
   static async me(req, res) {
     const user = await User.findById(actorId(req)).select('_id name email phone role emailVerified').lean()
@@ -620,6 +633,95 @@ module.exports = class AgendaController {
     } catch (_error) {
       return res.status(500).json({ message: 'Não foi possível revogar a permissão.' })
     }
+  }
+
+  static async adminListAppointments(req, res) {
+    const page = Math.max(1, Math.min(Number(req.query?.page) || 1, 100000))
+    const limit = Math.max(1, Math.min(Number(req.query?.limit) || 50, 200))
+    const filter = agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
+    for (const field of ['unitId', 'serviceId', 'userId']) {
+      if (req.query?.[field]) {
+        if (!mongoose.Types.ObjectId.isValid(String(req.query[field]))) return res.status(422).json({ message: `${field} inválido.` })
+        filter[field] = String(req.query[field])
+      }
+    }
+    if (filter.unitId && !operatorUnitAllowed(req, filter.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+    if (req.query?.status) {
+      const statuses = String(req.query.status).split(',').filter((status) => ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'].includes(status))
+      if (!statuses.length) return res.status(422).json({ message: 'Status inválido.' })
+      filter.status = { $in: statuses }
+    }
+    const dateFrom = validRangeDate(req.query?.dateFrom)
+    const dateTo = validRangeDate(req.query?.dateTo)
+    if (req.query?.dateFrom && !dateFrom || req.query?.dateTo && !dateTo) return res.status(422).json({ message: 'Período inválido.' })
+    if (dateFrom || dateTo) filter.startsAt = { ...(dateFrom ? { $gte: dateFrom } : {}), ...(dateTo ? { $lte: dateTo } : {}) }
+    const [items, total] = await Promise.all([
+      AgendaAppointment.find(filter)
+        .select('-reservationKey -reservationKeys -idempotencyKey -idempotencyFingerprint -lastMutationKey -lastMutationFingerprint')
+        .populate('userId', 'name email phone active')
+        .populate('unitId', 'name slug timezone')
+        .populate('serviceId', 'name slug durationMinutes')
+        .sort({ startsAt: 1 }).skip((page - 1) * limit).limit(limit).lean(),
+      AgendaAppointment.countDocuments(filter),
+    ])
+    return res.status(200).json({ items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
+  }
+
+  static async updateAppointmentStatus(req, res) {
+    try {
+      const appointmentId = String(req.params.id || '')
+      const nextStatus = String(req.body?.status || '')
+      if (!mongoose.Types.ObjectId.isValid(appointmentId) || !['confirmed', 'cancelled', 'completed', 'no_show'].includes(nextStatus)) {
+        return res.status(422).json({ message: 'Agendamento ou status inválido.' })
+      }
+      const appointment = await AgendaAppointment.findById(appointmentId)
+      if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
+      if (!operatorUnitAllowed(req, appointment.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const transitions = {
+        booked: ['confirmed', 'cancelled'],
+        confirmed: ['cancelled', 'completed', 'no_show'],
+        cancelled: [], completed: [], no_show: [],
+      }
+      if (!transitions[appointment.status].includes(nextStatus)) return res.status(409).json({ message: 'Transição de status não permitida.' })
+      const now = new Date()
+      appointment.status = nextStatus
+      appointment.statusUpdatedBy = actorId(req)
+      appointment.statusHistory.push({ status: nextStatus, at: now, by: actorId(req), reason: String(req.body?.reason || '').trim() })
+      if (nextStatus === 'confirmed') appointment.confirmedAt = now
+      if (nextStatus === 'completed') appointment.completedAt = now
+      if (nextStatus === 'no_show') appointment.noShowAt = now
+      if (nextStatus === 'cancelled') {
+        appointment.cancelledAt = now
+        appointment.cancelledBy = actorId(req)
+        appointment.cancellationReason = String(req.body?.reason || '').trim()
+        appointment.reservationKey = undefined
+        appointment.reservationKeys = undefined
+      }
+      await appointment.save()
+      void recordAudit(req, {
+        action: 'agenda.appointment.status_update', resourceType: 'agenda_appointment', resourceId: appointment._id,
+        module: 'agenda-garca', eventType: 'UPDATE', metadata: { status: nextStatus, unitId: String(appointment.unitId) },
+      })
+      return res.status(200).json({ appointment: safeAppointment(appointment) })
+    } catch (error) {
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Transição inválida.' })
+      return res.status(500).json({ message: 'Não foi possível atualizar o atendimento.' })
+    }
+  }
+
+  static async reportSummary(req, res) {
+    const filter = agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req).map((id) => new mongoose.Types.ObjectId(id)) } }
+    const dateFrom = validRangeDate(req.query?.dateFrom)
+    const dateTo = validRangeDate(req.query?.dateTo)
+    if (req.query?.dateFrom && !dateFrom || req.query?.dateTo && !dateTo) return res.status(422).json({ message: 'Período inválido.' })
+    if (dateFrom || dateTo) filter.startsAt = { ...(dateFrom ? { $gte: dateFrom } : {}), ...(dateTo ? { $lte: dateTo } : {}) }
+    const grouped = await AgendaAppointment.aggregate([
+      { $match: filter },
+      { $group: { _id: '$status', total: { $sum: 1 } } },
+    ])
+    const byStatus = Object.fromEntries(grouped.map((item) => [item._id, item.total]))
+    const total = grouped.reduce((sum, item) => sum + item.total, 0)
+    return res.status(200).json({ total, byStatus })
   }
 
   static async upsertAvailabilityException(req, res) {

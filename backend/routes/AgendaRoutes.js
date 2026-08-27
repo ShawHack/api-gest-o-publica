@@ -6,6 +6,7 @@ const {
   requireGlobalAgendaAdmin,
   requireAgendaAdmin,
   requireAgendaManager,
+  requireAgendaOperator,
 } = require('../helpers/agenda-auth')
 const AgendaController = require('../controllers/AgendaController')
 
@@ -37,5 +38,8 @@ router.put('/admin/services/:id/availability-exception', requireAgendaManager, A
 router.get('/admin/assignments', requireAgendaAdmin, AgendaController.listAssignments)
 router.post('/admin/assignments', requireGlobalAgendaAdmin, AgendaController.createAssignment)
 router.patch('/admin/assignments/:id/revoke', requireGlobalAgendaAdmin, AgendaController.revokeAssignment)
+router.get('/admin/appointments', requireAgendaOperator, AgendaController.adminListAppointments)
+router.patch('/admin/appointments/:id/status', requireAgendaOperator, AgendaController.updateAppointmentStatus)
+router.get('/admin/reports/summary', requireAgendaManager, AgendaController.reportSummary)
 
 module.exports = router
