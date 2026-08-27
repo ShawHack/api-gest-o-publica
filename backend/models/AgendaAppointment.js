@@ -15,6 +15,11 @@ const agendaAppointmentSchema = new Schema(
       index: true,
     },
     reservationKey: { type: String, trim: true },
+    reservationKeys: [{ type: String, trim: true }],
+    idempotencyKey: { type: String, trim: true, maxlength: 120 },
+    idempotencyFingerprint: { type: String, select: false },
+    lastMutationKey: { type: String, trim: true, maxlength: 120, select: false },
+    lastMutationFingerprint: { type: String, select: false },
     protocol: { type: String, required: true, unique: true, index: true },
     source: { type: String, enum: ['web', 'mobile', 'admin', 'migration'], default: 'web' },
     identitySnapshot: {
@@ -32,5 +37,11 @@ const agendaAppointmentSchema = new Schema(
 
 // O campo é removido no cancelamento. Enquanto presente, impede dupla reserva do mesmo slot.
 agendaAppointmentSchema.index({ reservationKey: 1 }, { unique: true, sparse: true })
+// Uma chave por minuto ocupado impede também reservas parcialmente sobrepostas.
+agendaAppointmentSchema.index({ reservationKeys: 1 }, { unique: true, sparse: true })
+agendaAppointmentSchema.index(
+  { userId: 1, idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } },
+)
 
 module.exports = mongoose.model('AgendaAppointment', agendaAppointmentSchema)

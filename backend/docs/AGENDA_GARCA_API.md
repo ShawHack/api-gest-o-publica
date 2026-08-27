@@ -23,6 +23,7 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `GET` | `/services/:id/availability?date=AAAA-MM-DD` | usuário central | horários livres/ocupados sem dados pessoais |
 | `GET` | `/appointments/mine` | usuário central | histórico do próprio usuário |
 | `POST` | `/appointments` | usuário central | reservar horário para o usuário autenticado |
+| `PATCH` | `/appointments/:id/reschedule` | proprietário | reagendar atomicamente para outro serviço/horário |
 | `PATCH` | `/appointments/:id/cancel` | proprietário | cancelar e liberar o slot dentro do prazo |
 | `POST` | `/admin/units` | administrador global | criar unidade de atendimento |
 | `POST` | `/admin/services` | administrador da Agenda | criar serviço e agenda semanal |
@@ -44,6 +45,8 @@ Exemplo de entrada:
 
 `userId`, nome, e-mail, telefone, duração, unidade e horário final enviados pelo cliente são ignorados. A API resolve esses valores a partir do usuário central e do serviço cadastrado.
 
+O cliente web/mobile deve enviar uma `Idempotency-Key` estável (8 a 120 caracteres alfanuméricos, ponto, sublinhado, dois-pontos ou hífen) em cada tentativa lógica de criação. Repetir a mesma chave e os mesmos dados devolve o agendamento original com `Idempotent-Replayed: true`; reutilizá-la com outros dados devolve `409`. No reagendamento essa chave é obrigatória. O cancelamento já é idempotente por estado: repetir o cancelamento de uma reserva cancelada devolve o mesmo estado sem novo efeito.
+
 Validações iniciais:
 
 - usuário e e-mail central verificado;
@@ -51,7 +54,8 @@ Validações iniciais:
 - antecedência e janela máxima;
 - dia, período e intervalo configurados;
 - duração integral dentro do período;
-- exclusividade do par serviço/horário;
+- exclusividade de todo o intervalo ocupado, inclusive sobreposição parcial;
+- exceções administrativas validadas novamente no momento da escrita;
 - rate limit de escrita.
 
 Respostas relevantes:
@@ -73,9 +77,11 @@ A consulta de disponibilidade retorna apenas horário, instante UTC e estado liv
 
 ## Concorrência
 
-Cada reserva ativa possui `reservationKey` exclusiva formada pelo serviço e instante inicial normalizado. O índice único do MongoDB é a barreira final contra duas reservas concorrentes. No cancelamento, a chave é removida e o slot pode ser reservado novamente.
+Cada reserva ativa possui uma chave por minuto ocupado em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas, inclusive sob concorrência. No cancelamento, as chaves são removidas e todo o intervalo volta a ficar disponível.
 
-Capacidade superior a uma pessoa, recursos múltiplos, reagendamento atômico e idempotency keys serão adicionados antes da produção.
+O reagendamento troca serviço, unidade, início, fim e chaves de reserva em uma única atualização atômica do documento. Se o novo intervalo estiver ocupado, o índice rejeita a atualização e a reserva anterior permanece intacta.
+
+Capacidade superior a uma pessoa, recursos múltiplos e registro durável de idempotência separado do agendamento serão adicionados antes da produção.
 
 ## Auditoria
 
@@ -85,7 +91,7 @@ Criação, cancelamento, concessão de papel e exceção de disponibilidade gera
 
 - paginação e filtros administrativos;
 - máquina formal de estados;
-- idempotência por requisição;
+- retenção e limpeza das chaves de idempotência;
 - agenda por atendente/recurso;
 - feriados gerais e exceções por unidade;
 - capacidade maior que um;

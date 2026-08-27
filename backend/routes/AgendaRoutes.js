@@ -19,6 +19,7 @@ router.get('/services', AgendaController.listServices)
 router.get('/services/:id/availability', bookingLimiter, AgendaController.availability)
 router.get('/appointments/mine', AgendaController.listMine)
 router.post('/appointments', bookingLimiter, AgendaController.createAppointment)
+router.patch('/appointments/:id/reschedule', bookingLimiter, AgendaController.rescheduleMine)
 router.patch('/appointments/:id/cancel', bookingLimiter, AgendaController.cancelMine)
 
 router.post('/admin/units', requireGlobalAgendaAdmin, AgendaController.createUnit)

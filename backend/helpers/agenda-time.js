@@ -53,7 +53,7 @@ function timeToMinutes(value) {
   return hour * 60 + minute
 }
 
-function validateBookableStart(service, unit, startsAt, now = new Date()) {
+function validateBookableStart(service, unit, startsAt, now = new Date(), periodsOverride) {
   if (!(startsAt instanceof Date) || Number.isNaN(startsAt.getTime())) return 'Data ou horário inválido.'
   const minimum = now.getTime() + service.minimumNoticeMinutes * 60000
   const maximum = now.getTime() + service.bookingWindowDays * 86400000
@@ -65,7 +65,8 @@ function validateBookableStart(service, unit, startsAt, now = new Date()) {
   if (local.minutes % service.slotIntervalMinutes !== 0) return 'O horário não coincide com o intervalo do serviço.'
   const endMinutes = local.minutes + service.durationMinutes
   const schedule = (service.weeklyAvailability || []).find((entry) => entry.dayOfWeek === local.dayOfWeek)
-  const withinPeriod = schedule?.periods?.some((period) => {
+  const periods = periodsOverride === undefined ? schedule?.periods : periodsOverride
+  const withinPeriod = periods?.some((period) => {
     const start = timeToMinutes(period.start)
     const end = timeToMinutes(period.end)
     return local.minutes >= start && endMinutes <= end

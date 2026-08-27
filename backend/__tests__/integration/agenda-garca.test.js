@@ -5,7 +5,7 @@ const {
   createVerifiedUser,
   bearerToken,
 } = require('../helpers/test-harness')
-const { zonedParts, zonedDateKey } = require('../../helpers/agenda-time')
+const { zonedParts, zonedDateKey, zonedDateTimeToUtc } = require('../../helpers/agenda-time')
 
 describe('Agenda Garça com identidade central', () => {
   let app
@@ -17,6 +17,8 @@ describe('Agenda Garça com identidade central', () => {
   let secondToken
   let service
   let startsAt
+  let secondAppointment
+  let idempotentAppointment
 
   beforeAll(async () => {
     app = await setupIntegrationTest()
@@ -27,9 +29,8 @@ describe('Agenda Garça com identidade central', () => {
     citizenToken = bearerToken(citizen)
     secondToken = bearerToken(secondCitizen)
 
-    startsAt = new Date(Date.now() + 48 * 60 * 60 * 1000)
-    startsAt.setUTCSeconds(0, 0)
-    startsAt.setUTCMinutes(Math.ceil(startsAt.getUTCMinutes() / 5) * 5)
+    const futureDate = zonedDateKey(new Date(Date.now() + 48 * 60 * 60 * 1000), 'America/Sao_Paulo')
+    startsAt = zonedDateTimeToUtc(futureDate, '10:00', 'America/Sao_Paulo')
     const local = zonedParts(startsAt, 'America/Sao_Paulo')
 
     const unitResponse = await request(app)
@@ -131,6 +132,12 @@ describe('Agenda Garça com identidade central', () => {
     expect(closed.body).toMatchObject({ exception: { type: 'closed', reason: 'Feriado de teste' }, slots: [] })
 
     await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ serviceId: service._id, startsAt: new Date(startsAt.getTime() + 60 * 60000).toISOString() })
+      .expect(422)
+
+    await request(app)
       .put(`/api/agenda/admin/services/${service._id}/availability-exception`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ date, type: 'custom', periods: [{ start: '00:00', end: '23:59' }], reason: 'Reabertura de teste' })
@@ -164,5 +171,105 @@ describe('Agenda Garça com identidade central', () => {
       .send({ serviceId: service._id, startsAt: startsAt.toISOString(), source: 'web' })
       .expect(201)
     expect(rebooked.body.appointment.userId).toBe(secondCitizen._id.toString())
+    secondAppointment = rebooked.body.appointment
+  })
+
+  test('bloqueia qualquer sobreposição, não apenas o mesmo horário inicial', async () => {
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ serviceId: service._id, startsAt: new Date(startsAt.getTime() + 5 * 60000).toISOString() })
+      .expect(409)
+  })
+
+  test('repete criação com segurança usando a mesma chave de idempotência', async () => {
+    const payload = {
+      serviceId: service._id,
+      startsAt: new Date(startsAt.getTime() + 30 * 60000).toISOString(),
+      source: 'web',
+    }
+    const first = await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .set('Idempotency-Key', 'agenda-create-test-001')
+      .send(payload)
+      .expect(201)
+    const replay = await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .set('Idempotency-Key', 'agenda-create-test-001')
+      .send(payload)
+      .expect(200)
+
+    expect(replay.headers['idempotent-replayed']).toBe('true')
+    expect(replay.body.appointment._id).toBe(first.body.appointment._id)
+    expect(replay.body.appointment.reservationKeys).toBeUndefined()
+    idempotentAppointment = first.body.appointment
+
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .set('Idempotency-Key', 'agenda-create-test-001')
+      .send({ ...payload, startsAt: new Date(startsAt.getTime() + 60 * 60000).toISOString() })
+      .expect(409)
+  })
+
+  test('reagenda atomicamente, preserva o slot anterior na falha e aceita replay', async () => {
+    const occupiedTarget = new Date(startsAt.getTime() + 30 * 60000).toISOString()
+    await request(app)
+      .patch(`/api/agenda/appointments/${secondAppointment._id}/reschedule`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .set('Idempotency-Key', 'agenda-move-test-failed')
+      .send({ serviceId: service._id, startsAt: occupiedTarget })
+      .expect(409)
+
+    const afterConflict = await request(app)
+      .get('/api/agenda/appointments/mine')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .expect(200)
+    expect(afterConflict.body.items.find((item) => item._id === secondAppointment._id).startsAt).toBe(startsAt.toISOString())
+
+    const payload = { serviceId: service._id, startsAt: new Date(startsAt.getTime() + 60 * 60000).toISOString() }
+    const moved = await request(app)
+      .patch(`/api/agenda/appointments/${secondAppointment._id}/reschedule`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .set('Idempotency-Key', 'agenda-move-test-success')
+      .send(payload)
+      .expect(200)
+    const replay = await request(app)
+      .patch(`/api/agenda/appointments/${secondAppointment._id}/reschedule`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .set('Idempotency-Key', 'agenda-move-test-success')
+      .send(payload)
+      .expect(200)
+
+    expect(moved.body.appointment.startsAt).toBe(payload.startsAt)
+    expect(replay.headers['idempotent-replayed']).toBe('true')
+    expect(replay.body.appointment._id).toBe(secondAppointment._id)
+
+    await request(app)
+      .patch(`/api/agenda/appointments/${secondAppointment._id}/reschedule`)
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .set('Idempotency-Key', 'agenda-move-wrong-owner')
+      .send(payload)
+      .expect(404)
+  })
+
+  test('cancelamento é idempotente e não expõe chaves internas', async () => {
+    const endpoint = `/api/agenda/appointments/${idempotentAppointment._id}/cancel`
+    const first = await request(app)
+      .patch(endpoint)
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ reason: 'Cancelamento idempotente' })
+      .expect(200)
+    const replay = await request(app)
+      .patch(endpoint)
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ reason: 'Repetição segura' })
+      .expect(200)
+    expect(first.body.appointment.status).toBe('cancelled')
+    expect(replay.body.appointment.status).toBe('cancelled')
+    expect(replay.body.appointment.reservationKey).toBeUndefined()
+    expect(replay.body.appointment.reservationKeys).toBeUndefined()
   })
 })

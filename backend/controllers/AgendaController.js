@@ -9,6 +9,7 @@ const AgendaAvailabilityException = require('../models/AgendaAvailabilityExcepti
 const {
   validateBookableStart,
   zonedParts,
+  zonedDateKey,
   zonedDateTimeToUtc,
   timeToMinutes,
 } = require('../helpers/agenda-time')
@@ -31,6 +32,41 @@ function normalizeSlug(value) {
 function protocol() {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   return `AGD-${date}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`
+}
+
+function requestIdempotencyKey(req) {
+  const value = String(req.get('Idempotency-Key') || '').trim()
+  if (!value) return null
+  return /^[A-Za-z0-9._:-]{8,120}$/.test(value) ? value : false
+}
+
+function fingerprint(value) {
+  return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
+}
+
+function reservationKeys(serviceId, startsAt, durationMinutes) {
+  return Array.from({ length: durationMinutes }, (_item, minute) => (
+    `${serviceId}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
+  ))
+}
+
+function safeAppointment(appointment) {
+  const result = appointment.toObject ? appointment.toObject() : { ...appointment }
+  delete result.reservationKey
+  delete result.reservationKeys
+  delete result.idempotencyKey
+  delete result.idempotencyFingerprint
+  delete result.lastMutationKey
+  delete result.lastMutationFingerprint
+  return result
+}
+
+async function availabilityOverride(service, startsAt) {
+  const timezone = service.unitId.timezone || 'America/Sao_Paulo'
+  const date = zonedDateKey(startsAt, timezone)
+  const exception = await AgendaAvailabilityException.findOne({ serviceId: service._id, date, active: true }).lean()
+  if (!exception) return undefined
+  return exception.type === 'custom' ? exception.periods || [] : []
 }
 
 function validTimezone(value) {
@@ -130,14 +166,18 @@ module.exports = class AgendaController {
         }
       }
 
+      const firstStart = candidates[0]?.startsAt
+      const lastEnd = candidates.length
+        ? new Date(candidates[candidates.length - 1].startsAt.getTime() + service.durationMinutes * 60000)
+        : null
       const occupied = candidates.length
         ? await AgendaAppointment.find({
           serviceId,
-          startsAt: { $in: candidates.map((slot) => slot.startsAt) },
-          reservationKey: { $exists: true },
-        }).select('startsAt').lean()
+          startsAt: { $lt: lastEnd },
+          endsAt: { $gt: firstStart },
+          reservationKeys: { $exists: true },
+        }).select('startsAt endsAt').lean()
         : []
-      const occupiedTimes = new Set(occupied.map((item) => item.startsAt.toISOString()))
       return res.status(200).json({
         service: { id: service._id, name: service.name, durationMinutes: service.durationMinutes },
         unit: { id: service.unitId._id, name: service.unitId.name, timezone },
@@ -146,7 +186,10 @@ module.exports = class AgendaController {
         slots: candidates.map((slot) => ({
           time: slot.time,
           startsAt: slot.startsAt,
-          available: !occupiedTimes.has(slot.startsAt.toISOString()),
+          available: !occupied.some((item) => (
+            item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
+            && item.endsAt > slot.startsAt
+          )),
         })),
       })
     } catch (error) {
@@ -156,7 +199,7 @@ module.exports = class AgendaController {
 
   static async listMine(req, res) {
     const appointments = await AgendaAppointment.find({ userId: actorId(req) })
-      .select('-reservationKey -identitySnapshot.email -identitySnapshot.phone')
+      .select('-reservationKey -reservationKeys -idempotencyKey -identitySnapshot.email -identitySnapshot.phone')
       .populate('unitId', 'name slug timezone address')
       .populate('serviceId', 'name slug durationMinutes')
       .sort({ startsAt: -1 })
@@ -167,6 +210,8 @@ module.exports = class AgendaController {
 
   static async createAppointment(req, res) {
     try {
+      const idempotencyKey = requestIdempotencyKey(req)
+      if (idempotencyKey === false) return res.status(422).json({ message: 'Idempotency-Key inválida.' })
       const serviceId = String(req.body?.serviceId || '')
       const startsAt = new Date(req.body?.startsAt)
       if (!mongoose.Types.ObjectId.isValid(serviceId) || Number.isNaN(startsAt.getTime())) {
@@ -175,7 +220,22 @@ module.exports = class AgendaController {
 
       const service = await AgendaService.findOne({ _id: serviceId, active: true }).populate('unitId')
       if (!service || !service.unitId?.active) return res.status(404).json({ message: 'Serviço indisponível.' })
-      const timeError = validateBookableStart(service, service.unitId, startsAt)
+      const source = ['web', 'mobile'].includes(req.body?.source) ? req.body.source : 'web'
+      const notes = String(req.body?.notes || '').trim()
+      const requestFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString(), source, notes })
+      if (idempotencyKey) {
+        const replay = await AgendaAppointment.findOne({ userId: actorId(req), idempotencyKey })
+          .select('+idempotencyFingerprint')
+        if (replay) {
+          if (replay.idempotencyFingerprint !== requestFingerprint) {
+            return res.status(409).json({ message: 'A chave de idempotência já foi usada com outros dados.' })
+          }
+          res.set('Idempotent-Replayed', 'true')
+          return res.status(200).json({ appointment: safeAppointment(replay) })
+        }
+      }
+      const periodsOverride = await availabilityOverride(service, startsAt)
+      const timeError = validateBookableStart(service, service.unitId, startsAt, new Date(), periodsOverride)
       if (timeError) return res.status(422).json({ message: timeError })
 
       const user = await User.findById(actorId(req)).select('_id name email phone emailVerified').lean()
@@ -189,10 +249,13 @@ module.exports = class AgendaController {
         startsAt,
         endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
         reservationKey: `${service._id}:${startsAt.toISOString()}`,
+        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
+        idempotencyKey: idempotencyKey || undefined,
+        idempotencyFingerprint: idempotencyKey ? requestFingerprint : undefined,
         protocol: protocol(),
-        source: ['web', 'mobile'].includes(req.body?.source) ? req.body.source : 'web',
+        source,
         identitySnapshot: { name: user.name, email: user.email, phone: user.phone || '' },
-        notes: String(req.body?.notes || '').trim(),
+        notes,
       })
       void recordAudit(req, {
         action: 'agenda.appointment.create',
@@ -202,13 +265,97 @@ module.exports = class AgendaController {
         eventType: 'CREATE',
         metadata: { serviceId: String(service._id), unitId: String(service.unitId._id), source: appointment.source },
       })
-      const safeAppointment = appointment.toObject()
-      delete safeAppointment.reservationKey
-      return res.status(201).json({ appointment: safeAppointment })
+      return res.status(201).json({ appointment: safeAppointment(appointment) })
     } catch (error) {
-      if (error?.code === 11000) return res.status(409).json({ message: 'Este horário acabou de ser reservado. Escolha outro.' })
+      if (error?.code === 11000) {
+        const idempotencyKey = requestIdempotencyKey(req)
+        if (idempotencyKey) {
+          const replay = await AgendaAppointment.findOne({ userId: actorId(req), idempotencyKey })
+            .select('+idempotencyFingerprint')
+          if (replay) {
+            const startsAt = new Date(req.body?.startsAt)
+            const replayFingerprint = fingerprint({
+              serviceId: String(req.body?.serviceId || ''),
+              startsAt: startsAt.toISOString(),
+              source: ['web', 'mobile'].includes(req.body?.source) ? req.body.source : 'web',
+              notes: String(req.body?.notes || '').trim(),
+            })
+            if (replay.idempotencyFingerprint === replayFingerprint) {
+              res.set('Idempotent-Replayed', 'true')
+              return res.status(200).json({ appointment: safeAppointment(replay) })
+            }
+          }
+        }
+        return res.status(409).json({ message: 'Este horário acabou de ser reservado. Escolha outro.' })
+      }
       if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do agendamento inválidos.' })
       return res.status(500).json({ message: 'Não foi possível criar o agendamento.' })
+    }
+  }
+
+  static async rescheduleMine(req, res) {
+    try {
+      const idempotencyKey = requestIdempotencyKey(req)
+      if (!idempotencyKey) return res.status(422).json({ message: 'Idempotency-Key válida é obrigatória para reagendar.' })
+      const appointmentId = String(req.params.id || '')
+      const serviceId = String(req.body?.serviceId || '')
+      const startsAt = new Date(req.body?.startsAt)
+      if (!mongoose.Types.ObjectId.isValid(appointmentId) || !mongoose.Types.ObjectId.isValid(serviceId) || Number.isNaN(startsAt.getTime())) {
+        return res.status(422).json({ message: 'Agendamento, serviço, data ou horário inválido.' })
+      }
+      const appointment = await AgendaAppointment.findOne({ _id: appointmentId, userId: actorId(req) })
+        .select('+lastMutationKey +lastMutationFingerprint')
+        .populate('serviceId')
+      if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
+      const mutationFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString() })
+      if (idempotencyKey && appointment.lastMutationKey === idempotencyKey) {
+        if (appointment.lastMutationFingerprint !== mutationFingerprint) {
+          return res.status(409).json({ message: 'A chave de idempotência já foi usada com outros dados.' })
+        }
+        res.set('Idempotent-Replayed', 'true')
+        return res.status(200).json({ appointment: safeAppointment(appointment) })
+      }
+      if (!['booked', 'confirmed'].includes(appointment.status)) return res.status(409).json({ message: 'Este agendamento não pode ser reagendado.' })
+      const changeLimit = Date.now() + appointment.serviceId.cancellationNoticeMinutes * 60000
+      if (appointment.startsAt.getTime() < changeLimit) {
+        return res.status(422).json({ message: 'O prazo para reagendamento online foi encerrado.' })
+      }
+      const service = await AgendaService.findOne({ _id: serviceId, active: true }).populate('unitId')
+      if (!service || !service.unitId?.active) return res.status(404).json({ message: 'Serviço indisponível.' })
+      const periodsOverride = await availabilityOverride(service, startsAt)
+      const timeError = validateBookableStart(service, service.unitId, startsAt, new Date(), periodsOverride)
+      if (timeError) return res.status(422).json({ message: timeError })
+      const previous = { serviceId: String(appointment.serviceId._id), startsAt: appointment.startsAt }
+      const updated = await AgendaAppointment.findOneAndUpdate(
+        { _id: appointment._id, userId: actorId(req), status: { $in: ['booked', 'confirmed'] } },
+        {
+          $set: {
+            unitId: service.unitId._id,
+            serviceId: service._id,
+            startsAt,
+            endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+            reservationKey: `${service._id}:${startsAt.toISOString()}`,
+            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
+            lastMutationKey: idempotencyKey || undefined,
+            lastMutationFingerprint: idempotencyKey ? mutationFingerprint : undefined,
+          },
+        },
+        { new: true, runValidators: true },
+      )
+      if (!updated) return res.status(409).json({ message: 'O agendamento foi alterado por outra operação.' })
+      void recordAudit(req, {
+        action: 'agenda.appointment.reschedule',
+        resourceType: 'agenda_appointment',
+        resourceId: updated._id,
+        module: 'agenda-garca',
+        eventType: 'UPDATE',
+        metadata: { previousServiceId: previous.serviceId, previousStartsAt: previous.startsAt, serviceId, startsAt },
+      })
+      return res.status(200).json({ appointment: safeAppointment(updated) })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Este horário acabou de ser reservado. Escolha outro.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do reagendamento inválidos.' })
+      return res.status(500).json({ message: 'Não foi possível reagendar.' })
     }
   }
 
@@ -216,6 +363,7 @@ module.exports = class AgendaController {
     try {
       const appointment = await AgendaAppointment.findOne({ _id: req.params.id, userId: actorId(req) }).populate('serviceId')
       if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
+      if (appointment.status === 'cancelled') return res.status(200).json({ appointment: safeAppointment(appointment) })
       if (!['booked', 'confirmed'].includes(appointment.status)) return res.status(409).json({ message: 'Este agendamento não pode mais ser cancelado.' })
       const cancellationLimit = Date.now() + appointment.serviceId.cancellationNoticeMinutes * 60000
       if (appointment.startsAt.getTime() < cancellationLimit) {
@@ -226,6 +374,7 @@ module.exports = class AgendaController {
       appointment.cancelledBy = actorId(req)
       appointment.cancellationReason = String(req.body?.reason || '').trim()
       appointment.reservationKey = undefined
+      appointment.reservationKeys = undefined
       await appointment.save()
       void recordAudit(req, {
         action: 'agenda.appointment.cancel',
@@ -234,7 +383,7 @@ module.exports = class AgendaController {
         module: 'agenda-garca',
         eventType: 'UPDATE',
       })
-      return res.status(200).json({ appointment })
+      return res.status(200).json({ appointment: safeAppointment(appointment) })
     } catch (error) {
       if (error?.name === 'CastError') return res.status(404).json({ message: 'Agendamento não encontrado.' })
       return res.status(500).json({ message: 'Não foi possível cancelar o agendamento.' })
