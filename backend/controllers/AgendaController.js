@@ -667,6 +667,63 @@ module.exports = class AgendaController {
     return res.status(200).json({ items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
   }
 
+  static async createManualAppointment(req, res) {
+    try {
+      const idempotencyKey = requestIdempotencyKey(req)
+      if (!idempotencyKey) return res.status(422).json({ message: 'Idempotency-Key válida é obrigatória no agendamento manual.' })
+      const userId = String(req.body?.userId || '')
+      const serviceId = String(req.body?.serviceId || '')
+      const startsAt = new Date(req.body?.startsAt)
+      if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(serviceId) || Number.isNaN(startsAt.getTime())) {
+        return res.status(422).json({ message: 'Usuário, serviço, data ou horário inválido.' })
+      }
+      const service = await AgendaService.findOne({ _id: serviceId, active: true }).populate('unitId')
+      if (!service || !service.unitId?.active) return res.status(404).json({ message: 'Serviço indisponível.' })
+      if (!operatorUnitAllowed(req, service.unitId._id)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const user = await User.findOne({ _id: userId, active: { $ne: false } }).select('_id name email phone emailVerified').lean()
+      if (!user) return res.status(404).json({ message: 'Usuário central ativo não encontrado.' })
+      const periodsOverride = await availabilityOverride(service, startsAt)
+      const timeError = validateBookableStart(service, service.unitId, startsAt, new Date(), periodsOverride)
+      if (timeError) return res.status(422).json({ message: timeError })
+      const notes = String(req.body?.notes || '').trim()
+      const requestFingerprint = fingerprint({ userId, serviceId, startsAt: startsAt.toISOString(), source: 'admin', notes })
+      const replay = await AgendaAppointment.findOne({ userId, idempotencyKey }).select('+idempotencyFingerprint')
+      if (replay) {
+        if (replay.idempotencyFingerprint !== requestFingerprint) {
+          return res.status(409).json({ message: 'A chave de idempotência já foi usada com outros dados.' })
+        }
+        res.set('Idempotent-Replayed', 'true')
+        return res.status(200).json({ appointment: safeAppointment(replay) })
+      }
+      const appointment = await AgendaAppointment.create({
+        userId: user._id,
+        unitId: service.unitId._id,
+        serviceId: service._id,
+        startsAt,
+        endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+        reservationKey: `${service._id}:${startsAt.toISOString()}`,
+        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
+        idempotencyKey,
+        idempotencyFingerprint: requestFingerprint,
+        protocol: protocol(),
+        source: 'admin',
+        identitySnapshot: { name: user.name, email: user.email, phone: user.phone || '' },
+        notes,
+        statusHistory: [{ status: 'booked', at: new Date(), by: actorId(req), reason: 'Agendamento manual' }],
+      })
+      void recordAudit(req, {
+        action: 'agenda.appointment.manual_create', resourceType: 'agenda_appointment', resourceId: appointment._id,
+        module: 'agenda-garca', eventType: 'CREATE',
+        metadata: { userId, serviceId, unitId: String(service.unitId._id) },
+      })
+      return res.status(201).json({ appointment: safeAppointment(appointment) })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Horário ocupado ou operação já registrada.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do agendamento manual inválidos.' })
+      return res.status(500).json({ message: 'Não foi possível criar o agendamento manual.' })
+    }
+  }
+
   static async updateAppointmentStatus(req, res) {
     try {
       const appointmentId = String(req.params.id || '')

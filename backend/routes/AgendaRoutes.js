@@ -39,6 +39,7 @@ router.get('/admin/assignments', requireAgendaAdmin, AgendaController.listAssign
 router.post('/admin/assignments', requireGlobalAgendaAdmin, AgendaController.createAssignment)
 router.patch('/admin/assignments/:id/revoke', requireGlobalAgendaAdmin, AgendaController.revokeAssignment)
 router.get('/admin/appointments', requireAgendaOperator, AgendaController.adminListAppointments)
+router.post('/admin/appointments', requireAgendaOperator, AgendaController.createManualAppointment)
 router.patch('/admin/appointments/:id/status', requireAgendaOperator, AgendaController.updateAppointmentStatus)
 router.get('/admin/reports/summary', requireAgendaManager, AgendaController.reportSummary)
 

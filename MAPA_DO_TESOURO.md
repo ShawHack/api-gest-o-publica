@@ -1167,7 +1167,7 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 - [x] Criar listagem, concessão e revogação auditável de vínculos operacionais.
 - [ ] Completar exclusão lógica, paginação e telas do CRUD administrativo.
 - [x] Implementar reagendamento atômico do cidadão.
-- [ ] Implementar agendamento manual pelo atendente.
+- [x] Implementar agendamento manual idempotente pelo atendente, referenciando apenas usuário central ativo.
 - [x] Implementar estados e transições formais do atendimento.
 - [x] Criar agenda operacional paginada e filtrada por escopo.
 - [x] Criar resumo por status e auditoria das transições.

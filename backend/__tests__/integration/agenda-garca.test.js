@@ -326,6 +326,27 @@ describe('Agenda Garça com identidade central', () => {
       .send({ userId: secondCitizen._id, unitId: unit._id, role: 'agenda_attendant' })
       .expect(201)
 
+    const manualPayload = {
+      userId: citizen._id,
+      serviceId: service._id,
+      startsAt: new Date(startsAt.getTime() + 120 * 60000).toISOString(),
+      notes: 'Criado presencialmente pelo atendente',
+    }
+    const manual = await request(app)
+      .post('/api/agenda/admin/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .set('Idempotency-Key', 'agenda-manual-test-001')
+      .send(manualPayload)
+      .expect(201)
+    expect(manual.body.appointment).toMatchObject({ userId: citizen._id.toString(), source: 'admin' })
+    const manualReplay = await request(app)
+      .post('/api/agenda/admin/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .set('Idempotency-Key', 'agenda-manual-test-001')
+      .send(manualPayload)
+      .expect(200)
+    expect(manualReplay.body.appointment._id).toBe(manual.body.appointment._id)
+
     const calendar = await request(app)
       .get('/api/agenda/admin/appointments')
       .set('Authorization', `Bearer ${secondToken}`)

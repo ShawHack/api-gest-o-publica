@@ -36,10 +36,13 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `POST` | `/admin/assignments` | administrador global | vincular papel da Agenda a usuário existente |
 | `PATCH` | `/admin/assignments/:id/revoke` | administrador global | revogar vínculo sem apagar seu histórico |
 | `GET` | `/admin/appointments` | atendente da unidade | agenda paginada com filtros de unidade, serviço, usuário, período e status |
+| `POST` | `/admin/appointments` | atendente da unidade | criar reserva presencial para usuário central existente |
 | `PATCH` | `/admin/appointments/:id/status` | atendente da unidade | confirmar, concluir, registrar ausência ou cancelar |
 | `GET` | `/admin/reports/summary` | gestor da Agenda | totais operacionais agrupados por status |
 
 Transições aceitas: `booked → confirmed/cancelled` e `confirmed → completed/no_show/cancelled`. Estados finais não podem ser reabertos por esse endpoint. Cada mudança registra autor, data, motivo e auditoria.
+
+O agendamento manual exige `userId` de uma conta central ativa, serviço dentro do escopo do atendente e `Idempotency-Key`. Ele não cria usuário, senha ou identidade paralela e registra `source: admin` e o operador na trilha de status/auditoria.
 
 ## Criação de agendamento
 
