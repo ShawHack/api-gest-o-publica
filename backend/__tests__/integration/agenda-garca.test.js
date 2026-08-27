@@ -17,6 +17,7 @@ describe('Agenda Garça com identidade central', () => {
   let secondToken
   let service
   let capacityService
+  let bufferedService
   let roomResource
   let unit
   let startsAt
@@ -74,6 +75,23 @@ describe('Agenda Garça com identidade central', () => {
       })
       .expect(201)
     capacityService = capacityResponse.body.service
+    const bufferedResponse = await request(app)
+      .post('/api/agenda/admin/services')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        unitId: unit._id,
+        name: 'Atendimento com preparação',
+        durationMinutes: 20,
+        bufferBeforeMinutes: 5,
+        bufferAfterMinutes: 10,
+        slotIntervalMinutes: 5,
+        minimumNoticeMinutes: 0,
+        bookingWindowDays: 30,
+        cancellationNoticeMinutes: 0,
+        weeklyAvailability: [{ dayOfWeek: local.dayOfWeek, periods: [{ start: '00:00', end: '23:59' }] }],
+      })
+      .expect(201)
+    bufferedService = bufferedResponse.body.service
     await require('../../models/AgendaAppointment').init()
   })
 
@@ -222,6 +240,25 @@ describe('Agenda Garça com identidade central', () => {
       .expect(200)
     expect(availability.body.slots.find((slot) => slot.startsAt === capacityStart.toISOString()))
       .toMatchObject({ available: false, remainingCapacity: 0 })
+  })
+
+  test('protege os buffers anterior e posterior contra sobreposição', async () => {
+    const bufferStart = new Date(startsAt.getTime() + 360 * 60000)
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ serviceId: bufferedService._id, startsAt: bufferStart.toISOString() })
+      .expect(201)
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ serviceId: bufferedService._id, startsAt: new Date(bufferStart.getTime() + 25 * 60000).toISOString() })
+      .expect(409)
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ serviceId: bufferedService._id, startsAt: new Date(bufferStart.getTime() + 35 * 60000).toISOString() })
+      .expect(201)
   })
 
   test('repete criação com segurança usando a mesma chave de idempotência', async () => {

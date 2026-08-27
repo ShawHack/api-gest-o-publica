@@ -1161,7 +1161,8 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 
 #### Fase B — Disponibilidade e administração
 
-- [ ] Completar calendários, exceções, feriados, férias, pausas e buffers.
+- [x] Implementar buffers protegidos antes e depois dos atendimentos.
+- [ ] Completar feriados gerais, férias e pausas por unidade/recurso.
 - [x] Suportar capacidade de 1 a 20 vagas com faixas exclusivas e proteção contra concorrência.
 - [x] Implementar cadastro, listagem e desativação de atendentes, salas e equipamentos por unidade.
 - [x] Vincular recursos ativos aos serviços e às reservas com seleção automática e exclusividade concorrente.
@@ -1229,7 +1230,7 @@ Fundação criada:
 
 Validação inicial concluída:
 
-- 14 testes próprios da Agenda aprovados;
+- 15 testes próprios da Agenda aprovados;
 - identidade carregada exclusivamente de `users`;
 - tentativa de enviar outro `userId` ignorada e vínculo mantido com o usuário autenticado;
 - cidadão impedido de criar unidades ou conceder permissões;
@@ -1241,7 +1242,7 @@ Validação inicial concluída:
 - criação e reagendamento possuem chaves de idempotência; cancelamento repetido é seguro;
 - reagendamento troca o intervalo atomicamente e preserva a reserva original quando há conflito;
 - 26 testes de regressão de cadastro, login, refresh token, autorização e Estradas Rurais aprovados;
-- conjunto final com 40 testes aprovados em 7 suítes;
+- conjunto final com 41 testes aprovados em 7 suítes;
 - sintaxe dos modelos, helpers, controller, rotas, teste e servidor validada;
 - nenhuma imagem foi reconstruída e nenhum container de produção foi reiniciado.
 

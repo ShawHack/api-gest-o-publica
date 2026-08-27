@@ -72,6 +72,7 @@ Validações iniciais:
 - dia, período e intervalo configurados;
 - duração integral dentro do período;
 - exclusividade de todo o intervalo ocupado, inclusive sobreposição parcial;
+- buffers de preparação antes/depois integralmente dentro do período e protegidos na reserva;
 - exceções administrativas validadas novamente no momento da escrita;
 - rate limit de escrita.
 
@@ -95,6 +96,8 @@ A consulta de disponibilidade retorna apenas horário, instante UTC, estado livr
 ## Concorrência
 
 Cada reserva ativa possui uma chave por minuto ocupado e faixa de capacidade em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas dentro da mesma faixa, inclusive sob concorrência. A API tenta atomicamente as faixas `0..capacity-1`; quando todas estão ocupadas, responde conflito. No cancelamento, as chaves são removidas e a vaga volta a ficar disponível.
+
+`bufferBeforeMinutes` e `bufferAfterMinutes` ampliam internamente o intervalo ocupado sem alterar o horário exibido ao cidadão. Criação, disponibilidade e reagendamento usam o mesmo intervalo protegido.
 
 Quando `resourceRequired` está ativo, o serviço deve possuir ao menos um `resourceId` ativo da mesma unidade. A API pode receber um recurso vinculado ou selecionar automaticamente entre os disponíveis. As chaves passam a incluir recurso e faixa, impedindo uso simultâneo acima da capacidade configurada. Recursos inativos ou de outra unidade são recusados.
 

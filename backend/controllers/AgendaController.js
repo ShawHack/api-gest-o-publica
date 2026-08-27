@@ -49,10 +49,19 @@ function reservationScope(serviceId, capacityLane, resourceId) {
   return resourceId ? `resource-${resourceId}:lane-${capacityLane}` : `lane-${capacityLane}`
 }
 
-function reservationKeys(serviceId, startsAt, durationMinutes, capacityLane = 0, resourceId) {
-  const scope = reservationScope(serviceId, capacityLane, resourceId)
+function occupiedWindow(service, startsAt) {
+  return {
+    from: new Date(startsAt.getTime() - (service.bufferBeforeMinutes || 0) * 60000),
+    until: new Date(startsAt.getTime() + (service.durationMinutes + (service.bufferAfterMinutes || 0)) * 60000),
+  }
+}
+
+function reservationKeys(service, startsAt, capacityLane = 0, resourceId) {
+  const window = occupiedWindow(service, startsAt)
+  const scope = reservationScope(service._id, capacityLane, resourceId)
+  const durationMinutes = Math.ceil((window.until - window.from) / 60000)
   return Array.from({ length: durationMinutes }, (_item, minute) => (
-    `${serviceId}:${scope}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
+    `${service._id}:${scope}:${new Date(window.from.getTime() + minute * 60000).toISOString()}`
   ))
 }
 
@@ -183,7 +192,7 @@ module.exports = class AgendaController {
 
   static async listServices(_req, res) {
     const services = await AgendaService.find({ active: true })
-      .select('unitId name slug description durationMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
+      .select('unitId name slug description durationMinutes bufferBeforeMinutes bufferAfterMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
       .populate('resourceIds', 'name type active')
       .populate('unitId', 'name slug timezone address')
       .sort({ name: 1 })
@@ -229,10 +238,10 @@ module.exports = class AgendaController {
       const occupied = candidates.length
         ? await AgendaAppointment.find({
           serviceId,
-          startsAt: { $lt: lastEnd },
-          endsAt: { $gt: firstStart },
+          occupiesFrom: { $lt: new Date(lastEnd.getTime() + (service.bufferAfterMinutes || 0) * 60000) },
+          occupiesUntil: { $gt: new Date(firstStart.getTime() - (service.bufferBeforeMinutes || 0) * 60000) },
           reservationKeys: { $exists: true },
-        }).select('startsAt endsAt').lean()
+        }).select('occupiesFrom occupiesUntil').lean()
         : []
       const activeResourceCount = service.resourceRequired
         ? await AgendaResource.countDocuments({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true })
@@ -247,12 +256,12 @@ module.exports = class AgendaController {
           time: slot.time,
           startsAt: slot.startsAt,
           available: occupied.filter((item) => (
-            item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
-            && item.endsAt > slot.startsAt
+            item.occupiesFrom < occupiedWindow(service, slot.startsAt).until
+            && item.occupiesUntil > occupiedWindow(service, slot.startsAt).from
           )).length < totalCapacity,
           remainingCapacity: Math.max(0, totalCapacity - occupied.filter((item) => (
-            item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
-            && item.endsAt > slot.startsAt
+            item.occupiesFrom < occupiedWindow(service, slot.startsAt).until
+            && item.occupiesUntil > occupiedWindow(service, slot.startsAt).from
           )).length),
         })),
       })
@@ -320,8 +329,10 @@ module.exports = class AgendaController {
             resourceId,
             startsAt,
             endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+            occupiesFrom: occupiedWindow(service, startsAt).from,
+            occupiesUntil: occupiedWindow(service, startsAt).until,
             reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
-            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
+            reservationKeys: reservationKeys(service, startsAt, capacityLane, resourceId),
             idempotencyKey: idempotencyKey || undefined,
             idempotencyFingerprint: idempotencyKey ? requestFingerprint : undefined,
             protocol: protocol(),
@@ -419,8 +430,10 @@ module.exports = class AgendaController {
             { $set: {
               unitId: service.unitId._id, serviceId: service._id, capacityLane, resourceId, startsAt,
               endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+              occupiesFrom: occupiedWindow(service, startsAt).from,
+              occupiesUntil: occupiedWindow(service, startsAt).until,
               reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
-              reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
+              reservationKeys: reservationKeys(service, startsAt, capacityLane, resourceId),
               lastMutationKey: idempotencyKey, lastMutationFingerprint: mutationFingerprint,
             } },
             { new: true, runValidators: true },
@@ -650,6 +663,8 @@ module.exports = class AgendaController {
         slug,
         description: String(req.body?.description || '').trim(),
         durationMinutes: req.body?.durationMinutes,
+        bufferBeforeMinutes: req.body?.bufferBeforeMinutes,
+        bufferAfterMinutes: req.body?.bufferAfterMinutes,
         slotIntervalMinutes: req.body?.slotIntervalMinutes,
         minimumNoticeMinutes: req.body?.minimumNoticeMinutes,
         bookingWindowDays: req.body?.bookingWindowDays,
@@ -680,7 +695,7 @@ module.exports = class AgendaController {
       if (!current) return res.status(404).json({ message: 'Serviço não encontrado.' })
       if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
       const update = { updatedBy: actorId(req) }
-      for (const field of ['durationMinutes', 'slotIntervalMinutes', 'capacity', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
+      for (const field of ['durationMinutes', 'bufferBeforeMinutes', 'bufferAfterMinutes', 'slotIntervalMinutes', 'capacity', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
         if (req.body?.[field] !== undefined) update[field] = req.body[field]
       }
       if (req.body?.resourceIds !== undefined || req.body?.resourceRequired !== undefined) {
@@ -859,10 +874,12 @@ module.exports = class AgendaController {
         serviceId: service._id,
         startsAt,
         endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+        occupiesFrom: occupiedWindow(service, startsAt).from,
+        occupiesUntil: occupiedWindow(service, startsAt).until,
         capacityLane,
         resourceId,
         reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
-        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
+        reservationKeys: reservationKeys(service, startsAt, capacityLane, resourceId),
         idempotencyKey,
         idempotencyFingerprint: requestFingerprint,
         protocol: protocol(),

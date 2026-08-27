@@ -24,6 +24,8 @@ const agendaServiceSchema = new Schema(
     slug: { type: String, required: true, trim: true, lowercase: true, maxlength: 100 },
     description: { type: String, trim: true, maxlength: 2000, default: '' },
     durationMinutes: { type: Number, required: true, min: 5, max: 480 },
+    bufferBeforeMinutes: { type: Number, default: 0, min: 0, max: 240 },
+    bufferAfterMinutes: { type: Number, default: 0, min: 0, max: 240 },
     slotIntervalMinutes: { type: Number, required: true, min: 5, max: 480 },
     capacity: { type: Number, default: 1, min: 1, max: 20 },
     resourceRequired: { type: Boolean, default: false },

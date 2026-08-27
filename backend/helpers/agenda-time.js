@@ -63,13 +63,14 @@ function validateBookableStart(service, unit, startsAt, now = new Date(), period
   const timezone = unit.timezone || 'America/Sao_Paulo'
   const local = zonedParts(startsAt, timezone)
   if (local.minutes % service.slotIntervalMinutes !== 0) return 'O horário não coincide com o intervalo do serviço.'
-  const endMinutes = local.minutes + service.durationMinutes
+  const occupiedStart = local.minutes - (service.bufferBeforeMinutes || 0)
+  const endMinutes = local.minutes + service.durationMinutes + (service.bufferAfterMinutes || 0)
   const schedule = (service.weeklyAvailability || []).find((entry) => entry.dayOfWeek === local.dayOfWeek)
   const periods = periodsOverride === undefined ? schedule?.periods : periodsOverride
   const withinPeriod = periods?.some((period) => {
     const start = timeToMinutes(period.start)
     const end = timeToMinutes(period.end)
-    return local.minutes >= start && endMinutes <= end
+    return occupiedStart >= start && endMinutes <= end
   })
   return withinPeriod ? null : 'O serviço não está disponível nesse horário.'
 }

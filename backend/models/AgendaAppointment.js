@@ -10,6 +10,8 @@ const agendaAppointmentSchema = new Schema(
     resourceId: { type: Schema.Types.ObjectId, ref: 'AgendaResource', index: true },
     startsAt: { type: Date, required: true, index: true },
     endsAt: { type: Date, required: true },
+    occupiesFrom: { type: Date, required: true, index: true },
+    occupiesUntil: { type: Date, required: true, index: true },
     status: {
       type: String,
       enum: ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'],
