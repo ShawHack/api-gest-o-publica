@@ -692,6 +692,7 @@ Evidências da validação final:
 | `docs/FASE6-AUDITORIA-OPS.md` | auditoria e operação |
 | `docs/PLAYWRIGHT-E2E.md` | testes ponta a ponta |
 | `docs/PORTAL-SERVICOS-WEB.md` | builds e publicação web |
+| `backend/docs/AGENDA_GARCA_API.md` | contrato inicial, identidade e segurança da Agenda Garça |
 | `docs/FONTE-CANONICA.md` | histórico da fonte; possui divergência conhecida |
 
 ## 24. Comandos de consulta segura
@@ -1074,3 +1075,162 @@ Atualizar este documento quando ocorrer qualquer um destes eventos:
 - teste de desastre com novas descobertas.
 
 Registrar no topo a data da observação e manter valores secretos fora do arquivo.
+
+## 27. Em implementação — Agenda Garça
+
+### 27.1 Decisão de arquitetura
+
+O novo sistema de agendamentos será construído como um módulo da plataforma, inspirado nos fluxos de produtos como Zoho Bookings, sem criar uma identidade paralela.
+
+Arquitetura aprovada:
+
+```text
+React web ───────┐
+                 ├──> API Express `/api/agenda` ──> MongoDB + Redis + workers
+Flutter mobile ──┘                  |
+                                    └──> coleção central `users`
+```
+
+Regras invioláveis de identidade:
+
+1. `User`/coleção `users` é a única fonte oficial de cadastro e autenticação;
+2. cadastro, login, verificação de e-mail, recuperação de senha e desativação continuam nos endpoints centrais `/users`;
+3. React e Flutter usam o mesmo JWT emitido pela API principal;
+4. nenhuma senha, hash, CPF ou conta de login será criada em coleções da Agenda;
+5. agendamentos referenciam obrigatoriamente `User._id` obtido do token validado, nunca um `userId` confiado ao cliente;
+6. permissões da Agenda são vínculos ao usuário central, com unidade, papel, concessor e auditoria;
+7. uma pessoa desativada na base central perde acesso ao módulo em todos os clientes;
+8. snapshots mínimos de nome/e-mail/telefone podem ser preservados no agendamento para integridade histórica, mas não constituem nova identidade;
+9. Firebase deixa de ser fonte oficial dos novos agendamentos e permanece apenas durante a migração controlada do legado;
+10. `api-semit` e `api-gestao-publica` devem convergir para a mesma API e a mesma base lógica de usuários.
+
+### 27.2 Escopo funcional alvo
+
+Portal do cidadão:
+
+- seleção de secretaria/unidade, serviço, data e horário;
+- confirmação com protocolo e histórico em “Meus agendamentos”;
+- cancelamento e reagendamento conforme regras do serviço;
+- confirmação e lembretes por e-mail; WhatsApp após homologação específica;
+- fila de espera e aviso de vaga em fase posterior;
+- experiência acessível e responsiva para navegador e aplicativo.
+
+Operação e administração:
+
+- unidades, serviços, duração, intervalos, capacidade e locais;
+- agendas por serviço, atendente e recurso;
+- horário regular, feriados, pausas, férias, bloqueios e exceções;
+- calendário diário, semanal e mensal;
+- criação manual pelo atendente;
+- confirmação, atendimento, ausência, cancelamento e reagendamento;
+- permissões por unidade e papéis `agenda_admin`, `agenda_manager` e `agenda_attendant`;
+- relatórios de volume, ocupação, cancelamentos, ausência e tempo de espera;
+- exportação controlada e trilha de auditoria.
+
+### 27.3 Requisitos técnicos e de segurança
+
+- reserva atômica de horário, impedindo dupla marcação concorrente;
+- idempotência em criação, cancelamento, reagendamento e notificações;
+- datas armazenadas em UTC e apresentadas em `America/Sao_Paulo`;
+- rate limit nos fluxos de consulta e escrita;
+- validação no servidor de duração, antecedência, janela, disponibilidade e permissão;
+- MongoDB como fonte transacional; Redis somente para fila, cache e bloqueios efêmeros;
+- logs sem senha, token ou CPF completo;
+- minimização, retenção e descarte definidos segundo LGPD;
+- acessibilidade eMAG/WCAG e navegação por teclado;
+- OpenAPI, testes unitários, integração, concorrência e ponta a ponta;
+- backup e restore das novas coleções incluídos antes da entrada em produção;
+- nenhum deploy destrutivo ou substituição do legado sem homologação e rollback.
+
+### 27.4 Fases de implementação
+
+#### Fase A — Fundação da API e identidade única
+
+- [x] Definir `User` central como única identidade.
+- [x] Criar modelos iniciais de unidade, serviço, vínculo de permissão e agendamento.
+- [x] Criar middleware de autorização da Agenda referenciado ao usuário central.
+- [x] Criar endpoints iniciais `/api/agenda/me`, catálogo, meus agendamentos, criação e cancelamento.
+- [x] Criar consulta de disponibilidade por serviço/data sem exposição de dados pessoais.
+- [x] Criar fechamento de data e horários especiais por serviço.
+- [x] Impedir que o cliente escolha o proprietário do agendamento.
+- [x] Criar chave exclusiva de reserva para impedir dupla marcação.
+- [x] Criar e executar testes de identidade, autorização, concorrência e liberação do slot.
+- [ ] Publicar OpenAPI inicial.
+
+Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidade enviada pelo cliente; duas reservas simultâneas não ocupam o mesmo slot.
+
+#### Fase B — Disponibilidade e administração
+
+- [ ] Completar calendários, exceções, feriados, férias, pausas e buffers.
+- [ ] Suportar capacidade maior que um e reserva de recursos.
+- [ ] Criar CRUD administrativo com escopo por unidade.
+- [ ] Implementar reagendamento atômico e agendamento manual.
+- [ ] Implementar estados e transições formais do atendimento.
+- [ ] Criar relatórios e auditoria operacional.
+
+#### Fase C — Portal React
+
+- [ ] Criar frontend isolado e responsivo sob `/agendamentos/`.
+- [ ] Reutilizar login, sessão e recuperação de senha centrais.
+- [ ] Implementar fluxo serviço → data → horário → confirmação.
+- [ ] Implementar “Meus agendamentos”.
+- [ ] Criar painel por perfil e unidade.
+- [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
+
+#### Fase D — Adequação do Flutter
+
+- [ ] Criar cliente HTTP da Agenda usando o JWT central.
+- [ ] Remover acesso direto do Flutter às coleções Firestore de agendamento.
+- [ ] Adaptar criação, histórico, cancelamento e reagendamento.
+- [ ] Manter compatibilidade temporária com versões móveis anteriores.
+- [ ] Publicar atualização somente após homologação web/API.
+
+#### Fase E — Migração e notificações
+
+- [ ] Inventariar `appointments`, `services`, bloqueios e vínculos no Firestore.
+- [ ] Mapear usuários legados para `User._id`, com relatório de ambiguidades e duplicidades.
+- [ ] Migrar em ensaio repetível, com hashes, contagens e reconciliação.
+- [ ] Criar confirmação e lembretes idempotentes nos workers.
+- [ ] Testar e-mail; homologar WhatsApp separadamente.
+- [ ] Preservar histórico e cadeia de auditoria.
+
+#### Fase F — Homologação e entrada em produção
+
+- [ ] Executar testes funcionais com cidadãos, atendentes e gestores.
+- [ ] Realizar teste de carga e disputa pelo mesmo horário.
+- [ ] Testar backup, restore, rollback e indisponibilidade de integrações.
+- [ ] Operar legado e novo sistema em paralelo controlado.
+- [ ] Trocar o cartão “Agendamentos” somente após aceite formal.
+- [ ] Manter o legado somente para consulta durante a janela definida.
+- [ ] Desativar escritas no Firestore apenas após reconciliação final.
+
+### 27.5 Estado inicial em 27/08/2026
+
+A implementação começou somente no checkout versionado `api-gestao-publica`; nenhuma rota foi implantada no container de produção e o agendamento Flutter atual não foi alterado.
+
+Fundação criada:
+
+- `AgendaUnit`: unidade/local de atendimento;
+- `AgendaService`: serviço, duração, intervalo e disponibilidade semanal;
+- `AgendaUserAssignment`: papel da Agenda referenciado ao `User` central;
+- `AgendaAppointment`: agendamento referenciado ao `User`, com protocolo e reserva exclusiva;
+- `AgendaAvailabilityException`: fechamento ou horário especial por serviço/data;
+- `AgendaRoutes`/`AgendaController`: identidade, catálogo, criação, histórico, cancelamento e administração inicial;
+- `agenda-auth`: autorização por vínculo e administrador global;
+- `agenda-time`: validação de janela e disponibilidade na zona municipal;
+- teste de integração para identidade central, tentativa de personificação, autorização e disputa do slot.
+
+Validação inicial concluída:
+
+- 6 testes próprios da Agenda aprovados;
+- identidade carregada exclusivamente de `users`;
+- tentativa de enviar outro `userId` ignorada e vínculo mantido com o usuário autenticado;
+- cidadão impedido de criar unidades ou conceder permissões;
+- segunda reserva do mesmo serviço/horário recusada com conflito;
+- cancelamento libera o slot para nova reserva;
+- consulta de disponibilidade oculta dados pessoais e respeita fechamento/horário especial;
+- 26 testes de regressão de cadastro, login, refresh token, autorização e Estradas Rurais aprovados;
+- sintaxe dos modelos, helpers, controller, rotas, teste e servidor validada;
+- nenhuma imagem foi reconstruída e nenhum container de produção foi reiniciado.
+
+Próxima entrega: revisar o contrato dos endpoints, gerar OpenAPI e iniciar disponibilidade avançada antes de qualquer frontend.
