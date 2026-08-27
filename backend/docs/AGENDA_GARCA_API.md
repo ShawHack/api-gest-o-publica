@@ -34,6 +34,9 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `GET` | `/admin/resources` | gestor da unidade | listar atendentes, salas e equipamentos do escopo |
 | `POST` | `/admin/resources` | gestor da unidade | cadastrar recurso na unidade |
 | `PATCH` | `/admin/resources/:id` | gestor da unidade | editar ou desativar recurso preservando histórico |
+| `GET` | `/admin/schedule-blocks` | gestor da unidade | listar feriados, férias, pausas e manutenções |
+| `POST` | `/admin/schedule-blocks` | gestor da unidade | bloquear intervalo da unidade ou de um recurso |
+| `PATCH` | `/admin/schedule-blocks/:id/revoke` | gestor da unidade | revogar bloqueio preservando histórico |
 | `PUT` | `/admin/services/:id/availability-exception` | administrador da Agenda | fechar uma data ou definir horário especial |
 | `GET` | `/admin/assignments` | administrador da Agenda | listar vínculos permitidos pelo escopo |
 | `POST` | `/admin/assignments` | administrador global | vincular papel da Agenda a usuário existente |
@@ -98,6 +101,8 @@ A consulta de disponibilidade retorna apenas horário, instante UTC, estado livr
 Cada reserva ativa possui uma chave por minuto ocupado e faixa de capacidade em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas dentro da mesma faixa, inclusive sob concorrência. A API tenta atomicamente as faixas `0..capacity-1`; quando todas estão ocupadas, responde conflito. No cancelamento, as chaves são removidas e a vaga volta a ficar disponível.
 
 `bufferBeforeMinutes` e `bufferAfterMinutes` ampliam internamente o intervalo ocupado sem alterar o horário exibido ao cidadão. Criação, disponibilidade e reagendamento usam o mesmo intervalo protegido.
+
+`AgendaScheduleBlock` representa intervalos de feriado, férias, pausa, manutenção ou outro motivo. O escopo `unit` bloqueia todos os serviços da unidade; `resource` retira somente o atendente/sala/equipamento afetado. Consulta, criação manual, criação do cidadão e reagendamento aplicam os mesmos bloqueios. A revogação é lógica e auditada.
 
 Quando `resourceRequired` está ativo, o serviço deve possuir ao menos um `resourceId` ativo da mesma unidade. A API pode receber um recurso vinculado ou selecionar automaticamente entre os disponíveis. As chaves passam a incluir recurso e faixa, impedindo uso simultâneo acima da capacidade configurada. Recursos inativos ou de outra unidade são recusados.
 

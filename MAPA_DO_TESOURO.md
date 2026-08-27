@@ -1162,7 +1162,7 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 #### Fase B — Disponibilidade e administração
 
 - [x] Implementar buffers protegidos antes e depois dos atendimentos.
-- [ ] Completar feriados gerais, férias e pausas por unidade/recurso.
+- [x] Implementar feriados gerais, férias, pausas e manutenções por intervalo de unidade/recurso.
 - [x] Suportar capacidade de 1 a 20 vagas com faixas exclusivas e proteção contra concorrência.
 - [x] Implementar cadastro, listagem e desativação de atendentes, salas e equipamentos por unidade.
 - [x] Vincular recursos ativos aos serviços e às reservas com seleção automática e exclusividade concorrente.

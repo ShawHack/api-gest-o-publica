@@ -7,6 +7,7 @@ const AgendaAppointment = require('../models/AgendaAppointment')
 const AgendaUserAssignment = require('../models/AgendaUserAssignment')
 const AgendaAvailabilityException = require('../models/AgendaAvailabilityException')
 const AgendaResource = require('../models/AgendaResource')
+const AgendaScheduleBlock = require('../models/AgendaScheduleBlock')
 const {
   validateBookableStart,
   zonedParts,
@@ -69,7 +70,13 @@ function reservationKey(serviceId, startsAt, capacityLane = 0, resourceId) {
   return `${serviceId}:${reservationScope(serviceId, capacityLane, resourceId)}:${startsAt.toISOString()}`
 }
 
-async function bookingResources(service, requestedResourceId) {
+async function bookingResources(service, requestedResourceId, startsAt) {
+  const window = occupiedWindow(service, startsAt)
+  const unitId = service.unitId._id || service.unitId
+  const unitBlocked = await AgendaScheduleBlock.exists({
+    unitId, scope: 'unit', active: true, startsAt: { $lt: window.until }, endsAt: { $gt: window.from },
+  })
+  if (unitBlocked) return []
   if (!service.resourceRequired) return [null]
   const linked = (service.resourceIds || []).map((item) => String(item?._id || item))
   if (requestedResourceId && !linked.includes(String(requestedResourceId))) return []
@@ -78,7 +85,13 @@ async function bookingResources(service, requestedResourceId) {
     unitId: service.unitId._id || service.unitId,
     active: true,
   }
-  return AgendaResource.find(filter).select('_id').sort({ _id: 1 }).lean()
+  const resources = await AgendaResource.find(filter).select('_id').sort({ _id: 1 }).lean()
+  const blocked = await AgendaScheduleBlock.find({
+    unitId, scope: 'resource', resourceId: { $in: resources.map((item) => item._id) }, active: true,
+    startsAt: { $lt: window.until }, endsAt: { $gt: window.from },
+  }).distinct('resourceId')
+  const blockedIds = new Set(blocked.map(String))
+  return resources.filter((item) => !blockedIds.has(String(item._id)))
 }
 
 function safeAppointment(appointment) {
@@ -243,27 +256,38 @@ module.exports = class AgendaController {
           reservationKeys: { $exists: true },
         }).select('occupiesFrom occupiesUntil').lean()
         : []
-      const activeResourceCount = service.resourceRequired
-        ? await AgendaResource.countDocuments({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true })
-        : 1
-      const totalCapacity = service.capacity * activeResourceCount
+      const activeResources = service.resourceRequired
+        ? await AgendaResource.find({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true }).select('_id').lean()
+        : []
+      const blocks = candidates.length ? await AgendaScheduleBlock.find({
+        unitId: service.unitId._id, active: true,
+        startsAt: { $lt: occupiedWindow(service, candidates[candidates.length - 1].startsAt).until },
+        endsAt: { $gt: occupiedWindow(service, candidates[0].startsAt).from },
+      }).select('scope resourceId startsAt endsAt reason category').lean() : []
       return res.status(200).json({
         service: { id: service._id, name: service.name, durationMinutes: service.durationMinutes },
         unit: { id: service.unitId._id, name: service.unitId.name, timezone },
         date: dateKey,
         exception: exception ? { type: exception.type, reason: exception.reason || '' } : null,
-        slots: candidates.map((slot) => ({
-          time: slot.time,
-          startsAt: slot.startsAt,
-          available: occupied.filter((item) => (
+        slots: candidates.map((slot) => {
+          const window = occupiedWindow(service, slot.startsAt)
+          const overlappingBlocks = blocks.filter((block) => block.startsAt < window.until && block.endsAt > window.from)
+          const unitBlocked = overlappingBlocks.some((block) => block.scope === 'unit')
+          const blockedResources = new Set(overlappingBlocks.filter((block) => block.scope === 'resource').map((block) => String(block.resourceId)))
+          const totalCapacity = unitBlocked ? 0 : service.capacity * (service.resourceRequired
+            ? activeResources.filter((resource) => !blockedResources.has(String(resource._id))).length
+            : 1)
+          const occupiedCount = occupied.filter((item) => (
             item.occupiesFrom < occupiedWindow(service, slot.startsAt).until
             && item.occupiesUntil > occupiedWindow(service, slot.startsAt).from
-          )).length < totalCapacity,
-          remainingCapacity: Math.max(0, totalCapacity - occupied.filter((item) => (
-            item.occupiesFrom < occupiedWindow(service, slot.startsAt).until
-            && item.occupiesUntil > occupiedWindow(service, slot.startsAt).from
-          )).length),
-        })),
+          )).length
+          return {
+            time: slot.time, startsAt: slot.startsAt,
+            available: occupiedCount < totalCapacity,
+            remainingCapacity: Math.max(0, totalCapacity - occupiedCount),
+            blocked: totalCapacity === 0,
+          }
+        }),
       })
     } catch (error) {
       return res.status(500).json({ message: 'Não foi possível consultar a disponibilidade.' })
@@ -316,8 +340,8 @@ module.exports = class AgendaController {
       if (!user.emailVerified) return res.status(403).json({ message: 'Confirme seu e-mail antes de agendar.' })
 
       let appointment
-      const resources = await bookingResources(service, req.body?.resourceId)
-      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      const resources = await bookingResources(service, req.body?.resourceId, startsAt)
+      if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
         const resourceId = resource?._id
         try {
@@ -420,8 +444,8 @@ module.exports = class AgendaController {
       if (timeError) return res.status(422).json({ message: timeError })
       const previous = { serviceId: String(appointment.serviceId._id), startsAt: appointment.startsAt }
       let updated
-      const resources = await bookingResources(service, req.body?.resourceId)
-      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      const resources = await bookingResources(service, req.body?.resourceId, startsAt)
+      if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !updated; capacityLane += 1) {
         const resourceId = resource?._id
         try {
@@ -640,6 +664,66 @@ module.exports = class AgendaController {
       if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do recurso inválidos.' })
       return res.status(500).json({ message: 'Não foi possível atualizar o recurso.' })
     }
+  }
+
+  static async listScheduleBlocks(req, res) {
+    const filter = agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
+    if (req.query?.unitId) {
+      const unitId = String(req.query.unitId)
+      if (!mongoose.Types.ObjectId.isValid(unitId) || !unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      filter.unitId = unitId
+    }
+    filter.active = req.query?.active === 'false' ? false : true
+    const items = await AgendaScheduleBlock.find(filter)
+      .populate('unitId', 'name slug').populate('resourceId', 'name type').sort({ startsAt: 1 }).lean()
+    return res.status(200).json({ items })
+  }
+
+  static async createScheduleBlock(req, res) {
+    try {
+      const unitId = String(req.body?.unitId || '')
+      const scope = String(req.body?.scope || '')
+      const resourceId = req.body?.resourceId ? String(req.body.resourceId) : null
+      const startsAt = new Date(req.body?.startsAt)
+      const endsAt = new Date(req.body?.endsAt)
+      const reason = String(req.body?.reason || '').trim()
+      const category = String(req.body?.category || 'other')
+      if (!mongoose.Types.ObjectId.isValid(unitId) || !['unit', 'resource'].includes(scope)
+        || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || startsAt >= endsAt || !reason
+        || !['holiday', 'vacation', 'pause', 'maintenance', 'other'].includes(category)) {
+        return res.status(422).json({ message: 'Dados do bloqueio inválidos.' })
+      }
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      if (scope === 'resource') {
+        if (!mongoose.Types.ObjectId.isValid(resourceId) || !(await AgendaResource.exists({ _id: resourceId, unitId, active: true }))) {
+          return res.status(422).json({ message: 'Recurso ativo da unidade é obrigatório.' })
+        }
+      }
+      const block = await AgendaScheduleBlock.create({
+        unitId, resourceId: scope === 'resource' ? resourceId : undefined, scope, startsAt, endsAt,
+        reason, category, createdBy: actorId(req),
+      })
+      void recordAudit(req, { action: 'agenda.schedule_block.create', resourceType: 'agenda_schedule_block', resourceId: block._id,
+        module: 'agenda-garca', eventType: 'CREATE', metadata: { unitId, resourceId, scope, category } })
+      return res.status(201).json({ block })
+    } catch (_error) {
+      return res.status(500).json({ message: 'Não foi possível criar o bloqueio.' })
+    }
+  }
+
+  static async revokeScheduleBlock(req, res) {
+    const id = String(req.params.id || '')
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(422).json({ message: 'Bloqueio inválido.' })
+    const current = await AgendaScheduleBlock.findById(id)
+    if (!current) return res.status(404).json({ message: 'Bloqueio não encontrado.' })
+    if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+    current.active = false
+    current.revokedBy = actorId(req)
+    current.revokedAt = new Date()
+    await current.save()
+    void recordAudit(req, { action: 'agenda.schedule_block.revoke', resourceType: 'agenda_schedule_block', resourceId: current._id,
+      module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId) } })
+    return res.status(200).json({ block: current })
   }
 
   static async createService(req, res) {
@@ -863,8 +947,8 @@ module.exports = class AgendaController {
         return res.status(200).json({ appointment: safeAppointment(replay) })
       }
       let appointment
-      const resources = await bookingResources(service, req.body?.resourceId)
-      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      const resources = await bookingResources(service, req.body?.resourceId, startsAt)
+      if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
         const resourceId = resource?._id
         try {

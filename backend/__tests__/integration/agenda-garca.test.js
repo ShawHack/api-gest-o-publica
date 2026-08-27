@@ -403,6 +403,41 @@ describe('Agenda Garça com identidade central', () => {
       .expect(200)
     expect(disabledResource.body.resource.active).toBe(false)
 
+    const blockStart = new Date(startsAt.getTime() + 480 * 60000)
+    const block = await request(app)
+      .post('/api/agenda/admin/schedule-blocks')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({
+        unitId: unit._id,
+        scope: 'unit',
+        startsAt: blockStart.toISOString(),
+        endsAt: new Date(blockStart.getTime() + 60 * 60000).toISOString(),
+        category: 'holiday',
+        reason: 'Feriado municipal de teste',
+      })
+      .expect(201)
+    const blockedAvailability = await request(app)
+      .get(`/api/agenda/services/${service._id}/availability`)
+      .query({ date: zonedDateKey(blockStart, 'America/Sao_Paulo') })
+      .set('Authorization', `Bearer ${secondToken}`)
+      .expect(200)
+    expect(blockedAvailability.body.slots.find((slot) => slot.startsAt === blockStart.toISOString()))
+      .toMatchObject({ available: false, blocked: true, remainingCapacity: 0 })
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ serviceId: service._id, startsAt: blockStart.toISOString() })
+      .expect(422)
+    await request(app)
+      .patch(`/api/agenda/admin/schedule-blocks/${block.body.block._id}/revoke`)
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .expect(200)
+    await request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ serviceId: service._id, startsAt: blockStart.toISOString() })
+      .expect(201)
+
     const assignments = await request(app)
       .get('/api/agenda/admin/assignments')
       .set('Authorization', `Bearer ${adminToken}`)
