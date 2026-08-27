@@ -16,6 +16,7 @@ describe('Agenda Garça com identidade central', () => {
   let citizenToken
   let secondToken
   let service
+  let capacityService
   let unit
   let startsAt
   let secondAppointment
@@ -56,6 +57,22 @@ describe('Agenda Garça com identidade central', () => {
       })
       .expect(201)
     service = serviceResponse.body.service
+    const capacityResponse = await request(app)
+      .post('/api/agenda/admin/services')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        unitId: unit._id,
+        name: 'Atendimento coletivo de teste',
+        durationMinutes: 20,
+        slotIntervalMinutes: 20,
+        capacity: 2,
+        minimumNoticeMinutes: 0,
+        bookingWindowDays: 30,
+        cancellationNoticeMinutes: 0,
+        weeklyAvailability: [{ dayOfWeek: local.dayOfWeek, periods: [{ start: '00:00', end: '23:59' }] }],
+      })
+      .expect(201)
+    capacityService = capacityResponse.body.service
     await require('../../models/AgendaAppointment').init()
   })
 
@@ -182,6 +199,28 @@ describe('Agenda Garça com identidade central', () => {
       .set('Authorization', `Bearer ${citizenToken}`)
       .send({ serviceId: service._id, startsAt: new Date(startsAt.getTime() + 5 * 60000).toISOString() })
       .expect(409)
+  })
+
+  test('preenche faixas de capacidade sem ultrapassar o limite do serviço', async () => {
+    const capacityStart = new Date(startsAt.getTime() + 240 * 60000)
+    const book = (token, key) => request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', key)
+      .send({ serviceId: capacityService._id, startsAt: capacityStart.toISOString() })
+
+    const first = await book(citizenToken, 'capacity-booking-test-01').expect(201)
+    const second = await book(secondToken, 'capacity-booking-test-02').expect(201)
+    expect(first.body.appointment.capacityLane).not.toBe(second.body.appointment.capacityLane)
+    await book(adminToken, 'capacity-booking-test-03').expect(409)
+
+    const availability = await request(app)
+      .get(`/api/agenda/services/${capacityService._id}/availability`)
+      .query({ date: zonedDateKey(capacityStart, 'America/Sao_Paulo') })
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .expect(200)
+    expect(availability.body.slots.find((slot) => slot.startsAt === capacityStart.toISOString()))
+      .toMatchObject({ available: false, remainingCapacity: 0 })
   })
 
   test('repete criação com segurança usando a mesma chave de idempotência', async () => {

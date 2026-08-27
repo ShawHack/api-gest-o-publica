@@ -87,15 +87,15 @@ A disponibilidade semanal pertence a `AgendaService`. Uma exceção por serviço
 - `closed`: fechar integralmente a data;
 - `custom`: substituir a agenda semanal por períodos especiais.
 
-A consulta de disponibilidade retorna apenas horário, instante UTC e estado livre/ocupado. Nenhum dado do titular da reserva é exposto.
+A consulta de disponibilidade retorna apenas horário, instante UTC, estado livre/ocupado e `remainingCapacity`. Nenhum dado do titular da reserva é exposto.
 
 ## Concorrência
 
-Cada reserva ativa possui uma chave por minuto ocupado em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas, inclusive sob concorrência. No cancelamento, as chaves são removidas e todo o intervalo volta a ficar disponível.
+Cada reserva ativa possui uma chave por minuto ocupado e faixa de capacidade em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas dentro da mesma faixa, inclusive sob concorrência. A API tenta atomicamente as faixas `0..capacity-1`; quando todas estão ocupadas, responde conflito. No cancelamento, as chaves são removidas e a vaga volta a ficar disponível.
 
 O reagendamento troca serviço, unidade, início, fim e chaves de reserva em uma única atualização atômica do documento. Se o novo intervalo estiver ocupado, o índice rejeita a atualização e a reserva anterior permanece intacta.
 
-Capacidade superior a uma pessoa, recursos múltiplos e registro durável de idempotência separado do agendamento serão adicionados antes da produção.
+Recursos múltiplos e registro durável de idempotência separado do agendamento serão adicionados antes da produção.
 
 ## Auditoria
 

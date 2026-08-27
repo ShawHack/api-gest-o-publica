@@ -6,6 +6,7 @@ const agendaAppointmentSchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     unitId: { type: Schema.Types.ObjectId, ref: 'AgendaUnit', required: true, index: true },
     serviceId: { type: Schema.Types.ObjectId, ref: 'AgendaService', required: true, index: true },
+    capacityLane: { type: Number, required: true, default: 0, min: 0, max: 19 },
     startsAt: { type: Date, required: true, index: true },
     endsAt: { type: Date, required: true },
     status: {

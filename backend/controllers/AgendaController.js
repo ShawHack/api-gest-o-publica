@@ -44,10 +44,14 @@ function fingerprint(value) {
   return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
 
-function reservationKeys(serviceId, startsAt, durationMinutes) {
+function reservationKeys(serviceId, startsAt, durationMinutes, capacityLane = 0) {
   return Array.from({ length: durationMinutes }, (_item, minute) => (
-    `${serviceId}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
+    `${serviceId}:lane-${capacityLane}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
   ))
+}
+
+function reservationKey(serviceId, startsAt, capacityLane = 0) {
+  return `${serviceId}:lane-${capacityLane}:${startsAt.toISOString()}`
 }
 
 function safeAppointment(appointment) {
@@ -161,7 +165,7 @@ module.exports = class AgendaController {
 
   static async listServices(_req, res) {
     const services = await AgendaService.find({ active: true })
-      .select('unitId name slug description durationMinutes slotIntervalMinutes minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
+      .select('unitId name slug description durationMinutes slotIntervalMinutes capacity minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
       .populate('unitId', 'name slug timezone address')
       .sort({ name: 1 })
       .lean()
@@ -219,10 +223,14 @@ module.exports = class AgendaController {
         slots: candidates.map((slot) => ({
           time: slot.time,
           startsAt: slot.startsAt,
-          available: !occupied.some((item) => (
+          available: occupied.filter((item) => (
             item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
             && item.endsAt > slot.startsAt
-          )),
+          )).length < service.capacity,
+          remainingCapacity: Math.max(0, service.capacity - occupied.filter((item) => (
+            item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
+            && item.endsAt > slot.startsAt
+          )).length),
         })),
       })
     } catch (error) {
@@ -275,21 +283,34 @@ module.exports = class AgendaController {
       if (!user) return res.status(401).json({ message: 'Usuário central não encontrado.' })
       if (!user.emailVerified) return res.status(403).json({ message: 'Confirme seu e-mail antes de agendar.' })
 
-      const appointment = await AgendaAppointment.create({
-        userId: user._id,
-        unitId: service.unitId._id,
-        serviceId: service._id,
-        startsAt,
-        endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
-        reservationKey: `${service._id}:${startsAt.toISOString()}`,
-        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
-        idempotencyKey: idempotencyKey || undefined,
-        idempotencyFingerprint: idempotencyKey ? requestFingerprint : undefined,
-        protocol: protocol(),
-        source,
-        identitySnapshot: { name: user.name, email: user.email, phone: user.phone || '' },
-        notes,
-      })
+      let appointment
+      for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+        try {
+          appointment = await AgendaAppointment.create({
+            userId: user._id,
+            unitId: service.unitId._id,
+            serviceId: service._id,
+            capacityLane,
+            startsAt,
+            endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+            reservationKey: reservationKey(service._id, startsAt, capacityLane),
+            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
+            idempotencyKey: idempotencyKey || undefined,
+            idempotencyFingerprint: idempotencyKey ? requestFingerprint : undefined,
+            protocol: protocol(),
+            source,
+            identitySnapshot: { name: user.name, email: user.email, phone: user.phone || '' },
+            notes,
+          })
+        } catch (error) {
+          if (error?.code !== 11000) throw error
+        }
+      }
+      if (!appointment) {
+        const conflict = new Error('capacity_conflict')
+        conflict.code = 11000
+        throw conflict
+      }
       void recordAudit(req, {
         action: 'agenda.appointment.create',
         resourceType: 'agenda_appointment',
@@ -359,22 +380,25 @@ module.exports = class AgendaController {
       const timeError = validateBookableStart(service, service.unitId, startsAt, new Date(), periodsOverride)
       if (timeError) return res.status(422).json({ message: timeError })
       const previous = { serviceId: String(appointment.serviceId._id), startsAt: appointment.startsAt }
-      const updated = await AgendaAppointment.findOneAndUpdate(
-        { _id: appointment._id, userId: actorId(req), status: { $in: ['booked', 'confirmed'] } },
-        {
-          $set: {
-            unitId: service.unitId._id,
-            serviceId: service._id,
-            startsAt,
-            endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
-            reservationKey: `${service._id}:${startsAt.toISOString()}`,
-            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
-            lastMutationKey: idempotencyKey || undefined,
-            lastMutationFingerprint: idempotencyKey ? mutationFingerprint : undefined,
-          },
-        },
-        { new: true, runValidators: true },
-      )
+      let updated
+      for (let capacityLane = 0; capacityLane < service.capacity && !updated; capacityLane += 1) {
+        try {
+          updated = await AgendaAppointment.findOneAndUpdate(
+            { _id: appointment._id, userId: actorId(req), status: { $in: ['booked', 'confirmed'] } },
+            { $set: {
+              unitId: service.unitId._id, serviceId: service._id, capacityLane, startsAt,
+              endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
+              reservationKey: reservationKey(service._id, startsAt, capacityLane),
+              reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
+              lastMutationKey: idempotencyKey, lastMutationFingerprint: mutationFingerprint,
+            } },
+            { new: true, runValidators: true },
+          )
+        } catch (error) {
+          if (error?.code !== 11000) throw error
+        }
+      }
+      if (!updated) return res.status(409).json({ message: 'Este horário atingiu a capacidade ou foi alterado por outra operação.' })
       if (!updated) return res.status(409).json({ message: 'O agendamento foi alterado por outra operação.' })
       void recordAudit(req, {
         action: 'agenda.appointment.reschedule',
@@ -518,6 +542,7 @@ module.exports = class AgendaController {
         minimumNoticeMinutes: req.body?.minimumNoticeMinutes,
         bookingWindowDays: req.body?.bookingWindowDays,
         cancellationNoticeMinutes: req.body?.cancellationNoticeMinutes,
+        capacity: req.body?.capacity,
         weeklyAvailability: req.body.weeklyAvailability,
         createdBy: actorId(req),
       })
@@ -541,7 +566,7 @@ module.exports = class AgendaController {
       if (!current) return res.status(404).json({ message: 'Serviço não encontrado.' })
       if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
       const update = { updatedBy: actorId(req) }
-      for (const field of ['durationMinutes', 'slotIntervalMinutes', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
+      for (const field of ['durationMinutes', 'slotIntervalMinutes', 'capacity', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
         if (req.body?.[field] !== undefined) update[field] = req.body[field]
       }
       if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
@@ -695,14 +720,18 @@ module.exports = class AgendaController {
         res.set('Idempotent-Replayed', 'true')
         return res.status(200).json({ appointment: safeAppointment(replay) })
       }
-      const appointment = await AgendaAppointment.create({
+      let appointment
+      for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+        try {
+          appointment = await AgendaAppointment.create({
         userId: user._id,
         unitId: service.unitId._id,
         serviceId: service._id,
         startsAt,
         endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
-        reservationKey: `${service._id}:${startsAt.toISOString()}`,
-        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes),
+        capacityLane,
+        reservationKey: reservationKey(service._id, startsAt, capacityLane),
+        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
         idempotencyKey,
         idempotencyFingerprint: requestFingerprint,
         protocol: protocol(),
@@ -710,7 +739,16 @@ module.exports = class AgendaController {
         identitySnapshot: { name: user.name, email: user.email, phone: user.phone || '' },
         notes,
         statusHistory: [{ status: 'booked', at: new Date(), by: actorId(req), reason: 'Agendamento manual' }],
-      })
+          })
+        } catch (error) {
+          if (error?.code !== 11000) throw error
+        }
+      }
+      if (!appointment) {
+        const conflict = new Error('capacity_conflict')
+        conflict.code = 11000
+        throw conflict
+      }
       void recordAudit(req, {
         action: 'agenda.appointment.manual_create', resourceType: 'agenda_appointment', resourceId: appointment._id,
         module: 'agenda-garca', eventType: 'CREATE',
