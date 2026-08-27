@@ -38,4 +38,22 @@ function requireAgendaAdmin(req, res, next) {
   return deny(req, res, ['agenda_admin'])
 }
 
-module.exports = { attachAgendaContext, requireGlobalAgendaAdmin, requireAgendaAdmin }
+function requireAgendaManager(req, res, next) {
+  if (req.agenda?.isGlobalAdmin) return next()
+  if (req.agenda?.assignments?.some((assignment) => ['agenda_admin', 'agenda_manager'].includes(assignment.role))) return next()
+  return deny(req, res, ['agenda_admin', 'agenda_manager'])
+}
+
+function requireAgendaOperator(req, res, next) {
+  if (req.agenda?.isGlobalAdmin) return next()
+  if (req.agenda?.assignments?.some((assignment) => ['agenda_admin', 'agenda_manager', 'agenda_attendant'].includes(assignment.role))) return next()
+  return deny(req, res, ['agenda_admin', 'agenda_manager', 'agenda_attendant'])
+}
+
+module.exports = {
+  attachAgendaContext,
+  requireGlobalAgendaAdmin,
+  requireAgendaAdmin,
+  requireAgendaManager,
+  requireAgendaOperator,
+}

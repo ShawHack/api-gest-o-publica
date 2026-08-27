@@ -16,6 +16,7 @@ describe('Agenda Garça com identidade central', () => {
   let citizenToken
   let secondToken
   let service
+  let unit
   let startsAt
   let secondAppointment
   let idempotentAppointment
@@ -38,6 +39,7 @@ describe('Agenda Garça com identidade central', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ name: 'Paço Municipal', slug: 'paco-municipal' })
       .expect(201)
+    unit = unitResponse.body.unit
 
     const serviceResponse = await request(app)
       .post('/api/agenda/admin/services')
@@ -271,5 +273,49 @@ describe('Agenda Garça com identidade central', () => {
     expect(replay.body.appointment.status).toBe('cancelled')
     expect(replay.body.appointment.reservationKey).toBeUndefined()
     expect(replay.body.appointment.reservationKeys).toBeUndefined()
+  })
+
+  test('gestor administra somente a unidade concedida', async () => {
+    const grant = await request(app)
+      .post('/api/agenda/admin/assignments')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ userId: citizen._id, unitId: unit._id, role: 'agenda_manager' })
+      .expect(201)
+
+    const units = await request(app)
+      .get('/api/agenda/admin/units')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .expect(200)
+    expect(units.body.items.map((item) => item._id)).toEqual([unit._id])
+
+    const services = await request(app)
+      .get('/api/agenda/admin/services')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .query({ unitId: unit._id })
+      .expect(200)
+    expect(services.body.items.some((item) => item._id === service._id)).toBe(true)
+
+    const updated = await request(app)
+      .patch(`/api/agenda/admin/services/${service._id}`)
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ description: 'Atualizado pelo gestor da unidade' })
+      .expect(200)
+    expect(updated.body.service.description).toBe('Atualizado pelo gestor da unidade')
+
+    const assignments = await request(app)
+      .get('/api/agenda/admin/assignments')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+    expect(assignments.body.items.some((item) => item._id === grant.body.assignment._id)).toBe(true)
+
+    await request(app)
+      .patch(`/api/agenda/admin/assignments/${grant.body.assignment._id}/revoke`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+
+    await request(app)
+      .get('/api/agenda/admin/units')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .expect(403)
   })
 })

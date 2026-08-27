@@ -1,7 +1,12 @@
 const router = require('express').Router()
 const { rateLimit } = require('express-rate-limit')
 const verifyToken = require('../helpers/verify-token')
-const { attachAgendaContext, requireGlobalAgendaAdmin, requireAgendaAdmin } = require('../helpers/agenda-auth')
+const {
+  attachAgendaContext,
+  requireGlobalAgendaAdmin,
+  requireAgendaAdmin,
+  requireAgendaManager,
+} = require('../helpers/agenda-auth')
 const AgendaController = require('../controllers/AgendaController')
 
 const bookingLimiter = rateLimit({
@@ -23,8 +28,14 @@ router.patch('/appointments/:id/reschedule', bookingLimiter, AgendaController.re
 router.patch('/appointments/:id/cancel', bookingLimiter, AgendaController.cancelMine)
 
 router.post('/admin/units', requireGlobalAgendaAdmin, AgendaController.createUnit)
-router.post('/admin/services', requireAgendaAdmin, AgendaController.createService)
-router.put('/admin/services/:id/availability-exception', requireAgendaAdmin, AgendaController.upsertAvailabilityException)
+router.get('/admin/units', requireAgendaManager, AgendaController.adminListUnits)
+router.patch('/admin/units/:id', requireAgendaManager, AgendaController.updateUnit)
+router.get('/admin/services', requireAgendaManager, AgendaController.adminListServices)
+router.post('/admin/services', requireAgendaManager, AgendaController.createService)
+router.patch('/admin/services/:id', requireAgendaManager, AgendaController.updateService)
+router.put('/admin/services/:id/availability-exception', requireAgendaManager, AgendaController.upsertAvailabilityException)
+router.get('/admin/assignments', requireAgendaAdmin, AgendaController.listAssignments)
 router.post('/admin/assignments', requireGlobalAgendaAdmin, AgendaController.createAssignment)
+router.patch('/admin/assignments/:id/revoke', requireGlobalAgendaAdmin, AgendaController.revokeAssignment)
 
 module.exports = router

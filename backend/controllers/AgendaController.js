@@ -107,9 +107,29 @@ function validDateKey(value) {
 function unitAllowed(req, unitId) {
   if (req.agenda?.isGlobalAdmin) return true
   return req.agenda?.assignments?.some((assignment) => (
-    assignment.role === 'agenda_admin'
+    ['agenda_admin', 'agenda_manager'].includes(assignment.role)
     && (!assignment.unitId || String(assignment.unitId) === String(unitId))
   ))
+}
+
+function agendaHasAllUnits(req) {
+  return req.agenda?.isGlobalAdmin || req.agenda?.assignments?.some((assignment) => (
+    assignment.role === 'agenda_admin' && !assignment.unitId
+  ))
+}
+
+function allowedUnitIds(req) {
+  return [...new Set((req.agenda?.assignments || [])
+    .filter((assignment) => assignment.unitId)
+    .map((assignment) => String(assignment.unitId)))]
+}
+
+function unitFilter(req) {
+  return agendaHasAllUnits(req) ? {} : { _id: { $in: allowedUnitIds(req) } }
+}
+
+function serviceUnitFilter(req) {
+  return agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
 }
 
 module.exports = class AgendaController {
@@ -416,6 +436,55 @@ module.exports = class AgendaController {
     }
   }
 
+  static async adminListUnits(req, res) {
+    const units = await AgendaUnit.find(unitFilter(req)).sort({ name: 1 }).lean()
+    return res.status(200).json({ items: units })
+  }
+
+  static async updateUnit(req, res) {
+    try {
+      const unitId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const update = { updatedBy: actorId(req) }
+      if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
+      if (req.body?.slug !== undefined) update.slug = normalizeSlug(req.body.slug)
+      if (req.body?.description !== undefined) update.description = String(req.body.description).trim()
+      if (req.body?.address !== undefined) update.address = String(req.body.address).trim()
+      if (req.body?.active !== undefined) update.active = req.body.active === true
+      if (req.body?.timezone !== undefined) {
+        update.timezone = String(req.body.timezone).trim()
+        if (!validTimezone(update.timezone)) return res.status(422).json({ message: 'Fuso horário inválido.' })
+      }
+      if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
+      const unit = await AgendaUnit.findOneAndUpdate({ _id: unitId }, { $set: update }, { new: true, runValidators: true })
+      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      void recordAudit(req, {
+        action: 'agenda.unit.update', resourceType: 'agenda_unit', resourceId: unit._id,
+        module: 'agenda-garca', eventType: 'UPDATE', metadata: { fields: Object.keys(update) },
+      })
+      return res.status(200).json({ unit })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Já existe uma unidade com esse identificador.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados da unidade inválidos.' })
+      return res.status(500).json({ message: 'Não foi possível atualizar a unidade.' })
+    }
+  }
+
+  static async adminListServices(req, res) {
+    const filter = serviceUnitFilter(req)
+    if (req.query?.unitId) {
+      const unitId = String(req.query.unitId)
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      filter.unitId = unitId
+    }
+    if (req.query?.active === 'true') filter.active = true
+    if (req.query?.active === 'false') filter.active = false
+    const services = await AgendaService.find(filter).populate('unitId', 'name slug timezone active').sort({ name: 1 }).lean()
+    return res.status(200).json({ items: services })
+  }
+
   static async createService(req, res) {
     try {
       const unitId = String(req.body?.unitId || '')
@@ -451,6 +520,39 @@ module.exports = class AgendaController {
     }
   }
 
+  static async updateService(req, res) {
+    try {
+      const serviceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(serviceId)) return res.status(422).json({ message: 'Serviço inválido.' })
+      const current = await AgendaService.findById(serviceId).lean()
+      if (!current) return res.status(404).json({ message: 'Serviço não encontrado.' })
+      if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const update = { updatedBy: actorId(req) }
+      for (const field of ['durationMinutes', 'slotIntervalMinutes', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
+        if (req.body?.[field] !== undefined) update[field] = req.body[field]
+      }
+      if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
+      if (req.body?.slug !== undefined) update.slug = normalizeSlug(req.body.slug)
+      if (req.body?.description !== undefined) update.description = String(req.body.description).trim()
+      if (req.body?.active !== undefined) update.active = req.body.active === true
+      if (req.body?.weeklyAvailability !== undefined) {
+        if (!validAvailability(req.body.weeklyAvailability)) return res.status(422).json({ message: 'A disponibilidade semanal é inválida.' })
+        update.weeklyAvailability = req.body.weeklyAvailability
+      }
+      if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
+      const service = await AgendaService.findOneAndUpdate({ _id: serviceId }, { $set: update }, { new: true, runValidators: true })
+      void recordAudit(req, {
+        action: 'agenda.service.update', resourceType: 'agenda_service', resourceId: service._id,
+        module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId), fields: Object.keys(update) },
+      })
+      return res.status(200).json({ service })
+    } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: 'Já existe esse serviço na unidade.' })
+      if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Configuração do serviço inválida.' })
+      return res.status(500).json({ message: 'Não foi possível atualizar o serviço.' })
+    }
+  }
+
   static async createAssignment(req, res) {
     try {
       const userId = String(req.body?.userId || '')
@@ -479,6 +581,44 @@ module.exports = class AgendaController {
       return res.status(201).json({ assignment })
     } catch (error) {
       return res.status(500).json({ message: 'Não foi possível conceder a permissão.' })
+    }
+  }
+
+  static async listAssignments(req, res) {
+    const filter = { active: req.query?.active === 'false' ? false : true }
+    if (!agendaHasAllUnits(req)) filter.unitId = { $in: allowedUnitIds(req) }
+    if (req.query?.unitId) {
+      const unitId = String(req.query.unitId)
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      filter.unitId = unitId
+    }
+    const assignments = await AgendaUserAssignment.find(filter)
+      .populate('userId', 'name email role active')
+      .populate('unitId', 'name slug active')
+      .sort({ createdAt: -1 })
+      .lean()
+    return res.status(200).json({ items: assignments })
+  }
+
+  static async revokeAssignment(req, res) {
+    try {
+      const assignmentId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(assignmentId)) return res.status(422).json({ message: 'Vínculo inválido.' })
+      const assignment = await AgendaUserAssignment.findOneAndUpdate(
+        { _id: assignmentId, active: true },
+        { $set: { active: false, revokedBy: actorId(req), revokedAt: new Date() } },
+        { new: true },
+      )
+      if (!assignment) return res.status(404).json({ message: 'Vínculo ativo não encontrado.' })
+      void recordAudit(req, {
+        action: 'agenda.assignment.revoke', resourceType: 'agenda_assignment', resourceId: assignment._id,
+        module: 'agenda-garca', eventType: 'PERMISSION_CHANGE',
+        metadata: { userId: String(assignment.userId), unitId: assignment.unitId ? String(assignment.unitId) : undefined, role: assignment.role },
+      })
+      return res.status(200).json({ assignment })
+    } catch (_error) {
+      return res.status(500).json({ message: 'Não foi possível revogar a permissão.' })
     }
   }
 

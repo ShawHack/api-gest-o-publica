@@ -26,9 +26,15 @@ Todos os endpoints exigem o JWT central da plataforma. A identidade é carregada
 | `PATCH` | `/appointments/:id/reschedule` | proprietário | reagendar atomicamente para outro serviço/horário |
 | `PATCH` | `/appointments/:id/cancel` | proprietário | cancelar e liberar o slot dentro do prazo |
 | `POST` | `/admin/units` | administrador global | criar unidade de atendimento |
+| `GET` | `/admin/units` | gestor da Agenda | listar unidades dentro do seu escopo |
+| `PATCH` | `/admin/units/:id` | gestor da unidade | editar ou ativar/desativar unidade |
+| `GET` | `/admin/services` | gestor da Agenda | listar serviços do seu escopo, inclusive inativos |
 | `POST` | `/admin/services` | administrador da Agenda | criar serviço e agenda semanal |
+| `PATCH` | `/admin/services/:id` | gestor da unidade | editar regras, agenda semanal ou ativação |
 | `PUT` | `/admin/services/:id/availability-exception` | administrador da Agenda | fechar uma data ou definir horário especial |
+| `GET` | `/admin/assignments` | administrador da Agenda | listar vínculos permitidos pelo escopo |
 | `POST` | `/admin/assignments` | administrador global | vincular papel da Agenda a usuário existente |
+| `PATCH` | `/admin/assignments/:id/revoke` | administrador global | revogar vínculo sem apagar seu histórico |
 
 ## Criação de agendamento
 
