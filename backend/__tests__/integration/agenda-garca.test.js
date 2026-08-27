@@ -17,6 +17,7 @@ describe('Agenda Garça com identidade central', () => {
   let secondToken
   let service
   let capacityService
+  let roomResource
   let unit
   let startsAt
   let secondAppointment
@@ -346,14 +347,20 @@ describe('Agenda Garça com identidade central', () => {
       .set('Authorization', `Bearer ${citizenToken}`)
       .send({ unitId: unit._id, name: 'Sala de atendimento 1', type: 'room' })
       .expect(201)
+    roomResource = createdResource.body.resource
     const resources = await request(app)
       .get('/api/agenda/admin/resources')
       .set('Authorization', `Bearer ${citizenToken}`)
       .query({ unitId: unit._id, type: 'room', active: true })
       .expect(200)
     expect(resources.body.items.map((item) => item._id)).toContain(createdResource.body.resource._id)
+    const equipment = await request(app)
+      .post('/api/agenda/admin/resources')
+      .set('Authorization', `Bearer ${citizenToken}`)
+      .send({ unitId: unit._id, name: 'Projetor móvel', type: 'equipment' })
+      .expect(201)
     const disabledResource = await request(app)
-      .patch(`/api/agenda/admin/resources/${createdResource.body.resource._id}`)
+      .patch(`/api/agenda/admin/resources/${equipment.body.resource._id}`)
       .set('Authorization', `Bearer ${citizenToken}`)
       .send({ active: false })
       .expect(200)
@@ -374,6 +381,26 @@ describe('Agenda Garça com identidade central', () => {
       .get('/api/agenda/admin/units')
       .set('Authorization', `Bearer ${citizenToken}`)
       .expect(403)
+  })
+
+  test('vincula recurso ativo ao serviço e impede uso acima da capacidade', async () => {
+    await request(app)
+      .patch(`/api/agenda/admin/services/${capacityService._id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ resourceRequired: true, resourceIds: [roomResource._id] })
+      .expect(200)
+
+    const resourceStart = new Date(startsAt.getTime() + 300 * 60000)
+    const book = (token, key) => request(app)
+      .post('/api/agenda/appointments')
+      .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', key)
+      .send({ serviceId: capacityService._id, startsAt: resourceStart.toISOString() })
+    const first = await book(citizenToken, 'resource-booking-test-01').expect(201)
+    const second = await book(secondToken, 'resource-booking-test-02').expect(201)
+    expect(first.body.appointment.resourceId).toBe(roomResource._id)
+    expect(second.body.appointment.resourceId).toBe(roomResource._id)
+    await book(adminToken, 'resource-booking-test-03').expect(409)
   })
 
   test('atendente consulta a agenda e executa somente transições formais', async () => {

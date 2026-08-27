@@ -96,9 +96,11 @@ A consulta de disponibilidade retorna apenas horário, instante UTC, estado livr
 
 Cada reserva ativa possui uma chave por minuto ocupado e faixa de capacidade em `reservationKeys`. O índice multikey único do MongoDB é a barreira final contra reservas iguais ou parcialmente sobrepostas dentro da mesma faixa, inclusive sob concorrência. A API tenta atomicamente as faixas `0..capacity-1`; quando todas estão ocupadas, responde conflito. No cancelamento, as chaves são removidas e a vaga volta a ficar disponível.
 
+Quando `resourceRequired` está ativo, o serviço deve possuir ao menos um `resourceId` ativo da mesma unidade. A API pode receber um recurso vinculado ou selecionar automaticamente entre os disponíveis. As chaves passam a incluir recurso e faixa, impedindo uso simultâneo acima da capacidade configurada. Recursos inativos ou de outra unidade são recusados.
+
 O reagendamento troca serviço, unidade, início, fim e chaves de reserva em uma única atualização atômica do documento. Se o novo intervalo estiver ocupado, o índice rejeita a atualização e a reserva anterior permanece intacta.
 
-Recursos múltiplos e registro durável de idempotência separado do agendamento serão adicionados antes da produção.
+Registro durável de idempotência separado do agendamento será adicionado antes da produção.
 
 ## Auditoria
 

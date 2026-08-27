@@ -26,6 +26,8 @@ const agendaServiceSchema = new Schema(
     durationMinutes: { type: Number, required: true, min: 5, max: 480 },
     slotIntervalMinutes: { type: Number, required: true, min: 5, max: 480 },
     capacity: { type: Number, default: 1, min: 1, max: 20 },
+    resourceRequired: { type: Boolean, default: false },
+    resourceIds: [{ type: Schema.Types.ObjectId, ref: 'AgendaResource' }],
     minimumNoticeMinutes: { type: Number, default: 60, min: 0, max: 525600 },
     bookingWindowDays: { type: Number, default: 90, min: 1, max: 730 },
     cancellationNoticeMinutes: { type: Number, default: 120, min: 0, max: 525600 },

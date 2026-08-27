@@ -45,14 +45,31 @@ function fingerprint(value) {
   return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
 
-function reservationKeys(serviceId, startsAt, durationMinutes, capacityLane = 0) {
+function reservationScope(serviceId, capacityLane, resourceId) {
+  return resourceId ? `resource-${resourceId}:lane-${capacityLane}` : `lane-${capacityLane}`
+}
+
+function reservationKeys(serviceId, startsAt, durationMinutes, capacityLane = 0, resourceId) {
+  const scope = reservationScope(serviceId, capacityLane, resourceId)
   return Array.from({ length: durationMinutes }, (_item, minute) => (
-    `${serviceId}:lane-${capacityLane}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
+    `${serviceId}:${scope}:${new Date(startsAt.getTime() + minute * 60000).toISOString()}`
   ))
 }
 
-function reservationKey(serviceId, startsAt, capacityLane = 0) {
-  return `${serviceId}:lane-${capacityLane}:${startsAt.toISOString()}`
+function reservationKey(serviceId, startsAt, capacityLane = 0, resourceId) {
+  return `${serviceId}:${reservationScope(serviceId, capacityLane, resourceId)}:${startsAt.toISOString()}`
+}
+
+async function bookingResources(service, requestedResourceId) {
+  if (!service.resourceRequired) return [null]
+  const linked = (service.resourceIds || []).map((item) => String(item?._id || item))
+  if (requestedResourceId && !linked.includes(String(requestedResourceId))) return []
+  const filter = {
+    _id: { $in: requestedResourceId ? [requestedResourceId] : linked },
+    unitId: service.unitId._id || service.unitId,
+    active: true,
+  }
+  return AgendaResource.find(filter).select('_id').sort({ _id: 1 }).lean()
 }
 
 function safeAppointment(appointment) {
@@ -166,7 +183,8 @@ module.exports = class AgendaController {
 
   static async listServices(_req, res) {
     const services = await AgendaService.find({ active: true })
-      .select('unitId name slug description durationMinutes slotIntervalMinutes capacity minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
+      .select('unitId name slug description durationMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
+      .populate('resourceIds', 'name type active')
       .populate('unitId', 'name slug timezone address')
       .sort({ name: 1 })
       .lean()
@@ -216,6 +234,10 @@ module.exports = class AgendaController {
           reservationKeys: { $exists: true },
         }).select('startsAt endsAt').lean()
         : []
+      const activeResourceCount = service.resourceRequired
+        ? await AgendaResource.countDocuments({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true })
+        : 1
+      const totalCapacity = service.capacity * activeResourceCount
       return res.status(200).json({
         service: { id: service._id, name: service.name, durationMinutes: service.durationMinutes },
         unit: { id: service.unitId._id, name: service.unitId.name, timezone },
@@ -227,8 +249,8 @@ module.exports = class AgendaController {
           available: occupied.filter((item) => (
             item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
             && item.endsAt > slot.startsAt
-          )).length < service.capacity,
-          remainingCapacity: Math.max(0, service.capacity - occupied.filter((item) => (
+          )).length < totalCapacity,
+          remainingCapacity: Math.max(0, totalCapacity - occupied.filter((item) => (
             item.startsAt < new Date(slot.startsAt.getTime() + service.durationMinutes * 60000)
             && item.endsAt > slot.startsAt
           )).length),
@@ -264,7 +286,7 @@ module.exports = class AgendaController {
       if (!service || !service.unitId?.active) return res.status(404).json({ message: 'Serviço indisponível.' })
       const source = ['web', 'mobile'].includes(req.body?.source) ? req.body.source : 'web'
       const notes = String(req.body?.notes || '').trim()
-      const requestFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString(), source, notes })
+      const requestFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString(), source, notes, resourceId: req.body?.resourceId || null })
       if (idempotencyKey) {
         const replay = await AgendaAppointment.findOne({ userId: actorId(req), idempotencyKey })
           .select('+idempotencyFingerprint')
@@ -285,17 +307,21 @@ module.exports = class AgendaController {
       if (!user.emailVerified) return res.status(403).json({ message: 'Confirme seu e-mail antes de agendar.' })
 
       let appointment
-      for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+      const resources = await bookingResources(service, req.body?.resourceId)
+      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+        const resourceId = resource?._id
         try {
           appointment = await AgendaAppointment.create({
             userId: user._id,
             unitId: service.unitId._id,
             serviceId: service._id,
             capacityLane,
+            resourceId,
             startsAt,
             endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
-            reservationKey: reservationKey(service._id, startsAt, capacityLane),
-            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
+            reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
+            reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
             idempotencyKey: idempotencyKey || undefined,
             idempotencyFingerprint: idempotencyKey ? requestFingerprint : undefined,
             protocol: protocol(),
@@ -334,6 +360,7 @@ module.exports = class AgendaController {
               startsAt: startsAt.toISOString(),
               source: ['web', 'mobile'].includes(req.body?.source) ? req.body.source : 'web',
               notes: String(req.body?.notes || '').trim(),
+              resourceId: req.body?.resourceId || null,
             })
             if (replay.idempotencyFingerprint === replayFingerprint) {
               res.set('Idempotent-Replayed', 'true')
@@ -362,7 +389,7 @@ module.exports = class AgendaController {
         .select('+lastMutationKey +lastMutationFingerprint')
         .populate('serviceId')
       if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
-      const mutationFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString() })
+      const mutationFingerprint = fingerprint({ serviceId, startsAt: startsAt.toISOString(), resourceId: req.body?.resourceId || null })
       if (idempotencyKey && appointment.lastMutationKey === idempotencyKey) {
         if (appointment.lastMutationFingerprint !== mutationFingerprint) {
           return res.status(409).json({ message: 'A chave de idempotência já foi usada com outros dados.' })
@@ -382,15 +409,18 @@ module.exports = class AgendaController {
       if (timeError) return res.status(422).json({ message: timeError })
       const previous = { serviceId: String(appointment.serviceId._id), startsAt: appointment.startsAt }
       let updated
-      for (let capacityLane = 0; capacityLane < service.capacity && !updated; capacityLane += 1) {
+      const resources = await bookingResources(service, req.body?.resourceId)
+      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !updated; capacityLane += 1) {
+        const resourceId = resource?._id
         try {
           updated = await AgendaAppointment.findOneAndUpdate(
             { _id: appointment._id, userId: actorId(req), status: { $in: ['booked', 'confirmed'] } },
             { $set: {
-              unitId: service.unitId._id, serviceId: service._id, capacityLane, startsAt,
+              unitId: service.unitId._id, serviceId: service._id, capacityLane, resourceId, startsAt,
               endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
-              reservationKey: reservationKey(service._id, startsAt, capacityLane),
-              reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
+              reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
+              reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
               lastMutationKey: idempotencyKey, lastMutationFingerprint: mutationFingerprint,
             } },
             { new: true, runValidators: true },
@@ -609,6 +639,11 @@ module.exports = class AgendaController {
       if (!validAvailability(req.body?.weeklyAvailability)) return res.status(422).json({ message: 'A disponibilidade semanal é inválida.' })
       const unit = await AgendaUnit.findOne({ _id: unitId, active: true })
       if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      const resourceIds = Array.isArray(req.body?.resourceIds) ? [...new Set(req.body.resourceIds.map(String))] : []
+      if (resourceIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) return res.status(422).json({ message: 'Lista de recursos inválida.' })
+      const validResourceCount = await AgendaResource.countDocuments({ _id: { $in: resourceIds }, unitId, active: true })
+      if (validResourceCount !== resourceIds.length) return res.status(422).json({ message: 'Há recurso inativo ou pertencente a outra unidade.' })
+      if (req.body?.resourceRequired === true && !resourceIds.length) return res.status(422).json({ message: 'Serviço com recurso obrigatório precisa de ao menos um recurso ativo.' })
       const service = await AgendaService.create({
         unitId,
         name,
@@ -620,6 +655,8 @@ module.exports = class AgendaController {
         bookingWindowDays: req.body?.bookingWindowDays,
         cancellationNoticeMinutes: req.body?.cancellationNoticeMinutes,
         capacity: req.body?.capacity,
+        resourceRequired: req.body?.resourceRequired === true,
+        resourceIds,
         weeklyAvailability: req.body.weeklyAvailability,
         createdBy: actorId(req),
       })
@@ -645,6 +682,19 @@ module.exports = class AgendaController {
       const update = { updatedBy: actorId(req) }
       for (const field of ['durationMinutes', 'slotIntervalMinutes', 'capacity', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
         if (req.body?.[field] !== undefined) update[field] = req.body[field]
+      }
+      if (req.body?.resourceIds !== undefined || req.body?.resourceRequired !== undefined) {
+        const resourceIds = req.body?.resourceIds !== undefined ? req.body.resourceIds : current.resourceIds
+        const resourceRequired = req.body?.resourceRequired !== undefined ? req.body.resourceRequired === true : current.resourceRequired
+        if (!Array.isArray(resourceIds) || resourceIds.some((id) => !mongoose.Types.ObjectId.isValid(String(id)))) {
+          return res.status(422).json({ message: 'Lista de recursos inválida.' })
+        }
+        const distinctIds = [...new Set(resourceIds.map(String))]
+        const validCount = await AgendaResource.countDocuments({ _id: { $in: distinctIds }, unitId: current.unitId, active: true })
+        if (validCount !== distinctIds.length) return res.status(422).json({ message: 'Há recurso inativo ou pertencente a outra unidade.' })
+        if (resourceRequired && !distinctIds.length) return res.status(422).json({ message: 'Serviço com recurso obrigatório precisa de ao menos um recurso ativo.' })
+        update.resourceIds = distinctIds
+        update.resourceRequired = resourceRequired
       }
       if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
       if (req.body?.slug !== undefined) update.slug = normalizeSlug(req.body.slug)
@@ -788,7 +838,7 @@ module.exports = class AgendaController {
       const timeError = validateBookableStart(service, service.unitId, startsAt, new Date(), periodsOverride)
       if (timeError) return res.status(422).json({ message: timeError })
       const notes = String(req.body?.notes || '').trim()
-      const requestFingerprint = fingerprint({ userId, serviceId, startsAt: startsAt.toISOString(), source: 'admin', notes })
+      const requestFingerprint = fingerprint({ userId, serviceId, startsAt: startsAt.toISOString(), source: 'admin', notes, resourceId: req.body?.resourceId || null })
       const replay = await AgendaAppointment.findOne({ userId, idempotencyKey }).select('+idempotencyFingerprint')
       if (replay) {
         if (replay.idempotencyFingerprint !== requestFingerprint) {
@@ -798,7 +848,10 @@ module.exports = class AgendaController {
         return res.status(200).json({ appointment: safeAppointment(replay) })
       }
       let appointment
-      for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+      const resources = await bookingResources(service, req.body?.resourceId)
+      if (!resources.length) return res.status(422).json({ message: 'Nenhum recurso ativo está disponível para este serviço.' })
+      for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
+        const resourceId = resource?._id
         try {
           appointment = await AgendaAppointment.create({
         userId: user._id,
@@ -807,8 +860,9 @@ module.exports = class AgendaController {
         startsAt,
         endsAt: new Date(startsAt.getTime() + service.durationMinutes * 60000),
         capacityLane,
-        reservationKey: reservationKey(service._id, startsAt, capacityLane),
-        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane),
+        resourceId,
+        reservationKey: reservationKey(service._id, startsAt, capacityLane, resourceId),
+        reservationKeys: reservationKeys(service._id, startsAt, service.durationMinutes, capacityLane, resourceId),
         idempotencyKey,
         idempotencyFingerprint: requestFingerprint,
         protocol: protocol(),
