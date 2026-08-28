@@ -1213,6 +1213,8 @@ Testes de interface do cidadão validam o carregamento do catálogo e do histór
 
 Ferramenta de inventário somente leitura preparada em `backend/scripts/agenda-firestore-inventory.js`. Ela separa bloqueios legados (`userId: BLOCKED`) de reservas, contabiliza estados, datas e serviços inválidos, cruza e-mails normalizados com a coleção central `users` e sinaliza usuários ausentes ou ambíguos. O relatório detalhado usa apenas hash parcial do e-mail e não imprime CPF, telefone, token ou senha. A execução contra dados reais continua pendente de credencial restrita e janela de homologação; o script não contém operações de escrita.
 
+O gerador puro `agenda-migration-plan.js` transforma somente registros inequívocos em plano determinístico com checksum. Mudanças pendentes/aprovadas, divergências de duração, usuários/serviços sem correspondência e bloqueios específicos de serviço são rejeitados para revisão humana. O procedimento completo e os critérios que impedem o go-live estão em `backend/docs/AGENDA_MIGRATION_RUNBOOK.md`; ainda não existe executor de escrita habilitado.
+
 #### Fase F — Homologação e entrada em produção
 
 - [ ] Executar testes funcionais com cidadãos, atendentes e gestores.
