@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { api, clearToken, readToken, storeToken } from './api'
+import { api, CENTRAL_LOGIN_PATH, clearToken, readToken, storeToken } from './api'
 import AdminConfig from './AdminConfig'
 
 const statusLabel = { booked: 'Agendado', confirmed: 'Confirmado', cancelled: 'Cancelado', completed: 'Atendido', no_show: 'Ausente' }
@@ -8,7 +8,7 @@ function Login({ onLogin }) {
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [busy, setBusy] = useState(false)
   async function submit(event) {
     event.preventDefault(); setBusy(true); setError('')
-    try { const data = await api('/users/login', { method: 'POST', body: JSON.stringify({ email, password }) }); storeToken(data.token); await onLogin() }
+    try { const data = await api(CENTRAL_LOGIN_PATH, { method: 'POST', body: JSON.stringify({ email, password }) }); storeToken(data.token); await onLogin() }
     catch (err) { clearToken(); setError(err.message) } finally { setBusy(false) }
   }
   return <main className="login"><section className="card"><p className="eyebrow">Prefeitura de Garça</p><h1>Agenda Garça</h1><p>Entre com a mesma conta dos demais serviços municipais.</p><form onSubmit={submit}><label>E-mail<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label><label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></label>{error && <p role="alert" className="error">{error}</p>}<button disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}</button></form><nav className="login-links" aria-label="Acesso à conta"><a href="/forgot-password">Esqueci minha senha</a><a href="/register">Ainda não possuo cadastro</a></nav></section></main>

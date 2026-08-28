@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { api, clearToken, readToken, storeToken } from './api'
+import { api, CENTRAL_LOGIN_PATH, clearToken, readToken, storeToken } from './api'
 
 describe('sessão central da Agenda Garça', () => {
   beforeEach(() => { localStorage.clear(); vi.restoreAllMocks() })
 
   it('reutiliza token central nos dois formatos suportados', () => {
+    expect(CENTRAL_LOGIN_PATH).toBe('/api/users/login')
     storeToken('"jwt-central"')
     expect(readToken()).toBe('jwt-central')
     expect(localStorage.getItem('token')).toBe('jwt-central')

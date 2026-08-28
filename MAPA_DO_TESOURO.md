@@ -1235,6 +1235,7 @@ O gerador puro `agenda-migration-plan.js` transforma somente registros inequívo
 - Imagem anterior preservada localmente como `api-semit-api:pre-agenda` para rollback rápido.
 - Estado inicial do banco após a implantação: `0` unidades, `0` serviços, `0` recursos, `0` vínculos e `0` agendamentos. O módulo está publicado, mas só ficará apto a receber reservas após cadastro administrativo do catálogo e homologação funcional.
 - A primeira tentativa de rebuild integral foi revertida automaticamente por inconsistências preexistentes do código-fonte da Votação; a produção voltou a saudável antes da estratégia de camada mínima ser aplicada e validada em container paralelo.
+- Correção pós-implantação: o React chamava `/users/login`, tratado pelo Nginx como rota estática e respondido com `405`. O cliente passou a usar o endpoint canônico `/api/users/login`; teste automatizado, build e teste externo com credenciais fictícias confirmaram resposta `422` de autenticação em vez de `405`. A API não precisou ser reiniciada nessa correção.
 
 ### 27.5 Estado inicial em 27/08/2026
 

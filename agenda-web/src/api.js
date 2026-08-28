@@ -1,5 +1,7 @@
 function normalizeToken(value) { return value ? String(value).replace(/^"+|"+$/g, '') : '' }
 
+export const CENTRAL_LOGIN_PATH = '/api/users/login'
+
 export function readToken() {
   try { const auth = JSON.parse(localStorage.getItem('auth') || '{}'); if (auth?.token) return normalizeToken(auth.token) } catch {}
   return normalizeToken(localStorage.getItem('token'))
