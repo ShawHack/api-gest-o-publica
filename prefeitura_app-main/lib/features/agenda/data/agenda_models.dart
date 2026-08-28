@@ -96,6 +96,8 @@ class AgendaAppointment {
     this.endsAt,
     this.serviceName,
     this.unitName,
+    this.serviceId,
+    this.unitId,
   });
 
   final String id;
@@ -105,6 +107,8 @@ class AgendaAppointment {
   final DateTime? endsAt;
   final String? serviceName;
   final String? unitName;
+  final String? serviceId;
+  final String? unitId;
 
   factory AgendaAppointment.fromJson(Map<String, dynamic> json) {
     final service = _map(json['serviceId']);
@@ -117,6 +121,8 @@ class AgendaAppointment {
       endsAt: DateTime.tryParse(json['endsAt']?.toString() ?? ''),
       serviceName: service['name']?.toString(),
       unitName: unit['name']?.toString(),
+      serviceId: _id(service),
+      unitId: _id(unit),
     );
   }
 }
