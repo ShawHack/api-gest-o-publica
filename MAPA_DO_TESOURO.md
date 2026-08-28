@@ -1184,6 +1184,7 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 - [x] Implementar “Meus agendamentos” e cancelamento.
 - [x] Implementar reagendamento visual atômico e acesso à recuperação central de senha.
 - [x] Criar painel operacional inicial por perfil e unidade, com transições e resumo gerencial.
+- [x] Criar configuração React inicial de serviços, recursos e bloqueios por escopo.
 - [x] Adicionar testes do cliente HTTP/sessão central, foco visível, link de salto e bloqueio de datas passadas.
 - [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
 
