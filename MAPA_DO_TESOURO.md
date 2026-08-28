@@ -1190,11 +1190,13 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 
 #### Fase D — Adequação do Flutter
 
-- [ ] Criar cliente HTTP da Agenda usando o JWT central.
+- [x] Criar cliente HTTP da Agenda usando o JWT central.
 - [ ] Remover acesso direto do Flutter às coleções Firestore de agendamento.
 - [ ] Adaptar criação, histórico, cancelamento e reagendamento.
 - [ ] Manter compatibilidade temporária com versões móveis anteriores.
 - [ ] Publicar atualização somente após homologação web/API.
+
+Cliente móvel preparado em `lib/features/agenda/data/`: usa exclusivamente os tokens centrais `token`/`auth_token`, envia rastreabilidade corporativa, não recebe nem transmite `userId` na jornada do cidadão e cobre identidade, catálogo, disponibilidade, histórico, criação idempotente, cancelamento e reagendamento atômico. O serviço Firestore legado permanece intacto como compatibilidade temporária; a troca das telas e a remoção das escritas antigas só ocorrerão depois dos testes e da reconciliação da migração.
 
 #### Fase E — Migração e notificações
 
