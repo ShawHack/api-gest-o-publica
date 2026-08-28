@@ -1211,6 +1211,8 @@ Testes de interface do cidadão validam o carregamento do catálogo e do histór
 - [ ] Testar e-mail; homologar WhatsApp separadamente.
 - [ ] Preservar histórico e cadeia de auditoria.
 
+Ferramenta de inventário somente leitura preparada em `backend/scripts/agenda-firestore-inventory.js`. Ela separa bloqueios legados (`userId: BLOCKED`) de reservas, contabiliza estados, datas e serviços inválidos, cruza e-mails normalizados com a coleção central `users` e sinaliza usuários ausentes ou ambíguos. O relatório detalhado usa apenas hash parcial do e-mail e não imprime CPF, telefone, token ou senha. A execução contra dados reais continua pendente de credencial restrita e janela de homologação; o script não contém operações de escrita.
+
 #### Fase F — Homologação e entrada em produção
 
 - [ ] Executar testes funcionais com cidadãos, atendentes e gestores.
