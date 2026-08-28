@@ -1178,10 +1178,11 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 
 #### Fase C — Portal React
 
-- [ ] Criar frontend isolado e responsivo sob `/agendamentos/`.
-- [ ] Reutilizar login, sessão e recuperação de senha centrais.
-- [ ] Implementar fluxo serviço → data → horário → confirmação.
-- [ ] Implementar “Meus agendamentos”.
+- [x] Criar frontend React isolado, responsivo e compilável com base `/agendamentos/`.
+- [x] Reutilizar login e sessão centrais, sem cadastro paralelo.
+- [x] Implementar fluxo inicial serviço → data → horário → confirmação.
+- [x] Implementar “Meus agendamentos” e cancelamento.
+- [ ] Implementar reagendamento visual e recuperação de senha central.
 - [ ] Criar painel por perfil e unidade.
 - [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
 
