@@ -1225,6 +1225,17 @@ O gerador puro `agenda-migration-plan.js` transforma somente registros inequívo
 - [ ] Manter o legado somente para consulta durante a janela definida.
 - [ ] Desativar escritas no Firestore apenas após reconciliação final.
 
+### 27.6 Implantação técnica controlada em 28/08/2026
+
+- API da Agenda implantada como camada mínima sobre a imagem de produção previamente saudável, sem reconstruir os demais módulos a partir do checkout divergente.
+- Portal React publicado em `/agendamentos/`; página e arquivos estáticos responderam `200` externamente.
+- `/api/agenda/services` respondeu `401` sem JWT, confirmando a proteção pela identidade central.
+- Container `api` ficou `healthy` e `/health` respondeu `200`; Nginx e demais containers não foram reiniciados.
+- Backup anterior à implantação: `/home/semit/Documentos/deploy-backups/agenda-20260828-implantacao`, contendo MongoDB completo, frontend anterior, arquivos afetados e hashes SHA-256.
+- Imagem anterior preservada localmente como `api-semit-api:pre-agenda` para rollback rápido.
+- Estado inicial do banco após a implantação: `0` unidades, `0` serviços, `0` recursos, `0` vínculos e `0` agendamentos. O módulo está publicado, mas só ficará apto a receber reservas após cadastro administrativo do catálogo e homologação funcional.
+- A primeira tentativa de rebuild integral foi revertida automaticamente por inconsistências preexistentes do código-fonte da Votação; a produção voltou a saudável antes da estratégia de camada mínima ser aplicada e validada em container paralelo.
+
 ### 27.5 Estado inicial em 27/08/2026
 
 A implementação começou somente no checkout versionado `api-gestao-publica`; nenhuma rota foi implantada no container de produção e o agendamento Flutter atual não foi alterado.
