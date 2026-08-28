@@ -1183,7 +1183,7 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 - [x] Implementar fluxo inicial serviço → data → horário → confirmação.
 - [x] Implementar “Meus agendamentos” e cancelamento.
 - [x] Implementar reagendamento visual atômico e acesso à recuperação central de senha.
-- [ ] Criar painel por perfil e unidade.
+- [x] Criar painel operacional inicial por perfil e unidade, com transições e resumo gerencial.
 - [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
 
 #### Fase D — Adequação do Flutter
