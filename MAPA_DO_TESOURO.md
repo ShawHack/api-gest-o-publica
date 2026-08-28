@@ -1200,6 +1200,8 @@ Cliente móvel preparado em `lib/features/agenda/data/`: usa exclusivamente os t
 
 As rotas Flutter já existentes `/new-appointment` e `/my-appointments` foram adequadas para consumir esse cliente central, preservando os endereços usados pelo menu. As telas administrativas antigas continuam separadas no Firestore até que o painel React e a migração sejam homologados; não deve haver dupla escrita entre MongoDB e Firestore.
 
+Testes de interface do cidadão validam o carregamento do catálogo e do histórico, o uso do JWT central e a consulta `/appointments/mine` sem identificador de usuário fornecido pelo dispositivo.
+
 #### Fase E — Migração e notificações
 
 - [ ] Inventariar `appointments`, `services`, bloqueios e vínculos no Firestore.

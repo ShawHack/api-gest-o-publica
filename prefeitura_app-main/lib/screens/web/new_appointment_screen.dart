@@ -5,13 +5,14 @@ import '../../features/agenda/data/agenda_api_service.dart';
 import '../../features/agenda/data/agenda_models.dart';
 
 class NewAppointmentScreen extends StatefulWidget {
-  const NewAppointmentScreen({super.key});
+  const NewAppointmentScreen({super.key, this.api});
+  final AgendaApiService? api;
   @override
   State<NewAppointmentScreen> createState() => _NewAppointmentScreenState();
 }
 
 class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
-  final _api = AgendaApiService();
+  late final AgendaApiService _api;
   List<AgendaServiceSummary> _services = const [];
   List<AgendaSlot> _slots = const [];
   AgendaServiceSummary? _service;
@@ -24,6 +25,7 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
   @override
   void initState() {
     super.initState();
+    _api = widget.api ?? AgendaApiService();
     _loadServices();
   }
 
