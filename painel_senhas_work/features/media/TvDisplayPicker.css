@@ -1,0 +1,14 @@
+.tv-display-picker {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.tv-display-picker__status {
+  margin: 0;
+  color: #64748b;
+}
+
+.tv-display-picker__status--error {
+  color: #dc2626;
+}

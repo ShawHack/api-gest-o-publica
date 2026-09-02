@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+from pathlib import Path
+p = Path("/home/semit/Documentos/api-semit/backend/private/dashboard-app.html")
+t = p.read_text(encoding="utf-8")
+print("size", len(t))
+print("div_open", t.count("<div"), "div_close", t.count("</div>"))
+print("atendimento_idx", t.find("Atendimento"))
+print("tv_idx", t.find("card-tv-semit"))
+print("senhas_count", t.count("card-senhas"))
+print("tv_count", t.count("card-tv-semit"))
+k = t.find("Gerenciador Geral")
+print("gerenciador_idx", k)
+print("gerenciador_repr", repr(t[k:k+80]) if k >= 0 else None)
+a = t.find("<!-- Card: TV Semit -->")
+b = t.find("<!-- Card 14:")
+print("---snippet---")
+print(t[a:b])

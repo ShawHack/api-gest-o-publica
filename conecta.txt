@@ -1,0 +1,4 @@
+ssh -i C:\Users\saulo.lima\.ssh\id_ed25519_api_semit semit@10.15.25.28    senha: Prefeitura@123
+
+No servidor:
+cd ~/Documentos/

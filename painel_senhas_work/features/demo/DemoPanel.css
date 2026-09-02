@@ -1,0 +1,36 @@
+.demo-panel {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.75rem;
+  background: #c0392b;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  max-width: min(92vw, 28rem);
+}
+
+.demo-panel strong {
+  letter-spacing: 0.08em;
+  margin-right: 0.25rem;
+}
+
+.demo-panel button {
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.55rem;
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.demo-panel button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

@@ -1,0 +1,12 @@
+link : Verificar: https://busca.inpi.gov.br/pePI/jsp/marcas/Pesquisa_num_processo.jsp
+
+usuários: 
+
+usuário rub2026 senha: Rub@26
+
+usuário Oliveira17 senha: Es453034
+
+usuário Den2026 senha: Den@26
+
+usuário Pol2026 senha: Pol@26
+
