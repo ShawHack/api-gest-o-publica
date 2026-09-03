@@ -3,10 +3,10 @@
  * Registro conhecido — novos painéis entram aqui ou via API /api/panels no .31.
  */
 const PANEL_REGISTRY = {
-  semit: { novosgaUnitId: 6, defaultNovosgaServiceId: 82, unitName: 'SEMIT' },
-  sedetur: { novosgaUnitId: 4, defaultNovosgaServiceId: 85, unitName: 'Sec. de Desenvolvimento Econômico' },
-  semads: { novosgaUnitId: 5, defaultNovosgaServiceId: null, unitName: 'SEMADS' },
-  saae: { novosgaUnitId: 7, defaultNovosgaServiceId: null, unitName: 'SAAE' },
+  semit: { novosgaUnitId: 6, defaultNovosgaServiceId: 89, unitName: 'SEMIT' },
+  sedetur: { novosgaUnitId: 4, defaultNovosgaServiceId: 89, unitName: 'Sec. de Desenvolvimento Econômico' },
+  semads: { novosgaUnitId: 5, defaultNovosgaServiceId: 89, unitName: 'SEMADS' },
+  saae: { novosgaUnitId: 7, defaultNovosgaServiceId: 89, unitName: 'SAAE' },
 }
 
 const LEGACY_DEFAULT_SLUG = 'semit'
