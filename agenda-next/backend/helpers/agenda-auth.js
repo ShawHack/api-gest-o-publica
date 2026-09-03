@@ -1,12 +1,37 @@
 const AgendaUserAssignment = require('../models/AgendaUserAssignment')
+const AgendaResource = require('../models/AgendaResource')
 const { recordSecurity } = require('./audit-service')
 
 async function attachAgendaContext(req, res, next) {
   try {
     const userId = req.user?._id || req.user?.id
-    const assignments = userId
+    const userEmail = req.user?.email ? String(req.user.email).trim().toLowerCase() : ''
+    
+    // 1. Assignments explícitos na tabela AgendaUserAssignment
+    let assignments = userId
       ? await AgendaUserAssignment.find({ userId, active: true }).select('unitId role').lean()
       : []
+
+    // 2. Se o usuário for um atendente cadastrado em AgendaResource
+    if (userId || userEmail) {
+      const resourceFilters = []
+      if (userId) resourceFilters.push({ userId, active: true })
+      if (userEmail) resourceFilters.push({ email: new RegExp(`^${userEmail}$`, 'i'), active: true })
+
+      const resources = await AgendaResource.find({ $or: resourceFilters }).select('unitId').lean()
+      const existingUnitIds = new Set(assignments.map((a) => String(a.unitId?._id || a.unitId)))
+
+      for (const r of resources) {
+        if (r.unitId && !existingUnitIds.has(String(r.unitId))) {
+          assignments.push({
+            unitId: r.unitId,
+            role: 'agenda_attendant',
+          })
+          existingUnitIds.add(String(r.unitId))
+        }
+      }
+    }
+
     req.agenda = {
       isGlobalAdmin: req.user?.role === 'admin' || req.user?.isAdmin === true,
       assignments,
