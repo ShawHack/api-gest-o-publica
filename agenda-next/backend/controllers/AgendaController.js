@@ -1164,6 +1164,9 @@ module.exports = class AgendaController {
       }
       if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
       const service = await AgendaService.findOneAndUpdate({ _id: serviceId }, { $set: update }, { new: true, runValidators: true })
+      if (update.unitId && String(update.unitId) !== String(current.unitId)) {
+        await AgendaAppointment.updateMany({ serviceId: service._id }, { $set: { unitId: update.unitId } })
+      }
       void recordAudit(req, {
         action: 'agenda.service.update', resourceType: 'agenda_service', resourceId: service._id,
         module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId), fields: Object.keys(update) },
