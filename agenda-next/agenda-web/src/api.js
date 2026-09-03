@@ -23,7 +23,11 @@ export async function api(path, options = {}) {
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) },
   })
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(body.message || `Falha na requisição (${response.status})`)
+  if (!response.ok) {
+    const error = new Error(body.message || `Falha na requisição (${response.status})`)
+    error.status = response.status
+    throw error
+  }
   return body
 }
 

@@ -96,10 +96,14 @@ export default function App() {
       const manage = identity.agenda?.isGlobalAdmin || identity.agenda?.assignments?.some((item) => ['agenda_admin', 'agenda_manager'].includes(item.role))
       if (operate) setTab('operacao')
       else if (manage && !(catalog.items || []).length) setTab('catalogo')
-    } catch {
-      clearToken()
-      setMe(null)
-      setAgenda(null)
+    } catch (err) {
+      if (err?.status === 401) {
+        clearToken()
+        setMe(null)
+        setAgenda(null)
+      } else {
+        setMessage('Instabilidade temporária na conexão. Clique em Atualizar para recarregar.')
+      }
     } finally {
       setLoading(false)
     }
