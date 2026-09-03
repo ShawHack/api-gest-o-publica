@@ -76,7 +76,7 @@ function resolveOperatorDefaults({ me, agenda, services, resources, stored }) {
       serviceId: linkedServices.length === 1
         ? String(linkedServices[0]._id)
         : (saved.serviceId && linkedServices.some((item) => String(item._id) === saved.serviceId) ? saved.serviceId : ''),
-      resourceId: String(myResource._id),
+      resourceId: saved.resourceId || '',
     }
   }
 
@@ -306,7 +306,14 @@ export default function AttendantPanel({ agenda, me }) {
   const filteredItems = useMemo(() => {
     let list = items
     if (resourceId) {
-      list = list.filter((item) => String(item.resourceId?._id || item.resourceId) === String(resourceId))
+      list = list.filter((item) => {
+        const itemResId = String(item.resourceId?._id || item.resourceId || '')
+        if (itemResId) return itemResId === String(resourceId)
+        // Se o agendamento foi feito sem atendente fixo (fila geral), ele pertence a qualquer atendente do serviço
+        const srv = services.find((s) => String(s._id) === String(item.serviceId?._id || item.serviceId))
+        if (!srv || !(srv.resourceIds || []).length) return true
+        return (srv.resourceIds || []).some((r) => String(r._id || r) === String(resourceId))
+      })
     }
     if (search.trim()) {
       const q = search.trim().toLowerCase()
@@ -319,7 +326,7 @@ export default function AttendantPanel({ agenda, me }) {
       })
     }
     return list
-  }, [items, resourceId, search])
+  }, [items, resourceId, search, services])
 
   // Métricas do dia selecionado (alinhadas à fila visível)
   const metrics = useMemo(() => {
