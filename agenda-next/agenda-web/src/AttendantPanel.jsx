@@ -547,8 +547,24 @@ export default function AttendantPanel({ agenda, me }) {
           {!busy && !filteredItems.length && (
             <div className="empty-queue-box">
               <p className="empty-icon">☕</p>
-              <h4>Nenhum atendimento para exibir</h4>
-              <p className="muted">Não há agendamentos para os filtros selecionados nesta data.</p>
+              <h4>Nenhum atendimento para o filtro selecionado</h4>
+              {items.length > 0 && resourceId ? (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <p className="muted" style={{ marginBottom: '0.75rem' }}>
+                    Há <b>{items.length}</b> agendamento(s) nesta data vinculados a outros atendentes (ex.: Elaine).
+                  </p>
+                  <button
+                    type="button"
+                    className="dark small-btn"
+                    style={{ padding: '0.55rem 1.1rem', borderRadius: '0.5rem', fontWeight: 600 }}
+                    onClick={() => setResourceId('')}
+                  >
+                    👥 Exibir Toda a Equipe ({items.length} agendamentos)
+                  </button>
+                </div>
+              ) : (
+                <p className="muted">Não há agendamentos para os filtros selecionados nesta data.</p>
+              )}
             </div>
           )}
 
