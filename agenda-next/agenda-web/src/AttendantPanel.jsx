@@ -308,11 +308,19 @@ export default function AttendantPanel({ agenda, me }) {
     if (resourceId) {
       list = list.filter((item) => {
         const itemResId = String(item.resourceId?._id || item.resourceId || '')
-        if (itemResId) return itemResId === String(resourceId)
-        // Se o agendamento foi feito sem atendente fixo (fila geral), ele pertence a qualquer atendente do serviço
+        // 1. Se o agendamento foi atribuído especificamente a este atendente:
+        if (itemResId && itemResId === String(resourceId)) return true
+
+        // 2. Se o agendamento pertence a um serviço em que o atendente selecionado integra a equipe:
         const srv = services.find((s) => String(s._id) === String(item.serviceId?._id || item.serviceId))
+        if (srv && (srv.resourceIds || []).some((r) => String(r._id || r) === String(resourceId))) {
+          return true
+        }
+
+        // 3. Se o serviço não possui restrição de atendentes (fila aberta):
         if (!srv || !(srv.resourceIds || []).length) return true
-        return (srv.resourceIds || []).some((r) => String(r._id || r) === String(resourceId))
+
+        return false
       })
     }
     if (search.trim()) {
@@ -551,7 +559,7 @@ export default function AttendantPanel({ agenda, me }) {
               {items.length > 0 && resourceId ? (
                 <div style={{ marginTop: '0.5rem' }}>
                   <p className="muted" style={{ marginBottom: '0.75rem' }}>
-                    Há <b>{items.length}</b> agendamento(s) nesta data vinculados a outros atendentes (ex.: Elaine).
+                    Há <b>{items.length}</b> agendamento(s) nesta data para outros atendentes ou serviços.
                   </p>
                   <button
                     type="button"
