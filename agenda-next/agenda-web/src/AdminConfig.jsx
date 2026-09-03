@@ -210,6 +210,25 @@ export default function AdminConfig() {
     setMessage(`Editando ${item.name}.`)
   }
 
+  async function ensureUnit(name, address = '') {
+    const existing = findByName(units, name)
+    if (existing) {
+      if (address && address !== existing.address) {
+        const updated = await api(`/api/agenda/admin/units/${existing._id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ address: address.trim() }),
+        })
+        return updated.unit
+      }
+      return existing
+    }
+    const created = await api('/api/agenda/admin/units', {
+      method: 'POST',
+      body: JSON.stringify({ name: name.trim(), slug: slugify(name), address: address.trim() }),
+    })
+    return created.unit
+  }
+
   async function saveService(event) {
     event.preventDefault()
     const hoursError = validateDaySchedule(serviceForm.start, serviceForm.end, { enabled: serviceForm.lunch, start: serviceForm.lunchStart, end: serviceForm.lunchEnd })
@@ -217,7 +236,7 @@ export default function AdminConfig() {
     if (!serviceForm.days.length) return setMessage('Selecione ao menos um dia de atendimento.')
     setBusy(true)
     try {
-      const unit = await saveUnit(serviceForm.unitName)
+      const unit = await ensureUnit(serviceForm.unitName)
       const unitAttendants = resources.filter((r) => r.type === 'attendant' && String(r.unitId?._id || r.unitId) === String(unit._id))
       let attendantIds = serviceForm.attendantIds.filter((id) => unitAttendants.some((r) => String(r._id) === String(id)))
       if (serviceForm.newAttendant.trim()) {
