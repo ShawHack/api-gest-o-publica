@@ -7,12 +7,13 @@ import BookingCalendar from './BookingCalendar.jsx'
 import ServiceLanding from './ServiceLanding.jsx'
 import BookingVoucher from './BookingVoucher.jsx'
 import Register from './Register.jsx'
+import { ForgotPassword, ResetPassword } from './ForgotPassword.jsx'
 import TvDisplay from './TvDisplay.jsx'
 import { parseLandingHash } from './adminConfig'
 
 const statusLabel = { booked: 'Agendado', confirmed: 'Confirmado', cancelled: 'Cancelado', completed: 'Atendido', no_show: 'Ausente' }
 
-function Login({ onLogin, onToggleRegister }) {
+function Login({ onLogin, onToggleRegister, onToggleForgotPassword }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -50,7 +51,7 @@ function Login({ onLogin, onToggleRegister }) {
             <button disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}</button>
           </form>
           <nav className="login-links" aria-label="Acesso à conta">
-            <a href="/forgot-password">Esqueci minha senha</a>
+            <button type="button" className="link-button" onClick={onToggleForgotPassword}>Esqueci minha senha</button>
             <button type="button" className="link-button" onClick={onToggleRegister}>Criar cadastro</button>
           </nav>
         </section>
@@ -74,8 +75,24 @@ export default function App() {
   const [bookingComplete, setBookingComplete] = useState(null)
   const [hash, setHash] = useState(typeof window !== 'undefined' ? window.location.hash : '')
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash)
+    const onHash = () => {
+      const h = window.location.hash || ''
+      setHash(h)
+      if (h.startsWith('#/redefinir-senha')) {
+        setAuthMode('reset')
+      } else if (h.startsWith('#/esqueci-senha')) {
+        setAuthMode('forgot')
+      }
+    }
     window.addEventListener('hashchange', onHash)
+    if (
+      (typeof window !== 'undefined' && window.location.search.includes('token=')) ||
+      window.location.hash.startsWith('#/redefinir-senha')
+    ) {
+      setAuthMode('reset')
+    } else if (window.location.hash.startsWith('#/esqueci-senha')) {
+      setAuthMode('forgot')
+    }
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
   const landing = parseLandingHash(hash)
@@ -108,7 +125,9 @@ export default function App() {
       setLoading(false)
     }
   }, [])
-  useEffect(() => { if (readToken()) load(); else setLoading(false) }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -124,8 +143,9 @@ export default function App() {
   }, [menuOpen])
 
   async function book(startsAt) {
+    if (!selected) return
     try {
-      const headers = { 'Idempotency-Key': crypto.randomUUID() }
+      const headers = { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }
       let res
       if (rebooking) {
         res = await api(`/api/agenda/appointments/${rebooking._id}/reschedule`, { method: 'PATCH', headers, body: JSON.stringify({ serviceId: selected, startsAt }) })
@@ -188,7 +208,33 @@ export default function App() {
     if (authMode === 'register') {
       return <Register onLogin={load} onToggleLogin={() => setAuthMode('login')} />
     }
-    return <Login onLogin={load} onToggleRegister={() => setAuthMode('register')} />
+    if (authMode === 'forgot' || hash.startsWith('#/esqueci-senha')) {
+      return (
+        <ForgotPassword
+          onToggleLogin={() => {
+            setAuthMode('login')
+            if (window.location.hash.startsWith('#/esqueci-senha')) window.location.hash = ''
+          }}
+        />
+      )
+    }
+    if (authMode === 'reset' || hash.startsWith('#/redefinir-senha')) {
+      return (
+        <ResetPassword
+          onDone={() => {
+            setAuthMode('login')
+            window.location.hash = ''
+          }}
+        />
+      )
+    }
+    return (
+      <Login
+        onLogin={load}
+        onToggleRegister={() => setAuthMode('register')}
+        onToggleForgotPassword={() => setAuthMode('forgot')}
+      />
+    )
   }
 
   const canOperate = agenda?.isGlobalAdmin || agenda?.assignments?.length > 0
