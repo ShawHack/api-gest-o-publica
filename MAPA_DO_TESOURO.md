@@ -2,10 +2,40 @@
 
 > Guia universal de arquitetura, operação, continuidade e recuperação.
 >
-> Estado observado e atualizado em 27/08/2026 no servidor `10.15.25.28`.
+> Atualização desta entrega: 04/09/2026 no servidor `10.15.25.28`; datas das demais análises constam nas respectivas seções.
 > Este documento não contém senhas, tokens, chaves privadas nem valores secretos.
 
 ## 1. Finalidade
+
+### Estado da migração de URLs SAMA — 04/09/2026
+
+**Atualização final, 13:22 BRT: migração publicada após autorização do responsável.** A configuração do host e a efetivamente montada no Nginx foram conferidas por SHA-256 idêntico (`dd86e627b533e331b3076b3f684f9bc7a51f8bdf6116db4290ef06b3431ef941`). Bastou recarga suave validada; não foi necessário substituir a configuração principal nem reiniciar containers. Os itens abaixo sobre bloqueio/reversão são o histórico da primeira tentativa, não o estado atual.
+
+- Endereços ativos: `/sama/`, `/sama/arvores`, `/sama/arvore/...`, `/sama/castracao`, `/sama/zoologico`, `/sama/denunciar`, `/sama/funcionalidade`, `/sama/vacinacao`. Adoção permanece em `/garcapet/`, `/garcapet/adotar` e rotas de acompanhamento. Conta e administração continuam compartilhadas nos endereços existentes.
+- Links antigos redirecionam com 302 e preservam parâmetros. Logo e Página Inicial voltam à área correspondente; adoção apresenta Voltar à Secretaria. Redirecionamentos temporários permitem rollback sem cache permanente de 301.
+- Evidências: navegador validou castração (campanha e acesso ao formulário), navegação interna para adoção e árvores e tela de login. HTTP 200 para zoológico, vacinação, health da API e teatro da Cultura; link antigo de castração retornou 302 para `/sama/castracao?origem=teste`. Login autenticado, envio de solicitações e fluxos administrativos não foram exercitados para não gravar dados de teste em produção.
+- Restauração: preservar o build legado, os arquivos JS versionados `*.sama-routes-20260904.js`, `routes.js`, `identity.js`, `identity.css`, `index.html` e `manifest.json`, além de `nginx/nginx.conf`. Cópia de referência desta entrega em `sama-identity/release-20260904/` no repositório de trabalho; testes e transformação reproduzível em `sama-identity/`.
+- Continuidade: consolidar essas adaptações no projeto React original quando o fonte for reconciliado. A camada de compatibilidade não altera APIs nem base de usuários.
+
+- Identidade visual SAMA/GarçaPet preservada em produção. URLs originais continuam ativas.
+- Migração preparada para `/sama/`, árvores/mudas, castração, zoológico, denúncias, funcionamento e vacinação; adoção permanece em `/garcapet/`. Login compartilhado preservado.
+- Testes automatizados de aliases React e conservação de query/hash aprovados; configuração Nginx passou em `nginx -t` isolado.
+- **Pendente de autorização operacional:** o Nginx montado somente leitura manteve a configuração antiga após atualização no host e recarga. O teste público de `/sama/castracao` retornou 404. Tentativa de trocar a inclusão na configuração principal foi bloqueada pela revisão automática por risco de afetar o proxy de todos os serviços. Não contornar esse bloqueio.
+- Reversão executada: `index.html`, `identity.js`, `manifest.json` e configuração do host restaurados do backup `/home/semit/Documentos/deploy-backups/sama-routes-20260904/`. `/garcapet/castracao` voltou a responder 200 e teve seu conteúdo validado no navegador, com a identidade SAMA e o formulário público preservados.
+- Próximo passo: obter autorização para intervenção controlada no Nginx, escolher janela/método com rollback, confirmar configuração efetiva no container e testar URLs públicas antes de republicar links canônicos. Não considerar a migração concluída.
+- Arquivos preparados e testes: `sama-identity/routes.js`, `prepare-routes.cjs`, `test-routes.cjs`; staging remoto `/tmp/sama-routes-20260904/`. O script de deploy exige revisão antes de reutilização, pois a recarga simples não resolveu a montagem ativa.
+
+### Plano SAMA / GarçaPet — identidade por seção (04/09/2026)
+
+- Objetivo: apresentar Secretaria do Meio Ambiente / SAMA nas páginas institucionais, ambientais e de conta; reservar GarçaPet ao catálogo, detalhes e acompanhamento de adoção. Serviços de animais (cadastro, castração, vacinação e denúncias) usam SAMA / Bem-estar animal.
+- Etapa 1: cabeçalho responsivo (nome completo no desktop, SAMA no celular), título da aba, identificação institucional no rodapé e nome do aplicativo instalado.
+- Etapa 2: título institucional na página `/garcapet/sama` e atalhos para árvores/mudas, bem-estar animal e GarçaPet / Quero adotar.
+- Etapa 3: testar rotas diretas, navegação interna, retorno e responsividade; publicar somente arquivos estáticos com backup. Não alterar API, autenticação, usuários, permissões, banco ou rotas.
+- Implementação: `sama-identity/identity.js` e `identity.css` são uma camada de apresentação sobre o pacote React legado já publicado. Integram os hooks de navegação existentes, com observador de DOM desconectado durante aplicação para evitar ciclos. Nenhuma requisição de escrita é adicionada.
+- Destino de produção: `/home/semit/Documentos/api-semit/backend/public/sama/`. Carregamento pelo `index.html`, com versão nos URLs. Preservar todos os scripts existentes e incluir esses arquivos em futuros rebuilds/restaurações.
+- Backup desta entrega: `/home/semit/Documentos/deploy-backups/sama-identity-20260904/`. Reversão: restaurar `index.html` e `manifest.json` desse diretório; os arquivos novos ficam inertes sem referência.
+- **Concluído:** URL institucional `/sama/` com redirecionamentos dos links antigos. **Manutenção futura:** integrar a camada diretamente ao projeto React original quando seu fonte/dependências forem reconciliados. Não substituir o build atual por fontes parciais recuperadas do source map.
+- Estado: publicado e validado; evidências e limites em `sama-identity/VALIDACAO.md`, instruções de restauração em `sama-identity/README.md`.
 
 Este documento existe para permitir que uma pessoa que nunca trabalhou no projeto consiga:
 
@@ -149,6 +179,7 @@ Não apagar containers desconhecidos sem identificar proprietário, dados e fina
 |---|---|
 | `backend/` | API Express, modelos, controladores, rotas, workers e testes |
 | `frontend/` | frontend React e builds web |
+| `agenda-web/` | portal React da Agenda Garça (`base` `/agendamentos/`) |
 | `GovCidadao/` | API FastAPI, frontend Next.js, testes e documentação |
 | `Ferramentas/` | aplicação Next.js de conversão de documentos |
 | `prefeitura_app-main/` | aplicativo Flutter municipal, mobile e web |
@@ -189,7 +220,7 @@ Não apagar containers desconhecidos sem identificar proprietário, dados e fina
 
 ### 7.4 Serviços municipais
 
-- agendamentos;
+- agendamentos (Agenda Garça em `/agendamentos/`: cidadão marca horário; gestor cadastra catálogo na aba Catálogo);
 - Formulários Garça e inscrições;
 - Iluminação Pública com QR Code;
 - Ordem de Serviços;
@@ -1185,6 +1216,7 @@ Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidad
 - [x] Implementar reagendamento visual atômico e acesso à recuperação central de senha.
 - [x] Criar painel operacional inicial por perfil e unidade, com transições e resumo gerencial.
 - [x] Criar configuração React inicial de serviços, recursos e bloqueios por escopo.
+- [x] Separar cidadão e gestão em abas; tornar cadastro de Unidade/Serviço visível em coluna única (28/08/2026).
 - [x] Adicionar testes do cliente HTTP/sessão central, foco visível, link de salto e bloqueio de datas passadas.
 - [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
 
@@ -1236,6 +1268,89 @@ O gerador puro `agenda-migration-plan.js` transforma somente registros inequívo
 - Estado inicial do banco após a implantação: `0` unidades, `0` serviços, `0` recursos, `0` vínculos e `0` agendamentos. O módulo está publicado, mas só ficará apto a receber reservas após cadastro administrativo do catálogo e homologação funcional.
 - A primeira tentativa de rebuild integral foi revertida automaticamente por inconsistências preexistentes do código-fonte da Votação; a produção voltou a saudável antes da estratégia de camada mínima ser aplicada e validada em container paralelo.
 - Correção pós-implantação: o React chamava `/users/login`, tratado pelo Nginx como rota estática e respondido com `405`. O cliente passou a usar o endpoint canônico `/api/users/login`; teste automatizado, build e teste externo com credenciais fictícias confirmaram resposta `422` de autenticação em vez de `405`. A API não precisou ser reiniciada nessa correção.
+
+### 27.7 Correção de UX do catálogo em 28/08/2026
+
+Problema observado em produção: o gestor autenticado via “Configuração da Agenda”, mas **não encontrava onde cadastrar Unidade nem Serviço**. A tela misturava cidadão, operação e gestão na mesma rolagem; a grade de duas colunas escondia o passo 1; Recursos e Bloqueios pediam Unidade num `<select>` vazio, como se a unidade não existisse.
+
+Correção (somente frontend `agenda-web`; **API, Nginx e containers não reiniciados**):
+
+- abas: Agendar, Meus agendamentos, Operação (vínculo), Catálogo (gestor);
+- catálogo vazio abre a aba Catálogo automaticamente para quem pode gerir;
+- cadastro em coluna única, ordem obrigatória: 1 Unidade → 2 Serviço → 3 Recurso (opcional) → 4 bloqueios;
+- empty states explicando que o dropdown de Unidade em Recurso/Bloqueio **não cria** unidade;
+- cidadão vê aviso quando não há serviço no catálogo.
+
+Onde cadastrar (após o build publicado):
+
+1. entrar em `/agendamentos/` com conta `admin` global (`role=admin` ou `isAdmin`) ou vínculo `agenda_admin` / `agenda_manager`;
+2. abrir a aba **Catálogo**;
+3. passo 1: nome da unidade (ex.: Paço Municipal) e Salvar unidade;
+4. passo 2: unidade + nome do serviço, duração, intervalo, capacidade, horário e dias; Salvar serviço;
+5. só então o combo Unidade em Recursos/Bloqueios passa a ter opções.
+
+Fonte: `agenda-web/src/App.jsx`, `AdminConfig.jsx`, `styles.css`. Build Vite `base=/agendamentos/`. Assets publicados em `/opt/backend-public/agendamentos/` (volume Nginx `root /opt/backend-public`, origem observada `api-semit/backend/public/agendamentos`). Publicação segura: backup do portal anterior, copiar `assets/` novos sem apagar os antigos, depois substituir `index.html`. Diretório `assets` e pasta do portal em `755`, arquivos em `644`; permissão `700` faz o Nginx devolver HTML no lugar do JavaScript.
+
+Rollback desta UX: restaurar o diretório `agendamentos` a partir de `/home/semit/Documentos/deploy-backups/agenda-20260828-ux-catalogo/` (sem mexer na API).
+
+O banco continua podendo estar vazio (0 unidades/serviços) até o cadastro administrativo e a homologação funcional. Esta entrega **não** troca o cartão legado nem libera reservas reais.
+
+### 27.8 Layout moderno do portal em 28/08/2026
+
+Segunda entrega de UX no mesmo dia, ainda só no frontend `agenda-web` (sem rebuild de API/Nginx):
+
+- casca fluida (gradiente, header em faixa, navegação sticky, conteúdo até ~1180px);
+- login em duas colunas no desktop e uma coluna no celular;
+- catálogo em **stepper**: um passo visível por vez (Unidade → Serviço → Extras), com trilha à esquerda no desktop e faixa horizontal no mobile;
+- botão “Salvar e ir ao serviço” avança sozinho para o passo 2;
+- passos 2 e 3 bloqueados até existir unidade.
+
+Publicação: mesmo procedimento da 27.7 (`assets` 755/644). Backup desta versão visual: `/home/semit/Documentos/deploy-backups/agenda-20260828-ux-layout/`.
+
+### 27.9 Almoço e atendentes no serviço em 28/08/2026
+
+A API já suportava vários períodos no dia (`weeklyAvailability.periods`) e `resourceIds` de atendentes. A tela misturava isso em “Extras” (tipo Sala + bloqueio de feriado), então o gestor não encontrava almoço nem equipe.
+
+Ajuste só de frontend:
+
+- no passo **Serviço**: expediente (abre/fecha), **intervalo de almoço** (gera dois períodos, ex. 08:00–12:00 e 13:00–17:00), equipe com checkbox e cadastro rápido de atendente;
+- “Intervalo (min)” passou a se chamar **De quanto em quanto**, para não confundir com almoço;
+- serviço existente tem **Editar** (PATCH), para Transporte Escolar e outros já criados;
+- passo 3 ficou só **Feriados** pontuais.
+
+Almoço diário **não** é bloqueio de feriado. Atendente **não** é “tipo Sala”.
+
+### 27.10 Calendário de disponibilidade em 28/08/2026
+
+A aba **Agendar** mostra calendário mensal e grade de horários via `/api/agenda/services/:id/availability`.
+
+### 27.11 Landing exclusiva com QR em 28/08/2026
+
+Cada serviço ativo ganha página pública:
+
+- URL: `/agendamentos/#/p/{slug-da-unidade}/{slug-do-serviço}`
+- API sem JWT: `GET /api/agenda/public/:unitSlug/:serviceSlug` e `.../availability?date=`
+- calendário + grade de horários; reserva continua exigindo JWT da coleção `users`
+- no Catálogo, **Link e QR** gera o cartaz de divulgação
+
+Rotas autenticadas seguem com `verifyToken`. As públicas não expõem CPF, senha nem token.
+
+### 27.12 Configuração da landing em 28/08/2026
+
+A página pública passou a exibir e gravar:
+
+- `landingBannerUrl` (imagem de cabeçalho);
+- `landingAddress` (endereço do atendimento; se vazio, usa o da unidade);
+- `bookingFrom` / `bookingUntil` (período em que o calendário aceita reserva);
+- `description` (texto da página).
+
+Gestor vê **Configurar página** na própria landing e o bloco equivalente no Catálogo. O servidor recusa horário fora do período.
+
+### 27.13 Painel do atendente em 28/08/2026
+
+A aba **Atendente** (`agenda_attendant`, gerente ou admin) mostra calendário mensal com contagem de fila por dia e visão diária em linha do tempo. Ações usam as transições já existentes (`booked` → `confirmed` → `completed`/`no_show`, ou cancelamento). API: `GET /api/agenda/admin/appointments/calendar?month=YYYY-MM`.
+
+A escolha do horário na landing e na aba Agendar passou a ser em lista por faixa de hora, com botão **Confirmar agendamento**. Após a reserva, a API envia comprovante pelo `mailer` SMTP já usado pelos demais módulos (`helpers/agenda-voucher.js`), sem interromper a reserva se o e-mail falhar.
 
 ### 27.5 Estado inicial em 27/08/2026
 

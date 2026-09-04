@@ -477,16 +477,14 @@
               
               let day = "00";
               let monthStr = "MÊS";
-              const d = new Date(dateRaw);
+              // Datas de sessões são dias do calendário, não instantes UTC.
+              const iso = String(dateRaw || '').match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+              const br = String(dateRaw || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+              const parts = iso ? [iso[1], iso[2], iso[3]] : br ? [br[3], br[2], br[1]] : null;
+              const d = parts ? new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))) : new Date(NaN);
               if (!isNaN(d.getTime())) {
-                day = String(d.getDate()).padStart(2, '0');
-                monthStr = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
-              } else if (dateRaw.includes('/')) {
-                const parts = dateRaw.split('/');
-                day = parts[0];
-                const m = parseInt(parts[1]) - 1;
-                const dt = new Date(2026, m, 1);
-                monthStr = dt.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
+                day = String(d.getUTCDate()).padStart(2, '0');
+                monthStr = d.toLocaleString('pt-BR', { month: 'short', timeZone: 'UTC' }).toUpperCase().replace('.', '');
               }
               dateDisplay = `${day} ${monthStr} | ${timeRaw}`;
             }
@@ -497,7 +495,7 @@
                 <div class="agenda-info">
                   <h3>${post.titulo}</h3>
                   <p>${post.descricao.substring(0, 100)}${post.descricao.length > 100 ? '...' : ''}</p>
-                  <a href="/eventos/detalhes.html?id=${post._id}" class="agenda-btn">Mais Informações</a>
+                  <a href="/cultura/eventos/detalhes.html?id=${post._id}" class="agenda-btn">Mais Informações</a>
                 </div>
               </div>
             `;
@@ -673,4 +671,3 @@
   <script>lucide.createIcons();</script>
 </body>
 </html>
-
