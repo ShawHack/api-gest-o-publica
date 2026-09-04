@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API SEMIT — Acesso administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #2d3a7a 0%, #1a2248 100%);
+            padding: 1.5rem;
+            color: #1f2a44;
+        }
+        .panel {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+        }
+        h1 { font-size: 1.35rem; margin-bottom: 0.35rem; color: #1a2248; }
+        .sub { font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
+        label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: #475569; }
+        input {
+            width: 100%;
+            padding: 0.75rem 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        input:focus { outline: 2px solid #3b4ea0; border-color: #3b4ea0; }
+        button {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 8px;
+            background: #3b4ea0;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #2f3f85; }
+        .msg {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .msg.error { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .msg.info { display: block; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .loader.show { display: block; }
+    </style>
+</head>
+
+<body>
+    <div class="panel" id="login-panel">
+        <h1>Dashboard SEMIT</h1>
+        <p class="sub">Acesso restrito a administradores. Faça login para continuar.</p>
+        <form id="login-form" autocomplete="on">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" required autocomplete="username">
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+            <button type="submit" id="btn-login">Entrar</button>
+        </form>
+        <div id="msg" class="msg" role="alert"></div>
+        <div id="loader" class="loader">Validando permissões…</div>
+    </div>
+
+    <script>
+        (function () {
+            var TOKEN_KEY = 'semit_dashboard_token';
+            var REFRESH_KEY = 'semit_dashboard_refresh';
+            var API = '/api/admin/dashboard';
+
+            function showMsg(text, type) {
+                var el = document.getElementById('msg');
+                el.textContent = text;
+                el.className = 'msg ' + (type || 'error');
+            }
+
+            function hideMsg() {
+                document.getElementById('msg').className = 'msg';
+            }
+
+            function setLoading(on) {
+                document.getElementById('loader').className = on ? 'loader show' : 'loader';
+                document.getElementById('btn-login').disabled = on;
+                document.getElementById('login-form').style.display = on ? 'none' : 'block';
+            }
+
+            function authHeaders() {
+                var t = sessionStorage.getItem(TOKEN_KEY);
+                return t ? { Authorization: 'Bearer ' + t } : {};
+            }
+
+            function clearSession() {
+                sessionStorage.removeItem(TOKEN_KEY);
+            }
+
+            async function validateSession() {
+                var token = sessionStorage.getItem(TOKEN_KEY);
+                if (!token) return false;
+                var res = await fetch(API + '/session', {
+                    headers: { Authorization: 'Bearer ' + token },
+                    cache: 'no-store',
+                });
+                if (res.status === 401) {
+                    clearSession();
+                    return false;
+                }
+                if (res.status === 403) {
+                    clearSession();
+                    showMsg('Seu usuário não possui perfil administrador.', 'error');
+                    return false;
+                }
+                return res.ok;
+            }
+
+            async function loadDashboard() {
+                setLoading(true);
+                hideMsg();
+                try {
+                    var ok = await validateSession();
+                    if (!ok) {
+                        setLoading(false);
+                        return;
+                    }
+                    var res = await fetch(API + '/content', {
+                        headers: authHeaders(),
+                        cache: 'no-store',
+                    });
+                    if (res.status === 401 || res.status === 403) {
+                        clearSession();
+                        setLoading(false);
+                        showMsg(res.status === 403
+                            ? 'Acesso negado. Apenas administradores podem usar esta dashboard.'
+                            : 'Sessão expirada. Faça login novamente.', 'error');
+                        return;
+                    }
+                    if (!res.ok) {
+                        setLoading(false);
+                        showMsg('Não foi possível carregar a dashboard.', 'error');
+                        return;
+                    }
+                    var html = await res.text();
+                    document.open();
+                    document.write(html);
+                    document.close();
+                } catch (e) {
+                    setLoading(false);
+                    showMsg('Erro de conexão. Tente novamente.', 'error');
+                }
+            }
+
+            document.getElementById('login-form').addEventListener('submit', async function (ev) {
+                ev.preventDefault();
+                hideMsg();
+                setLoading(true);
+                var email = document.getElementById('email').value.trim();
+                var password = document.getElementById('password').value;
+                try {
+                    var res = await fetch(API + '/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: password }),
+                    });
+                    var data = await res.json().catch(function () { return {}; });
+                    if (!res.ok) {
+                        setLoading(false);
+                        showMsg(data.message || 'E-mail ou senha inválidos.', 'error');
+                        return;
+                    }
+                    if (!data.token) {
+                        setLoading(false);
+                        showMsg('Resposta de login inválida.', 'error');
+                        return;
+                    }
+                    sessionStorage.setItem(TOKEN_KEY, data.token || data.accessToken);
+                    if (data.refreshToken) sessionStorage.setItem(REFRESH_KEY, data.refreshToken);
+                    await loadDashboard();
+                } catch (e) {
+                    setLoading(false);
+                    showMsg('Erro de conexão.', 'error');
+                }
+            });
+
+            loadDashboard();
+        })();
+    </script>
+</body>
+
+</html>
