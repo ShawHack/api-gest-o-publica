@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso Restrito - Garça</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background: #f8fafc; /* Fundo branco/claro */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      position: relative;
+    }
+
+    .login-container {
+      background: linear-gradient(135deg, #ff9f66 0%, #e65c00 100%);
+      padding: 4.5rem 4rem;
+      border-radius: 24px; /* Bordas arredondadas */
+      box-shadow: 0 25px 50px rgba(230, 92, 0, 0.25);
+      width: 100%;
+      max-width: 550px; /* Bem largo para os lados */
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      overflow: hidden; /* Para os círculos internos não vazarem */
+    }
+
+    /* Efeitos de círculo DENTRO do container laranja */
+    .login-container::before, .login-container::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      z-index: -1;
+    }
+    .login-container::before {
+      width: 300px;
+      height: 300px;
+      top: -100px;
+      left: -100px;
+    }
+    .login-container::after {
+      width: 250px;
+      height: 250px;
+      bottom: -80px;
+      right: -80px;
+    }
+
+    /* Conteúdo do login para ficar acima dos círculos */
+    .login-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-container h2 {
+      font-family: 'Rubik', sans-serif;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+    }
+    .login-container p {
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 3rem;
+      font-size: 1.05rem;
+    }
+    
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+    
+    /* Consertando os ícones para ficarem DENTRO do form */
+    .input-wrapper svg {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      width: 22px;
+      height: 22px;
+      transition: color 0.3s;
+      z-index: 5;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 18px 18px 18px 52px;
+      border: 2px solid transparent;
+      border-radius: 14px; /* Bordas arredondadas nos inputs */
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.05rem;
+      box-sizing: border-box;
+      color: #1e293b;
+      transition: all 0.3s ease;
+      background: #ffffff;
+      position: relative;
+      z-index: 2;
+    }
+    .login-form input::placeholder {
+      color: #94a3b8;
+    }
+    .login-form input:focus {
+      outline: none;
+      border-color: #111111;
+      box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.15);
+    }
+    .login-form input:focus + svg,
+    .login-form input:focus ~ svg {
+      color: #111111;
+    }
+    
+    .btn-login {
+      background: #111111;
+      color: #ffffff;
+      border: none;
+      width: 100%;
+      padding: 18px;
+      border-radius: 14px; /* Bordas arredondadas no botão */
+      font-weight: 600;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      font-family: 'Poppins', sans-serif;
+      margin-top: 1rem;
+    }
+    .btn-login:hover {
+      background: #333333;
+      transform: translateY(-2px);
+    }
+    
+    #error-msg {
+      color: #ffffff;
+      font-size: 0.9rem;
+      margin-top: 1.5rem;
+      display: none;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2.5rem;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .back-link:hover {
+      color: #ffffff;
+    }
+    
+    * { box-sizing: border-box; }
+
+    @media (max-width: 768px) {
+      .login-container {
+        padding: 2.5rem 1.5rem;
+        width: 90%;
+        border-radius: 16px;
+      }
+      .login-container h2 {
+        font-size: 1.8rem;
+      }
+      .login-container::before {
+        width: 200px; height: 200px; top: -50px; left: -50px;
+      }
+      .login-container::after {
+        width: 150px; height: 150px; bottom: -50px; right: -50px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-content">
+      <h2>Acesso Restrito</h2>
+      <p>Área exclusiva para administradores.</p>
+
+      <form class="login-form" onsubmit="doLogin(event)">
+        <div class="input-wrapper">
+          <input type="email" id="email" placeholder="E-mail" required>
+          <i data-lucide="mail"></i>
+        </div>
+        
+        <div class="input-wrapper">
+          <input type="password" id="password" placeholder="Senha" required>
+          <i data-lucide="lock"></i>
+        </div>
+        
+        <button type="submit" class="btn-login">Entrar no Painel</button>
+        <div id="error-msg"><i data-lucide="alert-circle" style="width:16px;height:16px;display:inline-block;vertical-align:middle;"></i> Credenciais incorretas. Tente novamente.</div>
+      </form>
+      
+      <div class="register-link" style="margin-top: 1.5rem; font-size: 0.95rem; color: rgba(255,255,255,0.85); font-family: 'Poppins', sans-serif;">
+        Não tem login? <a href="#" style="color: #111111; font-weight: 700; text-decoration: none; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Fazer cadastro</a>
+      </div>
+
+      <a href="./eventos.html" class="back-link" style="margin-top: 1.5rem;"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i> Voltar para Eventos</a>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function doLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+
+      let users = JSON.parse(localStorage.getItem('garca_users'));
+      if (!users) {
+        users = [
+          { id: 1, name: 'Administrador', email: 'admin@gmail.com', password: 'admin123' },
+          { id: 2, name: 'Marjorie', email: 'marjorietalberg1@gmail.com', password: 'admin123' }
+        ];
+        localStorage.setItem('garca_users', JSON.stringify(users));
+      }
+
+      const validUser = users.find(u => u.email === email && u.password === pass);
+
+      if (validUser) {
+        localStorage.setItem('garca_admin_logged_in', 'true');
+        localStorage.setItem('garca_admin_role', validUser.role || 'user');
+        localStorage.setItem('garca_admin_name', validUser.name || validUser.email);
+        window.location.href = 'dashboard.html';
+      } else {
+        document.getElementById('error-msg').style.display = 'block';
+      }
+    }
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

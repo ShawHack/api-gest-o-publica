@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SECULT - Meu Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .profile-section {
+      padding: 120px 5% 50px;
+      min-height: 80vh;
+      background: linear-gradient(135deg, var(--bg-page) 0%, #ffeae8 100%);
+      display: flex;
+      justify-content: center;
+    }
+
+    .profile-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border: 1px solid rgba(255,255,255,0.8);
+      width: 100%;
+      max-width: 800px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .profile-container {
+        grid-template-columns: 1fr;
+      }
+      .profile-sidebar {
+        text-align: center;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 30px;
+        border-right: none !important;
+        padding-right: 0 !important;
+      }
+    }
+
+    .profile-sidebar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid #f1f5f9;
+      padding-right: 40px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 4rem;
+      box-shadow: 0 10px 20px rgba(255, 113, 110, 0.2);
+    }
+
+    .btn-edit-avatar {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      background: white;
+      color: #3b82f6;
+      border: 1px solid #f1f5f9;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .btn-edit-avatar:hover {
+      background: #f8fafc;
+      transform: scale(1.1);
+    }
+
+    .sidebar-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 5px;
+      text-align: center;
+    }
+
+    .sidebar-role {
+      color: #ff716e;
+      font-weight: 500;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .profile-form-group {
+      margin-bottom: 25px;
+    }
+
+    .profile-form-group label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .profile-form-group input {
+      width: 100%;
+      padding: 15px 20px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-family: 'Rubik', sans-serif;
+      font-size: 1rem;
+      color: #1e293b;
+      transition: all 0.3s ease;
+    }
+
+    .profile-form-group input:focus {
+      outline: none;
+      border-color: #ff716e;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(255, 113, 110, 0.1);
+    }
+
+    .preferences-section {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .preferences-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text-main);
+    }
+
+    .pref-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .pref-label {
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #e2e8f0;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #10b981; }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    .btn-save-profile {
+      background: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'Rubik', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+      box-shadow: 0 6px 15px rgba(255, 113, 110, 0.3);
+    }
+
+    .btn-save-profile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(255, 113, 110, 0.4);
+    }
+
+    #toast-msg {
+      display: none;
+      background: #10b981;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Override Navbar actions for logged-in state */
+    .btn-logout {
+      background: transparent;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .btn-logout:hover {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='./index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="./painel_usuario.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Painel de Eventos</a>
+        <a href="./emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="./biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="./teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="./museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="./eventos/eventos.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos/Notícias</a>
+        <a href="./pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+      </nav>
+
+      <div class="header-actions-wrapper" style="display: flex; align-items: center;">
+        <div class="desktop-nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="./painel_usuario.html" style="color: #475569; text-decoration: none; font-weight: 600; margin-right: 10px;">Meus Eventos</a>
+          <button id="btnLogout" class="btn-logout">Sair</button>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer; margin-left: 1rem;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="./painel_usuario.html" class="nav-link" onclick="toggleMenu()">Painel de Eventos</a>
+    <a href="./index.html" class="nav-link" onclick="toggleMenu()">Página Inicial</a>
+    <a href="./pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+    <hr style="border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 5px 0;">
+    <span id="mobile-greeting" style="color: #ff716e; font-weight: 700; padding: 10px 0; display: block;"></span>
+    <button id="btnMobileLogout" class="btn-logout" style="width: 100%; margin-top: 10px;">Sair da Conta</button>
+  
+    <div class="mobile-menu-actions">
+      <a href="./mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="./login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="./cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <main class="profile-section">
+    <div class="profile-container">
+      
+      <!-- Esquerda: Info Principal do Perfil -->
+      <div class="profile-sidebar">
+        <div class="avatar-wrapper">
+          <div class="avatar">
+            <span id="avatarInitials">U</span>
+          </div>
+          <button class="btn-edit-avatar" title="Alterar Foto">
+            <i data-lucide="camera"></i>
+          </button>
+        </div>
+        <h2 class="sidebar-name" id="displayFullName">Usuário</h2>
+        <span class="sidebar-role">Cidadão de Garça</span>
+      </div>
+
+      <!-- Direita: Formulário de Edição -->
+      <div class="profile-form-area">
+        <h2 style="font-size: 2rem; color: var(--text-main); margin-bottom: 25px;">Configurações da Conta</h2>
+        
+        <div id="toast-msg"><i data-lucide="check-circle" style="vertical-align: middle; margin-right: 5px;"></i> Perfil atualizado com sucesso!</div>
+
+        <form id="profileForm">
+          <div class="profile-form-group">
+            <label for="nomeCompleto">Nome Completo</label>
+            <input type="text" id="nomeCompleto" placeholder="Digite seu nome completo" required>
+          </div>
+          
+          <div class="profile-form-group">
+            <label for="emailContato">Endereço de E-mail</label>
+            <input type="email" id="emailContato" placeholder="seuemail@exemplo.com" required>
+          </div>
+
+          <div class="profile-form-group">
+            <label for="telefoneContato">Telefone (Opcional)</label>
+            <input type="tel" id="telefoneContato" placeholder="(14) 99999-9999">
+          </div>
+
+          <div class="preferences-section">
+            <h3 class="preferences-title">Preferências de Notificação</h3>
+            
+            <div class="pref-item">
+              <span class="pref-label">Receber novidades sobre Teatro</span>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            
+            <div class="pref-item">
+              <span class="pref-label">Receber novidades sobre Museu</span>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-item">
+              <span class="pref-label">Notificações por SMS</span>
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-save-profile">Salvar Alterações</button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Carregar dados do usuário logado
+    document.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      let userName = "Usuário";
+      let userEmail = "";
+      
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          if (userObj) {
+            if (userObj.nome) userName = userObj.nome;
+            if (userObj.email) userEmail = userObj.email;
+          }
+        } catch(e) { console.error("Erro ao ler dados do perfil"); }
+      }
+
+      // Preencher interface
+      document.getElementById('displayFullName').textContent = userName;
+      document.getElementById('nomeCompleto').value = userName;
+      document.getElementById('emailContato').value = userEmail;
+      document.getElementById('mobile-greeting').textContent = `Olá, ${userName}`;
+      
+      // Iniciais no Avatar
+      if (userName && userName.length > 0) {
+        document.getElementById('avatarInitials').textContent = userName.charAt(0).toUpperCase();
+      }
+    });
+
+    // Simular Salvamento
+    document.getElementById('profileForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newName = document.getElementById('nomeCompleto').value;
+      const newEmail = document.getElementById('emailContato').value;
+      
+      // Atualiza visual
+      document.getElementById('displayFullName').textContent = newName;
+      document.getElementById('avatarInitials').textContent = newName.charAt(0).toUpperCase();
+      
+      // Atualiza LocalStorage para simular persistência
+      const userStr = localStorage.getItem('user');
+      let userObj = { nome: newName, email: newEmail };
+      if(userStr) {
+        try {
+          userObj = { ...JSON.parse(userStr), nome: newName, email: newEmail };
+        } catch(err){}
+      }
+      localStorage.setItem('user', JSON.stringify(userObj));
+
+      // Feedback visual (Toast)
+      const toast = document.getElementById('toast-msg');
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    });
+
+    // Lógica de Sair
+    const handleLogout = () => {
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    };
+
+    document.getElementById('btnLogout').addEventListener('click', handleLogout);
+    document.getElementById('btnMobileLogout').addEventListener('click', handleLogout);
+
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

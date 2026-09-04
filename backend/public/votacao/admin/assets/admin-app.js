@@ -862,7 +862,6 @@
               ${
                 write && m.status === 'active'
                   ? `<div class="card-actions">
-                  ${u.role === 'votacao_auditor' ? `<button type="button" class="secondary" data-reset-password="${esc(m.id)}">Redefinir senha</button>` : ''}
                   <button type="button" class="secondary" data-revoke="${esc(m.id)}">Revogar acesso</button>
                 </div>`
                   : ''
@@ -872,30 +871,6 @@
           .join('')
 
         if (write) {
-          el('audList').querySelectorAll('[data-reset-password]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-              const reason = prompt('Justificativa da redefinição (obrigatória, mín. 20 caracteres):')
-              if (!reason || reason.trim().length < 20) {
-                alert('Informe uma justificativa com pelo menos 20 caracteres.')
-                return
-              }
-              if (!confirm('A senha atual deixará de funcionar. Deseja gerar uma nova senha temporária?')) return
-              try {
-                const data = await api(
-                  `/admin/votacoes/${pleitoId}/auditores/${btn.getAttribute('data-reset-password')}/reset-password`,
-                  { method: 'POST', body: JSON.stringify({ justification: reason.trim() }) },
-                )
-                const message =
-                  `SENHA TEMPORÁRIA (exibida uma única vez):\n${data.temporaryPassword}\n\n` +
-                  'Copie agora e entregue ao auditor por canal seguro.'
-                el('audTempPass').style.display = 'block'
-                el('audTempPass').textContent = message
-                alert(message)
-              } catch (e) {
-                alert(e.message)
-              }
-            })
-          })
           el('audList').querySelectorAll('[data-revoke]').forEach((btn) => {
             btn.addEventListener('click', async () => {
               const reason = prompt('Motivo da revogação (obrigatório, mín. 10 caracteres):')
@@ -1101,15 +1076,14 @@
   }
 
   async function renderApuracao(main, pleitoId) {
-    const write = V.canWrite()
     main.innerHTML = `
       <div class="card">
         <h2>Apuração</h2>
         <p class="muted">Resultados deste pleito apenas — sem seletor de outro processo.</p>
         <div class="row">
           <button type="button" id="btnApurar">Atualizar</button>
-          ${write ? '<button type="button" class="secondary" id="btnExportVotos">Exportar votos</button>' : ''}
-          ${write ? '<button type="button" class="secondary" id="btnExportPresenca">Exportar comparecimento</button>' : ''}
+          <button type="button" class="secondary" id="btnExportVotos">Exportar votos</button>
+          <button type="button" class="secondary" id="btnExportPresenca">Exportar comparecimento</button>
           <button type="button" class="secondary" id="btnExportApuracao">Exportar apuração (planilha)</button>
         </div>
         <p id="apurMsg" class="muted">Carregando...</p>
@@ -1128,14 +1102,12 @@
       }
     }
     el('btnApurar').addEventListener('click', run)
-    if (write) {
-      el('btnExportVotos').addEventListener('click', () =>
-        downloadExport(pleitoId, 'export-votos-v2.csv', 'votos.csv'),
-      )
-      el('btnExportPresenca').addEventListener('click', () =>
-        downloadExport(pleitoId, 'export-comparecimento.csv', 'comparecimento.csv'),
-      )
-    }
+    el('btnExportVotos').addEventListener('click', () =>
+      downloadExport(pleitoId, 'export-votos-v2.csv', 'votos.csv'),
+    )
+    el('btnExportPresenca').addEventListener('click', () =>
+      downloadExport(pleitoId, 'export-comparecimento.csv', 'comparecimento.csv'),
+    )
     el('btnExportApuracao').addEventListener('click', () =>
       downloadExport(pleitoId, 'export-resultado-v2.csv', 'apuracao.csv'),
     )

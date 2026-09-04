@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação API SEMIT – Endpoints Completos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #384D9C; --secondary: #667eea; --bg: #f8fafc;
+            --sidebar-bg: #1e293b; --sidebar-text: #e2e8f0; --text: #334155; --border: #e2e8f0;
+            --get-color: #3b82f6; --get-bg: #eff6ff; --post-color: #22c55e; --post-bg: #f0fdf4;
+            --put-color: #f59e0b; --put-bg: #fffbeb; --delete-color: #ef4444; --delete-bg: #fef2f2;
+            --patch-color: #8b5cf6; --patch-bg: #f5f3ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: var(--sidebar-text); padding: 2rem; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar h1 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #fff; }
+        .nav-group { margin-bottom: 1.25rem; }
+        .nav-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.5rem; font-weight: 600; }
+        .nav-link { display: block; padding: 0.4rem 0; color: var(--sidebar-text); text-decoration: none; font-size: 0.85rem; }
+        .nav-link:hover { color: #fff; }
+        .back-btn { display: inline-block; margin-top: 1.5rem; padding: 0.5rem 1rem; border: 1px solid #475569; border-radius: 6px; color: #cbd5e1; text-decoration: none; font-size: 0.85rem; }
+        .back-btn:hover { background: #334155; color: #fff; }
+        .main { margin-left: 280px; flex: 1; padding: 2rem 3rem; max-width: 1000px; }
+        .intro { margin-bottom: 2.5rem; }
+        .intro h2 { font-size: 2rem; margin-bottom: 0.75rem; color: #0f172a; }
+        .intro p { font-size: 1rem; line-height: 1.6; color: #64748b; }
+        .section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
+        .section-title { font-size: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: #1e293b; }
+        .section-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 1rem; }
+        .endpoint { background: #fff; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 1rem; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .endpoint-header { padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-bottom: 1px solid transparent; }
+        .endpoint-header:hover { background: #f8fafc; }
+        .method-path { display: flex; align-items: center; gap: 0.75rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; }
+        .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; }
+        .get { background: var(--get-bg); color: var(--get-color); }
+        .post { background: var(--post-bg); color: var(--post-color); }
+        .put { background: var(--put-bg); color: var(--put-color); }
+        .delete { background: var(--delete-bg); color: var(--delete-color); }
+        .patch { background: var(--patch-bg); color: var(--patch-color); }
+        .auth-badge { font-size: 0.65rem; padding: 0.15rem 0.4rem; background: #fef3c7; color: #92400e; border-radius: 4px; margin-left: 0.5rem; }
+        .path { color: #334155; font-weight: 500; }
+        .desc { color: #64748b; font-size: 0.85rem; margin-left: auto; margin-right: 0.5rem; }
+        .endpoint-body { padding: 1.25rem; display: none; background: #fafafa; border-top: 1px solid var(--border); }
+        .endpoint.open .endpoint-body { display: block; }
+        h4 { font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; margin: 1rem 0 0.5rem; font-weight: 600; letter-spacing: 0.05em; }
+        h4:first-child { margin-top: 0; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.8rem; line-height: 1.5; }
+        .params-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .params-table th { background: #f1f5f9; text-align: left; padding: 0.6rem 0.75rem; font-weight: 600; color: #475569; }
+        .params-table td { padding: 0.6rem 0.75rem; border-top: 1px solid var(--border); color: #334155; }
+        .req { color: #ef4444; font-weight: bold; }
+        .info-box { background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-size: 0.9rem; }
+        .warning-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-size: 0.9rem; }
+        @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 1rem; } }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>📚 API Docs</h1>
+        <div class="nav-group">
+            <div class="nav-title">Introdução</div>
+            <a href="#intro" class="nav-link">Visão Geral</a>
+            <a href="#base" class="nav-link">Base URL e Headers</a>
+            <a href="#auth" class="nav-link">Autenticação</a>
+            <a href="#externo" class="nav-link">API Key – Gerar e usar</a>
+            <a href="#erros" class="nav-link">Códigos de Erro</a>
+        </div>
+        <div class="nav-group">
+            <div class="nav-title">Sistema</div>
+            <a href="#sistema" class="nav-link">Health / Ready</a>
+        </div>
+        <div class="nav-group">
+            <div class="nav-title">Módulos</div>
+            <a href="#users" class="nav-link">Usuários</a>
+            <a href="#pets" class="nav-link">Pets</a>
+            <a href="#arvores" class="nav-link">Árvores</a>
+            <a href="#forms" class="nav-link">Formulários Garça</a>
+            <a href="#sepultados" class="nav-link">Sepultados</a>
+            <a href="#denounces" class="nav-link">Denúncias</a>
+            <a href="#settings" class="nav-link">Configurações</a>
+            <a href="#dloc" class="nav-link">DLoc</a>
+            <a href="#services" class="nav-link">Services</a>
+        </div>
+        <a href="/dashboard.html" class="back-btn">← Voltar ao Dashboard</a>
+    </nav>
+
+    <main class="main">
+        <!-- INTRO -->
+        <div class="intro" id="intro">
+            <h2>Documentação da API SEMIT</h2>
+            <p>Documentação completa da API REST da <strong>SEMIT</strong> – Secretaria de Inovação e Tecnologia da Prefeitura de Garça. Inclui endpoints para Memorial Santa Faustina (sepultados), Pets, Árvores, Formulários, Denúncias e demais módulos. Todos os endpoints estão organizados com exemplos de requisição e resposta.</p>
+            <div class="info-box" style="margin-top:1rem">
+                <strong>🔐 Autenticação:</strong> A API aceita dois métodos — <strong>JWT (Bearer Token)</strong> no header <code>Authorization</code> ou <strong>API Key</strong> no header <code>X-API-Key</code>. 
+                Para integrações automatizadas, use API Key. Veja a seção <a href="#externo"><strong>API Key – Gerar e usar</strong></a>.
+            </div>
+        </div>
+
+        <!-- BASE URL -->
+        <section id="base" class="section">
+            <h3 class="section-title">📍 Base URL e Headers</h3>
+            <div class="info-box">
+                <strong>Base URL:</strong> <code id="api-base-url">-</code><br>
+                <small style="color:#64748b">Use o mesmo host desta página. Todas as rotas da API usam o prefixo <code>/api</code>.</small>
+            </div>
+            <h4>Headers obrigatórios</h4>
+            <table class="params-table">
+                <tr><th>Header</th><th>Valor</th><th>Quando</th></tr>
+                <tr><td>Content-Type</td><td>application/json</td><td>POST/PUT/PATCH com body JSON</td></tr>
+                <tr><td>Authorization</td><td>Bearer &lt;token&gt;</td><td>Endpoints que exigem autenticação (JWT)</td></tr>
+                <tr><td>X-API-Key</td><td>&lt;chave&gt;</td><td>Alternativa ao JWT para integrações</td></tr>
+            </table>
+        </section>
+
+        <!-- AUTH -->
+        <section id="auth" class="section">
+            <h3 class="section-title">🔐 Autenticação</h3>
+            <p class="section-desc">A API aceita dois métodos de autenticação: <strong>JWT (Bearer Token)</strong> e <strong>API Key</strong>. Use um deles conforme o contexto.</p>
+
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path">
+                        <span class="badge post">POST</span>
+                        <span class="path">/api/users/login</span>
+                    </div>
+                    <span class="desc">Obter token JWT</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <h4>Descrição</h4>
+                    <p>Autentica usuário e retorna token JWT. Use o token no header <code>Authorization: Bearer &lt;token&gt;</code> nas requisições protegidas.</p>
+                    <h4>Body (JSON)</h4>
+                    <table class="params-table">
+                        <tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th>Descrição</th></tr>
+                        <tr><td>email</td><td>String</td><td class="req">Sim</td><td>E-mail cadastrado</td></tr>
+                        <tr><td>password</td><td>String</td><td class="req">Sim</td><td>Senha</td></tr>
+                    </table>
+                    <h4>Exemplo Request</h4>
+                    <pre>{
+  "email": "usuario@exemplo.com",
+  "password": "senha123"
+}</pre>
+                    <h4>Response 200</h4>
+                    <pre>{
+  "message": "Autenticação realizada com sucesso!",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "userId": "64f1234567890abcdef12345"
+}</pre>
+                    <h4>Erros</h4>
+                    <p>401 – Credenciais inválidas | 429 – Muitas tentativas (rate limit)</p>
+                </div>
+            </div>
+
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path">
+                        <span class="badge post">POST</span>
+                        <span class="path">/api/users/register</span>
+                    </div>
+                    <span class="desc">Registrar usuário</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <h4>Body (JSON)</h4>
+                    <table class="params-table">
+                        <tr><th>Campo</th><th>Tipo</th><th>Obrigatório</th></tr>
+                        <tr><td>name</td><td>String</td><td class="req">Sim</td></tr>
+                        <tr><td>email</td><td>String</td><td class="req">Sim</td></tr>
+                        <tr><td>password</td><td>String</td><td class="req">Sim</td></tr>
+                        <tr><td>confirmpassword</td><td>String</td><td class="req">Sim</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path">
+                        <span class="badge get">GET</span>
+                        <span class="path">/api/users/checkuser</span>
+                        <span class="auth-badge">Auth</span>
+                    </div>
+                    <span class="desc">Validar token atual</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Valida o token JWT ou API Key e retorna dados do usuário. Header: <code>Authorization: Bearer &lt;token&gt;</code> ou <code>X-API-Key: &lt;chave&gt;</code>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACESSO EXTERNO -->
+        <section id="externo" class="section">
+            <h3 class="section-title">🌐 Acesso Externo (API Key)</h3>
+            <p class="section-desc">Para integrações entre sistemas (machine-to-machine), use API Key em vez de login de usuário. Permite acesso autenticado sem gerenciar tokens JWT.</p>
+
+            <h4>1. Como gerar uma chave segura</h4>
+            <p style="margin-bottom: 0.5rem;">Execute no terminal (Node.js instalado):</p>
+            <pre>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</pre>
+            <p style="margin-top: 0.75rem; font-size: 0.9rem; color: #64748b;">Exemplo de saída: <code>a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456</code></p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">Guarde a chave gerada – ela não será exibida novamente.</p>
+
+            <h4>2. Como configurar no servidor</h4>
+            <p style="margin-bottom: 0.5rem;">No arquivo <code>.env</code> do backend, adicione:</p>
+            <pre># Chaves válidas (separadas por vírgula para múltiplas chaves)
+API_KEYS=sua_chave_gerada_aqui,outra_chave_parceiro
+
+# Opcional: vincular a um usuário (para operações que precisam de userId)
+# API_KEY_USER_ID=64f1234567890abcdef</pre>
+            <p style="margin-top: 0.75rem; font-size: 0.9rem;">Reinicie o servidor após alterar o .env.</p>
+
+            <h4>3. Como utilizar nas requisições</h4>
+            <p style="margin-bottom: 0.75rem;">Envie a chave no header <code>X-API-Key</code> em cada requisição:</p>
+            <table class="params-table">
+                <tr><th>Header</th><th>Valor</th></tr>
+                <tr><td>X-API-Key</td><td>Sua chave gerada (ex: a1b2c3d4e5f6...)</td></tr>
+            </table>
+            <h4>Exemplo cURL</h4>
+            <pre>curl -H "X-API-Key: sua_chave_aqui" https://api.garca.sp.gov.br/api/pets/mypets</pre>
+            <h4>Exemplo JavaScript (fetch)</h4>
+            <pre>fetch('https://api.garca.sp.gov.br/api/pets/mypets', {
+  headers: {
+    'X-API-Key': 'sua_chave_aqui',
+    'Content-Type': 'application/json'
+  }
+})
+  .then(r => r.json())
+  .then(data => console.log(data));</pre>
+            <h4>Exemplo Python</h4>
+            <pre>import requests
+
+headers = {'X-API-Key': 'sua_chave_aqui'}
+resp = requests.get('https://api.garca.sp.gov.br/api/pets/mypets', headers=headers)
+print(resp.json())</pre>
+
+            <h4>4. Permissões</h4>
+            <ul style="margin-left: 1.5rem; font-size: 0.9rem; line-height: 1.6; color: #475569;">
+                <li><strong>Sem API_KEY_USER_ID:</strong> a chave usa papel <code>apikey</code> (acesso básico a endpoints que exigem auth).</li>
+                <li><strong>Com API_KEY_USER_ID:</strong> a chave age como o usuário informado (herda admin, concessionário, etc.).</li>
+            </ul>
+
+            <h4>5. Endpoints que aceitam API Key</h4>
+            <p style="font-size: 0.9rem;">Todos os endpoints que exigem autenticação aceitam <strong>JWT</strong> <em>ou</em> <strong>API Key</strong>. Não é necessário enviar ambos.</p>
+
+            <h4>6. Endpoints públicos (sem autenticação)</h4>
+            <p style="font-size: 0.85rem; color: #64748b;">/health, /readyz, GET /api/pets, GET /api/pets/:id, GET /api/arvores, GET /api/arvores/:id, GET /api/forms-garca/forms, GET /api/forms-garca/forms/:id, POST /api/forms-garca/inscriptions, GET /api/sepultados, GET /api/sepultados/pesquisa, GET /api/sepultados/:id, GET /api/sepultados/:id/comentarios, POST /api/denounces/create.</p>
+        </section>
+
+        <!-- ERROS -->
+        <section id="erros" class="section">
+            <h3 class="section-title">⚠️ Códigos de Erro</h3>
+            <table class="params-table">
+                <tr><th>Código</th><th>Significado</th></tr>
+                <tr><td>400</td><td>Requisição inválida (body, parâmetros)</td></tr>
+                <tr><td>401</td><td>Não autenticado (token inválido ou ausente)</td></tr>
+                <tr><td>403</td><td>Sem permissão (papel insuficiente)</td></tr>
+                <tr><td>404</td><td>Recurso não encontrado</td></tr>
+                <tr><td>429</td><td>Rate limit excedido</td></tr>
+                <tr><td>500</td><td>Erro interno do servidor</td></tr>
+            </table>
+        </section>
+
+        <!-- SISTEMA -->
+        <section id="sistema" class="section">
+            <h3 class="section-title">🖥️ Sistema</h3>
+            <p class="section-desc">Endpoints na raiz (sem prefixo /api). Úteis para health checks e monitoramento.</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/health</span></div>
+                    <span class="desc">Status da API</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Retorna <code>{"status":"UP"}</code>. URL completa: <code id="health-url">-</code></p>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/readyz</span></div>
+                    <span class="desc">Conexão com banco de dados</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Retorna <code>{"ready":true,"database":"connected"}</code> ou 503 se o banco estiver indisponível.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- USUÁRIOS -->
+        <section id="users" class="section">
+            <h3 class="section-title">👤 Usuários</h3>
+            <p class="section-desc">Gestão de usuários, perfis, recuperação de senha e operações administrativas.</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/users/:id</span></div>
+                    <span class="desc">Obter usuário por ID</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Retorna dados públicos do usuário.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/users/verify-email</span></div>
+                    <span class="desc">Verificar e-mail (query: token, email)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Confirma o cadastro. Parâmetros na query string.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/users/forgot-password</span></div>
+                    <span class="desc">Solicitar reset de senha</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: <code>{"email":"..."}</code>. Envia link por e-mail.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/users/reset-password</span></div>
+                    <span class="desc">Redefinir senha (body: token, email, password, confirmpassword)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Usa o token recebido por e-mail.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/users/institutes</span></div>
+                    <span class="desc">Listar institutos</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Lista de institutos disponíveis no sistema.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/users</span><span class="auth-badge">Admin</span></div>
+                    <span class="desc">Listar usuários</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Apenas admin. Paginação: ?page=1&limit=20</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/users/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Editar perfil</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Usuário edita seus próprios dados ou admin edita qualquer um.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/users/:id/role</span><span class="auth-badge">Admin</span></div>
+                    <span class="desc">Alterar papel do usuário</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: <code>{"role":"admin"|"concessionario"|"usuario"|"monitor"}</code></p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/users/:id</span><span class="auth-badge">Admin</span></div>
+                    <span class="desc">Remover usuário</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Exclusão lógica ou física conforme configuração.</p></div>
+            </div>
+        </section>
+
+        <!-- PETS -->
+        <section id="pets" class="section">
+            <h3 class="section-title">🐾 Pets</h3>
+            <p class="section-desc">Gestão de pets para adoção. Listagens públicas; cadastro e ações exigem autenticação.</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/pets</span></div>
+                    <span class="desc">Listar pets (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <p>Retorna pets disponíveis. Paginação: ?page=1&limit=20</p>
+                    <h4>Response</h4>
+                    <pre>{"pets": [{"_id":"...","name":"Rex","age":2,"weight":10.5,"color":"Marrom","images":[...],"available":true}]}</pre>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/pets/:id</span></div>
+                    <span class="desc">Detalhes do pet (público)</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/pets/create</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Cadastrar pet</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <h4>Body (multipart/form-data)</h4>
+                    <table class="params-table">
+                        <tr><th>Campo</th><th>Obrigatório</th></tr>
+                        <tr><td>name</td><td class="req">Sim</td></tr>
+                        <tr><td>age</td><td class="req">Sim</td></tr>
+                        <tr><td>weight</td><td class="req">Sim</td></tr>
+                        <tr><td>color</td><td class="req">Sim</td></tr>
+                        <tr><td>images</td><td class="req">Sim (array de arquivos)</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/pets/mypets</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Meus pets cadastrados</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/pets/myadoptions</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Minhas adoções</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/pets/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar pet</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/pets/schedule/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Agendar visita de adoção</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/pets/conclude/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Concluir adoção</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/pets/cancel/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Cancelar adoção</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/pets/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Remover pet</span><span>▼</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÁRVORES -->
+        <section id="arvores" class="section">
+            <h3 class="section-title">🌳 Árvores (Mudas)</h3>
+            <p class="section-desc">Solicitação e gestão de mudas de árvores.</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/arvores</span></div>
+                    <span class="desc">Listar mudas (público)</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/arvores/:id</span></div>
+                    <span class="desc">Detalhes da muda</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/arvores/create</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Cadastrar oferta de muda</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: multipart/form-data com images, espécie, descrição, etc.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/arvores/mytrees</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Minhas mudas</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/arvores/request/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Solicitar muda</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/arvores/conclude/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Concluir entrega</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/arvores/cancel/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Cancelar solicitação</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/arvores/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar muda</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/arvores/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Remover muda</span><span>▼</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORMULÁRIOS GARÇA -->
+        <section id="forms" class="section">
+            <h3 class="section-title">📝 Formulários Garça</h3>
+            <p class="section-desc">Formulários dinâmicos e inscrições (creche, eventos, etc.).</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/forms</span></div>
+                    <span class="desc">Listar formulários ativos (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Retorna formulários com campos dinâmicos.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/forms/:id</span></div>
+                    <span class="desc">Detalhes do formulário</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/forms/statistics</span></div>
+                    <span class="desc">Estatísticas dos formulários</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/forms-garca/forms</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Criar formulário</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge put">PUT</span><span class="path">/api/forms-garca/forms/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar formulário</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/forms-garca/forms/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Excluir formulário</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/forms-garca/inscriptions</span></div>
+                    <span class="desc">Enviar inscrição (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body">
+                    <h4>Body (JSON)</h4>
+                    <pre>{
+  "formId": "67a...",
+  "userId": "64f...",  // opcional se anônimo
+  "data": { "nome_crianca": "João", "cpf": "123..." }
+}</pre>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/inscriptions</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Listar inscrições</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/inscriptions/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Detalhes da inscrição</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/forms-garca/inscriptions/check</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Verificar se usuário já se inscreveu</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Query: ?formId=xxx</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge put">PUT</span><span class="path">/api/forms-garca/inscriptions/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar inscrição</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/forms-garca/inscriptions/:id</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Excluir inscrição</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/forms-garca/upload</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Upload de arquivo único</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/forms-garca/upload-multiple</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Upload de múltiplos arquivos (máx. 10)</span><span>▼</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEPULTADOS -->
+        <section id="sepultados" class="section">
+            <h3 class="section-title">⚰️ Sepultados (Memorial Santa Faustina)</h3>
+            <p class="section-desc">Gestão do cemitério municipal. Pesquisa e listagem públicas; criação e edição exigem permissões.</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados</span></div>
+                    <span class="desc">Listar sepultados (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Paginação: ?page=1&limit=20</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/pesquisa</span></div>
+                    <span class="desc">Pesquisar (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Query: ?q=Maria&suggestions=true (opcional)</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/sugestoes</span></div>
+                    <span class="desc">Sugestões de pesquisa</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Query: ?q=...</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/autocomplete</span></div>
+                    <span class="desc">Autocomplete</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Query: ?q=...</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/:id</span></div>
+                    <span class="desc">Detalhes do sepultado (público)</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/:id/comentarios</span></div>
+                    <span class="desc">Listar comentários (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Paginação: ?page=1&limit=10</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/sepultados/create</span><span class="auth-badge">Admin</span></div>
+                    <span class="desc">Cadastrar sepultado</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Multipart com images, nome, localização, etc.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/sepultados/:id/comentarios</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Adicionar comentário</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: <code>{"text":"..."}</code>. Rate limit: 5/min.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/sepultados/:id/comentarios/:cid</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Remover comentário</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/sepultados/:id</span><span class="auth-badge">Admin/Conc.</span></div>
+                    <span class="desc">Atualizar sepultado</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge delete">DELETE</span><span class="path">/api/sepultados/:id</span><span class="auth-badge">Admin</span></div>
+                    <span class="desc">Remover sepultado</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/sepultados/meussepultados</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Meus sepultados (admin/concessionário)</span><span>▼</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- DENÚNCIAS -->
+        <section id="denounces" class="section">
+            <h3 class="section-title">📢 Denúncias</h3>
+            <p class="section-desc">Denúncias anônimas (maustratos, etc.).</p>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/denounces/create</span></div>
+                    <span class="desc">Criar denúncia (público)</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Multipart com images, descrição, localização. Pode ser anônimo.</p></div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/denounces</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Listar denúncias (admin)</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge patch">PATCH</span><span class="path">/api/denounces/:id/status</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar status</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: <code>{"status":"em_analise"|"resolvido"|"arquivado"}</code></p></div>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="settings" class="section">
+            <h3 class="section-title">⚙️ Configurações</h3>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/settings</span></div>
+                    <span class="desc">Listar configurações (público)</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/settings/:key</span></div>
+                    <span class="desc">Obter configuração por chave</span><span>▼</span>
+                </div>
+            </div>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge put">PUT</span><span class="path">/api/settings/:key</span><span class="auth-badge">Auth</span></div>
+                    <span class="desc">Atualizar configuração</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Body: <code>{"value":"..."}</code></p></div>
+            </div>
+        </section>
+
+        <!-- DLOC -->
+        <section id="dloc" class="section">
+            <h3 class="section-title">📍 DLoc (Localização)</h3>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge get">GET</span><span class="path">/api/dloc/:quadra</span></div>
+                    <span class="desc">Obter localização por quadra</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Retorna dados de localização da quadra do cemitério.</p></div>
+            </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section id="services" class="section">
+            <h3 class="section-title">📤 Services (Upload)</h3>
+            <div class="endpoint" onclick="this.classList.toggle('open')">
+                <div class="endpoint-header">
+                    <div class="method-path"><span class="badge post">POST</span><span class="path">/api/services/upload-image</span></div>
+                    <span class="desc">Upload de imagem</span><span>▼</span>
+                </div>
+                <div class="endpoint-body"><p>Multipart: campo <code>image</code>. Retorna URL da imagem.</p></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            var base = location.origin;
+            var el = document.getElementById('api-base-url');
+            if (el) el.textContent = base + '/api';
+            var healthEl = document.getElementById('health-url');
+            if (healthEl) healthEl.textContent = base + '/health';
+        })();
+        document.querySelectorAll('.nav-link').forEach(function (a) {
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                var t = document.querySelector(this.getAttribute('href'));
+                if (t) t.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

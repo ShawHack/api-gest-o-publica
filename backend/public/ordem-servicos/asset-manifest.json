@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/ordem-servicos/static/css/main.383529ab.css",
+    "main.js": "/ordem-servicos/static/js/main.87263932.js",
+    "static/js/239.e39fb35b.chunk.js": "/ordem-servicos/static/js/239.e39fb35b.chunk.js",
+    "static/js/977.4b3215a8.chunk.js": "/ordem-servicos/static/js/977.4b3215a8.chunk.js",
+    "static/js/455.1514d067.chunk.js": "/ordem-servicos/static/js/455.1514d067.chunk.js",
+    "index.html": "/ordem-servicos/index.html",
+    "main.383529ab.css.map": "/ordem-servicos/static/css/main.383529ab.css.map",
+    "main.87263932.js.map": "/ordem-servicos/static/js/main.87263932.js.map",
+    "239.e39fb35b.chunk.js.map": "/ordem-servicos/static/js/239.e39fb35b.chunk.js.map",
+    "977.4b3215a8.chunk.js.map": "/ordem-servicos/static/js/977.4b3215a8.chunk.js.map",
+    "455.1514d067.chunk.js.map": "/ordem-servicos/static/js/455.1514d067.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.383529ab.css",
+    "static/js/main.87263932.js"
+  ]
+}

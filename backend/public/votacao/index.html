@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Votação — Servidores</title>
+  <style>
+    :root { --blue: #1e3a8a; --bg: #f0f4fa; --card: #fff; --muted: #64748b; --ok: #0f766e; --danger: #b91c1c; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: #1f2937; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 16px; }
+    h1 { color: var(--blue); font-size: 1.4rem; margin: 0 0 12px; }
+    .card { background: var(--card); border: 1px solid #dbe3f2; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+    input, select, button { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; }
+    button { background: var(--blue); color: #fff; border-color: var(--blue); cursor: pointer; width: auto; }
+    button.secondary { background: #fff; color: var(--blue); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .row > * { flex: 1; min-width: 140px; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .ok { color: var(--ok); }
+    .danger { color: var(--danger); }
+    .category { border-top: 1px solid #e2e8f0; padding: 14px 0; }
+    .category h3 { margin: 0 0 8px; font-size: 1.05rem; }
+    .opt { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; }
+    .opt input { width: auto; }
+    .cand-line { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+    .cand-photo { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid #e2e8f0; flex-shrink: 0; }
+    .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+    .step { flex: 1; text-align: center; padding: 6px; border-radius: 6px; background: #e2e8f0; font-size: 0.8rem; }
+    .step.on { background: var(--blue); color: #fff; }
+    .review-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .success { text-align: center; padding: 24px; }
+    .confirm-summary { text-align: left; margin: 16px auto 0; max-width: 520px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+    .success h2 { color: var(--ok); }
+    .banner { background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; padding: 12px; border-radius: 8px; margin-bottom: 14px; }
+    .footer-links { margin-top: 16px; text-align: center; font-size: 0.85rem; }
+    .footer-links a { color: #64748b; }
+    @media (max-width: 480px) { .row { flex-direction: column; } button { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Votação Digital — Servidores</h1>
+    <div id="statusBanner" class="banner" style="display:none;"></div>
+
+    <div class="card" id="authCard">
+      <p class="muted">Portal do <strong>eleitor</strong>. Informe nome completo e CPF quando houver pleito aberto.</p>
+      <div class="row">
+        <div><label>Nome completo</label><input id="nome" autocomplete="name" /></div>
+        <div><label>CPF</label><input id="cpf" inputmode="numeric" autocomplete="off" /></div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button id="btnLogin">Entrar</button>
+        <button id="btnLogout" class="secondary" style="display:none;">Sair</button>
+      </div>
+      <p id="authMsg" class="muted" style="margin-top:8px;"></p>
+    </div>
+
+    <div class="card" id="listCard" style="display:none;">
+      <p class="muted">Pleitos em andamento</p>
+      <div id="pleitos"></div>
+    </div>
+
+    <div class="card" id="ballotCard" style="display:none;">
+      <div class="steps">
+        <div class="step on" id="st1">1. Cédula</div>
+        <div class="step" id="st2">2. Revisão</div>
+        <div class="step" id="st3">3. Confirmação</div>
+      </div>
+      <h2 id="pleitoTitle"></h2>
+      <p id="pleitoPeriodo" class="muted"></p>
+      <div id="ballotBody"></div>
+      <div id="reviewBody" style="display:none;"></div>
+      <div id="confirmBody" style="display:none;" class="success">
+        <h2>Voto registrado!</h2>
+        <div id="confirmSummary" class="confirm-summary"></div>
+      </div>
+      <p id="ballotMsg" class="muted"></p>
+      <div class="row" id="ballotActions">
+        <button id="btnReview" disabled>Revisar cédula</button>
+        <button id="btnBack" class="secondary" style="display:none;">Voltar</button>
+        <button id="btnConfirm" style="display:none;">Confirmar voto</button>
+      </div>
+    </div>
+
+    <p class="footer-links muted">Gestão do pleito: <a href="/votacao/admin">Área administrativa</a> (acesso restrito)</p>
+  </div>
+
+  <script>
+    const API = '/api/votacao';
+    const S = {
+      accessToken: localStorage.getItem('votacao_access') || '',
+      refreshToken: localStorage.getItem('votacao_refresh') || '',
+      pleitoId: null,
+      ballot: [],
+      choices: {},
+      step: 1,
+      hasActiveElection: false,
+    };
+    const el = (id) => document.getElementById(id);
+
+    async function api(path, opts = {}, auth = true) {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (auth && S.accessToken) headers.Authorization = `Bearer ${S.accessToken}`;
+      const r = await fetch(`${API}${path}`, { ...opts, headers });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.message || `Erro ${r.status}`);
+      return data;
+    }
+
+    function setLoggedIn(v) {
+      el('btnLogout').style.display = v ? 'inline-block' : 'none';
+      el('listCard').style.display = v ? 'block' : 'none';
+      if (!v) el('ballotCard').style.display = 'none';
+    }
+
+    async function loadPublicStatus() {
+      try {
+        const data = await api('/status', {}, false);
+        S.hasActiveElection = !!data.hasActiveElection;
+        const banner = el('statusBanner');
+        if (!S.hasActiveElection) {
+          banner.style.display = 'block';
+          banner.textContent = 'Não há votação aberta no momento. Quando o pleito for publicado pela administração, o botão Votar aparecerá aqui.';
+          el('btnLogin').disabled = true;
+          el('authMsg').textContent = 'Aguarde a abertura oficial do pleito.';
+        } else {
+          banner.style.display = 'none';
+          el('btnLogin').disabled = false;
+        }
+      } catch (_) {
+        S.hasActiveElection = false;
+      }
+    }
+
+    async function login() {
+      if (!S.hasActiveElection) {
+        el('authMsg').textContent = 'Não há pleito ativo no momento.';
+        return;
+      }
+      const nome = el('nome').value.trim();
+      const cpf = el('cpf').value.trim();
+      if (!nome || !cpf) { el('authMsg').textContent = 'Preencha nome e CPF.'; return; }
+      el('authMsg').textContent = 'Autenticando...';
+      try {
+        const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ nome, cpf }) }, false);
+        S.accessToken = data.accessToken;
+        S.refreshToken = data.refreshToken;
+        localStorage.setItem('votacao_access', data.accessToken);
+        localStorage.setItem('votacao_refresh', data.refreshToken);
+        el('authMsg').innerHTML = `<span class="ok">Bem-vindo(a), ${data.nome || 'servidor'}.</span>`;
+        setLoggedIn(true);
+        await loadPleitos();
+      } catch (e) {
+        el('authMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    function logout() {
+      S.accessToken = ''; S.refreshToken = ''; S.pleitoId = null;
+      localStorage.removeItem('votacao_access');
+      localStorage.removeItem('votacao_refresh');
+      el('authMsg').textContent = 'Sessão encerrada.';
+      setLoggedIn(false);
+      el('pleitos').innerHTML = '';
+    }
+
+    async function loadPleitos() {
+      try {
+        const data = await api('/votacoes');
+        const list = data.votations || [];
+        if (!list.length) {
+          el('pleitos').innerHTML = '<p class="muted">Nenhum pleito ativo no momento.</p>';
+          return;
+        }
+        el('pleitos').innerHTML = list.map((v) => `
+          <div class="review-row">
+            <div><strong>${v.title}</strong><div class="muted">${v.description || ''}</div></div>
+            <button onclick="openPleito('${v._id}')">Votar</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        el('pleitos').innerHTML = `<p class="danger">${e.message}</p>`;
+      }
+    }
+
+    function setStep(n) {
+      S.step = n;
+      ['st1','st2','st3'].forEach((id, i) => el(id).classList.toggle('on', i + 1 === n));
+      el('ballotBody').style.display = n === 1 ? 'block' : 'none';
+      el('reviewBody').style.display = n === 2 ? 'block' : 'none';
+      el('confirmBody').style.display = n === 3 ? 'block' : 'none';
+      el('btnReview').style.display = n === 1 ? 'inline-block' : 'none';
+      el('btnBack').style.display = n === 2 ? 'inline-block' : 'none';
+      el('btnConfirm').style.display = n === 2 ? 'inline-block' : 'none';
+    }
+
+    function choiceLabel(cat, choice) {
+      if (choice.voteType === 'blank') return 'Voto em branco';
+      if (choice.voteType === 'null') return 'Voto nulo';
+      const c = (cat.candidates || []).find((x) => x.id === choice.candidateId);
+      return c ? `${c.number} — ${c.name}` : 'Candidato';
+    }
+
+    function renderBallot() {
+      el('ballotBody').innerHTML = S.ballot.map((cat) => `
+        <div class="category" data-cat="${cat.id}">
+          <h3>${cat.name}</h3>
+          ${cat.description ? `<p class="muted">${cat.description}</p>` : ''}
+          ${(cat.candidates || []).map((c) => `
+            <label class="opt cand-line">
+              <input type="radio" name="cat_${cat.id}" value="candidate:${c.id}" onchange="pick('${cat.id}', 'candidate', '${c.id}')" />
+              ${c.photoUrl ? `<img class="cand-photo" src="${c.photoUrl}" alt="" />` : ''}
+              <span><strong>${c.number}</strong> — ${c.name}</span>
+            </label>
+          `).join('')}
+          <label class="opt">
+            <input type="radio" name="cat_${cat.id}" value="blank" onchange="pick('${cat.id}', 'blank')" />
+            <span>Voto em branco</span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="cat_${cat.id}" value="null" onchange="pick('${cat.id}', 'null')" />
+            <span>Voto nulo</span>
+          </label>
+        </div>
+      `).join('');
+      updateReviewBtn();
+    }
+
+    function pick(catId, voteType, candidateId) {
+      S.choices[catId] = { categoryId: catId, voteType, candidateId: candidateId || null };
+      updateReviewBtn();
+    }
+
+    function updateReviewBtn() {
+      const all = S.ballot.every((c) => S.choices[c.id]);
+      el('btnReview').disabled = !all;
+    }
+
+    function renderChoicesSummary(targetId, footerHtml) {
+      const host = el(targetId);
+      if (!S.ballot.length) { host.innerHTML = ''; return; }
+      const rows = S.ballot.map((cat) => {
+        const ch = S.choices[cat.id];
+        if (!ch) return '';
+        let detail = choiceLabel(cat, ch);
+        if (ch.voteType === 'candidate') {
+          const c = (cat.candidates || []).find((x) => x.id === ch.candidateId);
+          if (c?.photoUrl) {
+            detail = `<span class="cand-line">${c.photoUrl ? `<img class="cand-photo" src="${c.photoUrl}" alt="" />` : ''}<strong>${choiceLabel(cat, ch)}</strong></span>`;
+          }
+        }
+        return `<div class="review-row"><span>${cat.name}</span><div>${detail}</div></div>`;
+      }).join('');
+      host.innerHTML = rows + (footerHtml || '');
+    }
+
+    function renderReview() {
+      renderChoicesSummary('reviewBody', '<p class="muted" style="margin-top:12px;">Confira suas escolhas. Após confirmar, não será possível alterar.</p>');
+    }
+
+    function renderConfirmSummary() {
+      renderChoicesSummary(
+        'confirmSummary',
+        '<p class="muted" style="margin-top:12px;text-align:center;">Obrigado pela participação. Seu voto foi registrado com sigilo.</p>'
+      );
+    }
+
+    async function openPleito(id) {
+      S.pleitoId = id;
+      S.choices = {};
+      setStep(1);
+      el('ballotCard').style.display = 'block';
+      el('ballotMsg').textContent = 'Carregando cédula...';
+      try {
+        const status = await api(`/votacoes/${id}/status`);
+        if (status.voted) {
+          setStep(3);
+          el('ballotBody').innerHTML = '';
+          el('reviewBody').style.display = 'none';
+          el('ballotActions').style.display = 'none';
+          el('ballotMsg').textContent = '';
+          return;
+        }
+        const data = await api(`/votacoes/${id}/ballot`);
+        S.ballot = data.ballot || [];
+        el('pleitoTitle').textContent = data.votation.title;
+        const ini = new Date(data.votation.startDate).toLocaleString('pt-BR');
+        const fim = new Date(data.votation.endDate).toLocaleString('pt-BR');
+        el('pleitoPeriodo').textContent = `Período: ${ini} até ${fim}`;
+        el('ballotActions').style.display = 'flex';
+        renderBallot();
+        el('ballotMsg').textContent = '';
+      } catch (e) {
+        el('ballotMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    async function confirmVote() {
+      el('ballotMsg').textContent = 'Registrando voto...';
+      try {
+        const choices = S.ballot.map((c) => S.choices[c.id]);
+        await api(`/votacoes/${S.pleitoId}/ballot`, { method: 'POST', body: JSON.stringify({ choices }) });
+        renderConfirmSummary();
+        setStep(3);
+        el('ballotActions').style.display = 'none';
+        el('ballotMsg').textContent = '';
+      } catch (e) {
+        el('ballotMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    window.openPleito = openPleito;
+    window.pick = pick;
+
+    el('btnLogin').addEventListener('click', login);
+    el('btnLogout').addEventListener('click', logout);
+    el('btnReview').addEventListener('click', () => { renderReview(); setStep(2); });
+    el('btnBack').addEventListener('click', () => setStep(1));
+    el('btnConfirm').addEventListener('click', confirmVote);
+
+    loadPublicStatus().then(() => {
+      setLoggedIn(!!S.accessToken);
+      if (S.accessToken && S.hasActiveElection) loadPleitos();
+    });
+  </script>
+</body>
+</html>

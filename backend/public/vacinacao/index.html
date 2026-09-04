@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vacinação Antirrábica | GarcaPet</title>
+  <style>
+    :root{
+      --green-1:#2f6f45;
+      --green-2:#3f8f5a;
+      --cream:#f5f7f2;
+      --card:#ffffff;
+      --text:#1d2a20;
+      --muted:#4d5f54;
+      --line:#d8e2d8;
+      --accent:#f4a62a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, #eef5ee 0%, #f5f7f2 40%, #f5f7f2 100%);
+      line-height:1.5;
+    }
+    .hero{
+      width:100%;
+      padding:0;
+      background:none;
+      color:#1d2a20;
+    }
+    .hero-inner{max-width:none;margin:0;width:100%}
+    .banner-img{
+      width:100%;
+      display:block;
+      max-height:420px;
+      object-fit:cover;
+    }
+    .banner-mobile{display:none}
+    .hero h1{margin:0 0 12px;font-size:clamp(1.8rem,3.2vw,2.8rem)}
+    .hero p{margin:0;max-width:760px;font-size:1.05rem}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 40px}
+    .intro-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .intro-title::before{
+      content:"";
+      width:10px;
+      height:28px;
+      border-radius:8px;
+      background:linear-gradient(180deg,var(--green-1),var(--green-2));
+    }
+    .badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:14px 0 2px;
+    }
+    .badge{
+      background:#e8f3e8;
+      color:#2f6f45;
+      border:1px solid #cfe5cf;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:.85rem;
+      font-weight:700;
+      letter-spacing:.02em;
+      transition:all .25s ease;
+    }
+    .badge:hover{
+      background:#2f6f45;
+      color:#fff;
+      transform:translateY(-2px);
+      box-shadow:0 6px 14px rgba(47,111,69,.24);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:20px;
+      box-shadow:0 6px 20px rgba(27,45,34,.08);
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      animation:fadeUp .6s ease both;
+    }
+    .card:hover{
+      transform:translateY(-4px);
+      border-color:#b8d4bf;
+      box-shadow:0 10px 24px rgba(27,45,34,.16);
+    }
+    h2{margin:0 0 8px;font-size:1.22rem;color:var(--green-1);line-height:1.25}
+    ul{margin:0;padding-left:20px}
+    li{margin:6px 0;color:#24372d}
+    .section{
+      margin-top:22px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:22px;
+      position:relative;
+      overflow:hidden;
+      animation:fadeUp .6s ease both;
+    }
+    .section::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:4px;
+      background:linear-gradient(90deg,#2f6f45,#57aa72);
+    }
+    .section p{margin:10px 0;color:var(--muted);font-size:1.04rem;line-height:1.65}
+    .links a{color:var(--green-1);font-weight:700;text-decoration:none}
+    .links a:hover{text-decoration:underline}
+    .footer{
+      margin-top:28px;
+      background:#3f6f47;
+      color:#eef6ee;
+      position:relative;
+      overflow:hidden;
+    }
+    .footer::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.12;
+      background-image:radial-gradient(circle, #d7e9d7 16%, transparent 17%);
+      background-size:56px 56px;
+      pointer-events:none;
+    }
+    .footer-wrap{
+      position:relative;
+      z-index:1;
+      max-width:1100px;
+      margin:0 auto;
+      padding:36px 20px 18px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:24px;
+    }
+    .footer h3{
+      color:#fff;
+      margin:0 0 10px;
+      font-size:1.05rem;
+      border-bottom:1px solid rgba(255,255,255,.35);
+      display:inline-block;
+      padding-bottom:4px;
+    }
+    .footer ul{list-style:none;margin:0;padding:0}
+    .footer li{margin:6px 0;color:#e7f0e7}
+    .footer a{color:#e7f0e7;text-decoration:none}
+    .footer a:hover{text-decoration:underline}
+    .footer-copy{
+      position:relative;
+      z-index:1;
+      border-top:1px solid rgba(255,255,255,.22);
+      text-align:center;
+      padding:12px 10px;
+      color:#d6e6d6;
+      font-size:.85rem;
+    }
+    .scroll-top{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      width:44px;
+      height:44px;
+      border:0;
+      border-radius:50%;
+      background:#2f6f45;
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(0,0,0,.22);
+      opacity:0;
+      visibility:hidden;
+      transform:translateY(8px);
+      transition:all .25s ease;
+      z-index:10;
+    }
+    .scroll-top.show{
+      opacity:1;
+      visibility:visible;
+      transform:translateY(0);
+    }
+    .scroll-top:hover{background:#255937}
+    .faq{
+      margin-top:24px;
+      display:grid;
+      gap:12px;
+    }
+    .faq-item{
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid #d6e2d6;
+      background:#fff;
+    }
+    .faq-item summary{
+      list-style:none;
+      cursor:pointer;
+      padding:14px 16px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#1f3c2c;
+    }
+    .faq-item summary::-webkit-details-marker{display:none}
+    .faq-item summary::after{
+      content:"+";
+      font-size:20px;
+      line-height:1;
+      transition:transform .2s ease;
+    }
+    .faq-item[open] summary::after{
+      content:"−";
+      transform:scale(1.05);
+    }
+    .faq-item .faq-body{
+      padding:12px 16px 16px;
+      color:#2e4737;
+      line-height:1.6;
+      background:#fff;
+    }
+    .faq-item.green summary{
+      background:#7ca36f;
+      color:#fff;
+    }
+    .faq-item.orange summary{
+      background:#e79a57;
+      color:#fff;
+    }
+    .card:nth-child(1){animation-delay:.05s}
+    .card:nth-child(2){animation-delay:.1s}
+    .card:nth-child(3){animation-delay:.15s}
+    .card:nth-child(4){animation-delay:.2s}
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(12px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @media (max-width:640px){
+      .hero{padding:42px 16px}
+      .wrap{padding:20px 14px 30px}
+      .grid{margin-top:12px}
+      .hero{padding:0}
+      .banner-desktop{display:none}
+      .banner-mobile{display:block;max-height:none;object-fit:contain}
+      .section{padding:16px}
+      h2{font-size:1.12rem}
+      .section p{font-size:1rem}
+      .footer-wrap{grid-template-columns:1fr 1fr;gap:18px}
+    }
+    @media (max-width:480px){
+      .footer-wrap{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <img src="/vacinacao/banner-vacinacao.png" alt="Banner vacinação antirrábica" class="banner-img banner-desktop" />
+      <img src="/vacinacao/banner-vacinacao-mobile.png" alt="Banner vacinação antirrábica mobile" class="banner-img banner-mobile" />
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="section" style="margin-top:16px;">
+      <div class="intro-title">
+        <h2>Campanha de Vacinação Antirrábica</h2>
+      </div>
+      <p>
+        A Prefeitura Municipal disponibiliza vacinação antirrábica gratuita para cães e gatos, com o objetivo de proteger os animais e reduzir o risco de transmissão da raiva para a população.
+      </p>
+      <div class="badges">
+        <span class="badge">Gratuita</span>
+        <span class="badge">Saúde Animal</span>
+        <span class="badge">Prevenção da Raiva</span>
+        <span class="badge">Bem-estar Coletivo</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>A Importância da Vacinação</h2>
+        <ul>
+          <li>A vacinação antirrábica é uma medida essencial de saúde pública e proteção animal.</li>
+          <li>Contribui para o controle da raiva e para a segurança da população.</li>
+          <li>Mantém cães e gatos protegidos contra uma doença grave e fatal.</li>
+          <li>Reforça a responsabilidade dos tutores com o bem-estar dos pets.</li>
+          <li>A campanha é promovida com acompanhamento técnico da Prefeitura.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Benefícios da Vacinação Responsável</h2>
+        <ul>
+          <li>Prevenção e saúde: reduz o risco de infecção e transmissão da raiva.</li>
+          <li>Proteção coletiva: fortalece a cobertura vacinal no município.</li>
+          <li>Cuidado contínuo: reforça o acompanhamento anual dos animais.</li>
+          <li>Acesso gratuito: facilita a adesão das famílias ao cuidado preventivo.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>O que você precisa saber sobre a vacinação</h2>
+        <ul>
+          <li>Animais com menos de 6 meses não devem ser vacinados.</li>
+          <li>Cadelas prenhas não devem receber a vacina antirrábica.</li>
+          <li>Não é obrigatório apresentar carteira de vacinação.</li>
+          <li>Não é necessário cadastro prévio para atendimento.</li>
+          <li>Cães devem estar com guia; gatos, em caixa de transporte.</li>
+          <li>Animais agressivos devem usar focinheira, quando necessário.</li>
+        </ul>
+      </article>
+      <article class="card links">
+        <h2>Divulgação</h2>
+        <ul>
+          <li>Site oficial: <a href="https://www.garca.sp.gov.br/" target="_blank" rel="noopener noreferrer">www.garca.sp.gov.br</a></li>
+          <li>Instagram: <a href="https://instagram.com/prefeituragarca/" target="_blank" rel="noopener noreferrer">@prefeituragarca</a></li>
+          <li>Atualização mensal dos pontos de vacinação.</li>
+          <li>Verifique data, horário e unidade antes de se deslocar.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2>COMO PARTICIPAR?</h2>
+      <p><strong>1. Acompanhe a divulgação mensal dos pontos de vacinação.</strong></p>
+      <p>Consulte os canais oficiais da Prefeitura para verificar unidade, data e horário de atendimento da campanha.</p>
+      <p><strong>2. Leve o animal com segurança no dia da ação.</strong></p>
+      <p>Apresente-se no local informado com o pet em condições adequadas para manejo seguro (guia, caixa de transporte e focinheira, quando aplicável).</p>
+      <p><strong>3. Realize a vacinação com a equipe técnica.</strong></p>
+      <p>Após a aplicação, siga as orientações repassadas no local e mantenha o acompanhamento anual da vacinação antirrábica.</p>
+    </section>
+
+    <section class="section">
+      <h2>Informações de atendimento</h2>
+      <p><strong>Local:</strong> ponto de vacinação divulgado mensalmente pela Prefeitura de Garça.</p>
+      <p><strong>Horário:</strong> conforme cronograma oficial de cada ação mensal.</p>
+      <p><strong>Público-alvo:</strong> tutores de cães e gatos do município.</p>
+    </section>
+
+    <section class="section">
+      <h2>Importância da vacinação</h2>
+      <p>A vacina antirrábica protege seu pet contra a raiva e reduz o risco de transmissão para humanos.</p>
+      <p>Com a participação da população, o município fortalece a saúde pública e o cuidado responsável com os animais.</p>
+      <p>Dúvidas? Entre em contato com a SAMA e acompanhe os canais oficiais da Prefeitura para atualizações da campanha.</p>
+    </section>
+
+    <section class="section">
+      <h2>FAQ - Dúvidas frequentes</h2>
+      <div class="faq">
+        <details class="faq-item green">
+          <summary>Quem pode levar o animal para vacinar?</summary>
+          <div class="faq-body">Qualquer tutor do município pode levar cães e gatos para vacinação antirrábica, seguindo as orientações de segurança no transporte do animal.</div>
+        </details>
+        <details class="faq-item orange">
+          <summary>Precisa fazer cadastro antes da campanha?</summary>
+          <div class="faq-body">Não. O atendimento é realizado sem cadastro prévio. Basta comparecer ao local divulgado no cronograma mensal com o pet em condições adequadas.</div>
+        </details>
+        <details class="faq-item green">
+          <summary>Quais cuidados devo ter no dia da vacinação?</summary>
+          <div class="faq-body">Cães devem ir com guia e, quando necessário, focinheira. Gatos devem ser transportados em caixa apropriada para garantir segurança da equipe e dos tutores.</div>
+        </details>
+        <details class="faq-item orange">
+          <summary>Onde acompanho datas, horários e locais?</summary>
+          <div class="faq-body">Acompanhe as atualizações nos canais oficiais da Prefeitura de Garça, incluindo site institucional e perfil oficial no Instagram.</div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-wrap">
+      <div>
+        <h3>Institucional</h3>
+        <ul>
+          <li><a href="/garcapet/">Página Inicial</a></li>
+          <li><a href="/garcapet/sobre">Quem Somos</a></li>
+          <li><a href="/garcapet/sama">Sobre a SAMA</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Serviços</h3>
+        <ul>
+          <li><a href="/garcapet/adotar">Adotar um Pet</a></li>
+          <li><a href="/garcapet/arvores">Solicitar Árvore</a></li>
+          <li><a href="/garcapet/castracao">Castração</a></li>
+          <li><a href="/garcapet/vacinacao">Vacinação</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Área do Usuário</h3>
+        <ul>
+          <li><a href="/garcapet/user/profile">Minha Conta</a></li>
+          <li><a href="/garcapet/pet/mypets">Meus Pets</a></li>
+          <li><a href="/garcapet/arvore/myrequests">Minhas Mudas</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Contatos</h3>
+        <ul>
+          <li>(14) 3407-6600</li>
+          <li>sama@garca.sp.gov.br</li>
+          <li>Rua Vital Soares, 670 - Williams</li>
+          <li><a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+          <li><a href="https://www.instagram.com/prefeituragarca/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-copy">@SEMIT - Inovação e tecnologia</div>
+  </footer>
+
+  <button id="scrollTopBtn" class="scroll-top" aria-label="Voltar ao topo">⌃</button>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('scrollTopBtn');
+      function toggleBtn() {
+        if (window.scrollY > 260) btn.classList.add('show');
+        else btn.classList.remove('show');
+      }
+      window.addEventListener('scroll', toggleBtn);
+      btn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      toggleBtn();
+    })();
+  </script>
+</body>
+</html>

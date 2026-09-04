@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Garça Cultural</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --primary: #ff4757;
+      --primary-hover: #ff6b81;
+      --orange-soft: #ff8a4c;
+      --orange-glow: #ff716e;
+      --bg-page: #f8fafc;
+      --bg-form: #ffffff;
+      --text-main: #0f172a;
+      --text-dim: #64748b;
+      --border-color: #e2e8f0;
+      --input-bg: #f1f5f9;
+      --error: #dc2626;
+      --field-h: 48px;
+      --radius-field: 12px;
+      --radius-card: clamp(16px, 2.5vw, 28px);
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-page);
+      color: var(--text-main);
+      overflow-x: hidden;
+      position: relative;
+      padding: clamp(12px, 3vw, 24px);
+    }
+
+    /* ---------- Fundo animado ---------- */
+    .auth-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 50% at 8% 12%, rgba(255, 138, 76, 0.18), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 92% 88%, rgba(255, 113, 110, 0.14), transparent 50%),
+        radial-gradient(ellipse 50% 40% at 78% 18%, rgba(255, 71, 87, 0.08), transparent 45%),
+        linear-gradient(165deg, #fbfcfe 0%, #f7f8fb 45%, #faf6f3 100%);
+    }
+
+    .bg-shimmer {
+      position: absolute;
+      inset: -50%;
+      background: linear-gradient(
+        115deg,
+        transparent 42%,
+        rgba(255, 138, 76, 0.05) 50%,
+        transparent 58%
+      );
+      background-size: 220% 220%;
+      animation: shimmer 22s ease-in-out infinite;
+    }
+
+    .bg-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(50px);
+      opacity: 0.55;
+      will-change: transform, opacity;
+    }
+
+    .bg-glow.g1 {
+      width: min(320px, 55vw);
+      height: min(320px, 55vw);
+      top: 8%;
+      right: 18%;
+      background: radial-gradient(circle, rgba(255, 138, 76, 0.22), transparent 68%);
+      animation: pulseGlow 9s ease-in-out infinite;
+    }
+
+    .bg-glow.g2 {
+      width: min(260px, 45vw);
+      height: min(260px, 45vw);
+      bottom: 12%;
+      left: 6%;
+      background: radial-gradient(circle, rgba(255, 113, 110, 0.16), transparent 70%);
+      animation: pulseGlow 11s ease-in-out infinite reverse;
+    }
+
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.5;
+      will-change: transform;
+    }
+
+    .bg-blob.a {
+      width: min(48vw, 420px);
+      height: min(48vw, 420px);
+      top: -8%;
+      left: -6%;
+      background: radial-gradient(circle, rgba(255, 138, 76, 0.42), rgba(255, 113, 110, 0.1) 60%, transparent 75%);
+      animation: driftA 22s ease-in-out infinite alternate;
+    }
+
+    .bg-blob.b {
+      width: min(42vw, 380px);
+      height: min(42vw, 380px);
+      bottom: -10%;
+      right: -4%;
+      background: radial-gradient(circle, rgba(255, 71, 87, 0.28), rgba(255, 138, 76, 0.08) 55%, transparent 75%);
+      animation: driftB 26s ease-in-out infinite alternate;
+    }
+
+    .bg-blob.c {
+      width: min(28vw, 260px);
+      height: min(28vw, 260px);
+      top: 42%;
+      left: 48%;
+      background: radial-gradient(circle, rgba(255, 176, 120, 0.24), transparent 70%);
+      animation: driftC 18s ease-in-out infinite alternate;
+    }
+
+    .bg-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 138, 76, 0.16);
+      opacity: 0.6;
+      box-shadow: 0 0 24px rgba(255, 138, 76, 0.06);
+    }
+
+    .bg-ring.r1 {
+      width: min(220px, 40vw);
+      height: min(220px, 40vw);
+      top: 18%;
+      right: 12%;
+      animation: floatSlow 16s ease-in-out infinite;
+    }
+
+    .bg-ring.r2 {
+      width: min(140px, 28vw);
+      height: min(140px, 28vw);
+      bottom: 22%;
+      left: 10%;
+      border-color: rgba(255, 113, 110, 0.15);
+      animation: floatSlow 20s ease-in-out infinite reverse;
+    }
+
+    .bg-ring.r3 {
+      width: min(90px, 18vw);
+      height: min(90px, 18vw);
+      top: 62%;
+      right: 28%;
+      border-color: rgba(255, 138, 76, 0.12);
+      animation: floatSlow 14s ease-in-out infinite;
+    }
+
+    .bg-particles { position: absolute; inset: 0; }
+
+    .bg-particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 138, 76, 0.3);
+      box-shadow: 0 0 10px rgba(255, 138, 76, 0.22);
+      animation: particleFloat linear infinite;
+    }
+
+    .bg-particle:nth-child(odd) {
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 113, 110, 0.28);
+    }
+
+    .bg-particle:nth-child(3n) {
+      width: 7px;
+      height: 7px;
+      opacity: 0.5;
+    }
+
+    @keyframes driftA {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(40px, 50px) scale(1.08); }
+    }
+    @keyframes driftB {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(-50px, -30px) scale(1.06); }
+    }
+    @keyframes driftC {
+      from { transform: translate(-20px, 10px) scale(0.95); }
+      to { transform: translate(30px, -25px) scale(1.1); }
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-18px); }
+    }
+    @keyframes particleFloat {
+      0% { transform: translateY(0) translateX(0); opacity: 0; }
+      12% { opacity: 0.6; }
+      88% { opacity: 0.4; }
+      100% { transform: translateY(-110vh) translateX(18px); opacity: 0; }
+    }
+    @keyframes shimmer {
+      0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+      50% { transform: translate(8%, 4%); opacity: 1; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.45; }
+      50% { transform: scale(1.12); opacity: 0.75; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bg-blob, .bg-ring, .bg-particle, .bg-shimmer, .bg-glow { animation: none !important; }
+    }
+
+    .back-home {
+      position: fixed;
+      top: clamp(12px, 2.5vw, 24px);
+      left: clamp(12px, 2.5vw, 24px);
+      color: var(--text-dim);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 10px 18px;
+      border-radius: 30px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      border: 1px solid rgba(255, 113, 110, 0.1);
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    }
+
+    .back-home svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .back-home:hover {
+      color: var(--text-main);
+      transform: translateX(-4px);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 1280px;
+      max-height: calc(100dvh - clamp(24px, 5vw, 48px));
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      background: var(--bg-form);
+      border-radius: var(--radius-card);
+      box-shadow:
+        0 24px 56px rgba(15, 23, 42, 0.08),
+        0 0 0 1px rgba(255, 113, 110, 0.06),
+        0 1px 0 rgba(255, 255, 255, 0.85) inset;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Painel lateral: altura total do card + coluna mais larga */
+    .auth-image {
+      flex: 0 0 clamp(380px, 52%, 580px);
+      width: clamp(380px, 52%, 580px);
+      align-self: stretch;
+      min-height: 100%;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      background: linear-gradient(145deg, #0f172a 0%, #1e293b 38%, #ff716e 100%);
+    }
+
+    .auth-image img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+
+    .auth-form-wrapper {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      padding: clamp(22px, 3.5vw, 44px) clamp(20px, 3.5vw, 48px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      background: var(--bg-form);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .auth-form-wrapper::-webkit-scrollbar { width: 5px; }
+    .auth-form-wrapper::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 6px;
+    }
+
+    .auth-header {
+      margin-bottom: clamp(16px, 2.5vw, 24px);
+      flex-shrink: 0;
+    }
+
+    .auth-header h3 {
+      font-size: clamp(1.4rem, 3.2vw, 1.85rem);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.4px;
+      line-height: 1.2;
+    }
+
+    .auth-header p {
+      color: var(--text-dim);
+      font-size: clamp(0.88rem, 2vw, 0.98rem);
+      line-height: 1.55;
+      max-width: 52ch;
+    }
+
+    /* ---------- Formulário ---------- */
+    .register-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px 16px;
+    }
+
+    @media (min-width: 600px) {
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field-span-2 {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: block;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 44px;
+      height: var(--field-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      pointer-events: none;
+      z-index: 2;
+      transition: color 0.2s ease;
+    }
+
+    .input-icon svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .input-wrap:focus-within .input-icon {
+      color: var(--primary);
+    }
+
+    .input-wrap input {
+      width: 100%;
+      max-width: 100%;
+      height: var(--field-h);
+      padding: 0 14px 0 44px;
+      border: 2px solid transparent;
+      border-radius: var(--radius-field);
+      font-size: clamp(0.9rem, 2.2vw, 0.98rem);
+      color: var(--text-main);
+      background: var(--input-bg);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      outline: none;
+      line-height: 1.4;
+    }
+
+    .input-wrap input::placeholder {
+      color: #94a3b8;
+    }
+
+    .input-wrap input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1);
+    }
+
+    .input-wrap input.input-error {
+      border-color: var(--error);
+      background: #fff5f5;
+    }
+
+    .input-wrap.has-toggle input {
+      padding-right: 44px;
+    }
+
+    .toggle-eye {
+      position: absolute;
+      right: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      z-index: 3;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .toggle-eye svg {
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+
+    .toggle-eye:hover,
+    .toggle-eye:focus-visible {
+      color: var(--primary);
+      background: rgba(255, 71, 87, 0.08);
+      outline: none;
+    }
+
+    .field-error {
+      display: block;
+      margin-top: 5px;
+      font-size: 0.78rem;
+      color: var(--error);
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .form-actions {
+      margin-top: 4px;
+    }
+
+    .terms-block {
+      margin: 16px 0 14px;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: var(--radius-field);
+      border: 1px solid var(--border-color);
+    }
+
+    .terms-link {
+      display: block;
+      text-align: center;
+      margin-bottom: 12px;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-decoration: none;
+    }
+
+    .terms-link:hover { text-decoration: underline; }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .checkbox-row input {
+      margin-top: 2px;
+      accent-color: var(--primary);
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+
+    .checkbox-row label {
+      font-size: 0.86rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .checkbox-row label a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .checkbox-row label a:hover { text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--orange-glow) 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-field);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 8px 22px rgba(255, 71, 87, 0.25);
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+      box-shadow: 0 12px 28px rgba(255, 71, 87, 0.32);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .auth-footer {
+      margin-top: 16px;
+      padding-bottom: 2px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .auth-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-footer a:hover { text-decoration: underline; }
+
+    #message-area {
+      display: none;
+      padding: 12px 14px;
+      border-radius: var(--radius-field);
+      margin-bottom: 14px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      line-height: 1.45;
+    }
+
+    .msg-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .msg-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* Tablet */
+    @media (max-width: 900px) {
+      body {
+        align-items: flex-start;
+        padding-top: 56px;
+      }
+
+      .auth-container {
+        flex-direction: column;
+        max-height: none;
+        max-width: min(640px, 100%);
+      }
+
+      .auth-image {
+        flex: none;
+        width: 100%;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+        max-height: min(340px, 45vh);
+      }
+
+      .auth-form-wrapper {
+        max-height: none;
+        overflow-y: visible;
+        padding: 22px 20px 26px;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 576px) {
+      body {
+        padding: 52px 10px 16px;
+      }
+
+      .back-home {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+      }
+
+      .auth-container {
+        border-radius: 18px;
+      }
+
+      .auth-image {
+        aspect-ratio: 16 / 10;
+        max-height: min(260px, 52vw);
+      }
+
+      .auth-form-wrapper {
+        padding: 18px 16px 22px;
+      }
+
+      .form-grid {
+        gap: 12px;
+      }
+
+      .field-label {
+        font-size: 0.78rem;
+      }
+
+      .toggle-eye {
+        width: 44px;
+        height: 44px;
+      }
+
+      .input-wrap.has-toggle input {
+        padding-right: 48px;
+      }
+    }
+
+    /* Desktop médio */
+    @media (min-width: 901px) and (max-width: 1200px) {
+      .auth-image {
+        flex: 0 0 clamp(340px, 48%, 500px);
+        width: clamp(340px, 48%, 500px);
+      }
+
+      .auth-form-wrapper {
+        padding: 28px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-bg" aria-hidden="true">
+    <div class="bg-shimmer"></div>
+    <div class="bg-glow g1"></div>
+    <div class="bg-glow g2"></div>
+    <div class="bg-blob a"></div>
+    <div class="bg-blob b"></div>
+    <div class="bg-blob c"></div>
+    <div class="bg-ring r1"></div>
+    <div class="bg-ring r2"></div>
+    <div class="bg-ring r3"></div>
+    <div class="bg-particles" id="bg-particles"></div>
+  </div>
+
+  <a href="./index.html" class="back-home">
+    <i data-lucide="arrow-left"></i> Início
+  </a>
+
+  <div class="auth-container">
+    <div class="auth-image" aria-hidden="true">
+      <img src="modal_banner.png" alt="" width="800" height="600" decoding="async">
+    </div>
+
+    <div class="auth-form-wrapper">
+      <div class="auth-header">
+        <h3>Criar sua conta</h3>
+        <p>Cadastre-se no portal cultural de Garça com o mesmo acesso dos serviços da prefeitura.</p>
+      </div>
+
+      <div id="message-area"></div>
+
+      <form id="registerForm" class="register-form" novalidate>
+        <div class="form-grid">
+          <div class="field field-span-2">
+            <label class="field-label" for="name">Nome completo</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="user"></i></span>
+              <input type="text" id="name" name="name" placeholder="Digite o seu nome" autocomplete="name">
+            </div>
+            <span class="field-error" id="err-name" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="cpf">CPF</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
+              <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" autocomplete="off">
+            </div>
+            <span class="field-error" id="err-cpf" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="phone">Telefone</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="phone"></i></span>
+              <input type="text" id="phone" name="phone" placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
+            </div>
+            <span class="field-error" id="err-phone" hidden></span>
+          </div>
+
+          <div class="field field-span-2">
+            <label class="field-label" for="email">E-mail</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="mail"></i></span>
+              <input type="email" id="email" name="email" placeholder="Digite o seu e-mail" autocomplete="email">
+            </div>
+            <span class="field-error" id="err-email" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="password">Senha</label>
+            <div class="input-wrap has-toggle">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="lock"></i></span>
+              <input type="password" id="password" name="password" placeholder="Mín. 6 caracteres" autocomplete="new-password">
+              <button type="button" class="toggle-eye" id="toggle-password" aria-label="Mostrar senha" aria-pressed="false">
+                <i data-lucide="eye-off"></i>
+              </button>
+            </div>
+            <span class="field-error" id="err-password" hidden></span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="confirmpassword">Confirmar senha</label>
+            <div class="input-wrap has-toggle">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="lock-keyhole"></i></span>
+              <input type="password" id="confirmpassword" name="confirmpassword" placeholder="Repita a senha" autocomplete="new-password">
+              <button type="button" class="toggle-eye" id="toggle-confirm" aria-label="Mostrar confirmação" aria-pressed="false">
+                <i data-lucide="eye-off"></i>
+              </button>
+            </div>
+            <span class="field-error" id="err-confirmpassword" hidden></span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <div class="terms-block">
+            <a class="terms-link" id="terms-link" href="./termos-de-uso.html" target="_blank" rel="noopener noreferrer">Ler Termos de Uso do Portal Cultural</a>
+            <div class="checkbox-row">
+              <input type="checkbox" id="agreeTerms" name="agreeTerms">
+              <label for="agreeTerms">
+                Li e concordo com os <a href="./termos-de-uso.html" target="_blank" rel="noopener noreferrer">Termos de Uso do Portal Cultural</a>.
+                Será enviado um e-mail para confirmar o endereço informado.
+              </label>
+            </div>
+            <span class="field-error" id="err-agreeTerms" hidden></span>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">Cadastrar</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        Já possui conta? <a href="./login.html">Faça login aqui</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="cultura-register.js"></script>
+  <script>
+    (function initParticles() {
+      const host = document.getElementById('bg-particles');
+      if (!host) return;
+      const count = window.matchMedia('(max-width: 700px)').matches ? 8 : 16;
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('span');
+        el.className = 'bg-particle';
+        el.style.left = (Math.random() * 100).toFixed(2) + '%';
+        el.style.bottom = (-8 - Math.random() * 20).toFixed(2) + '%';
+        el.style.animationDuration = (14 + Math.random() * 18).toFixed(1) + 's';
+        el.style.animationDelay = (-Math.random() * 20).toFixed(1) + 's';
+        host.appendChild(el);
+      }
+    })();
+
+    lucide.createIcons();
+
+    const form = document.getElementById('registerForm');
+    const messageArea = document.getElementById('message-area');
+    const submitBtn = document.getElementById('submitBtn');
+    const fields = ['name', 'cpf', 'phone', 'email', 'password', 'confirmpassword', 'agreeTerms'];
+
+    function showMessage(text, type) {
+      messageArea.style.display = 'block';
+      messageArea.className = type === 'success' ? 'msg-success' : 'msg-error';
+      messageArea.textContent = text;
+    }
+
+    function clearMessages() {
+      messageArea.style.display = 'none';
+      fields.forEach((f) => setFieldError(f, ''));
+    }
+
+    function setFieldError(field, msg) {
+      const el = document.getElementById('err-' + field);
+      const input = document.getElementById(field);
+      if (!el) return;
+      if (msg) {
+        el.hidden = false;
+        el.textContent = msg;
+        if (input) input.classList.add('input-error');
+      } else {
+        el.hidden = true;
+        el.textContent = '';
+        if (input) input.classList.remove('input-error');
+      }
+    }
+
+    function getValues() {
+      return {
+        name: document.getElementById('name').value,
+        cpf: document.getElementById('cpf').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        confirmpassword: document.getElementById('confirmpassword').value,
+      };
+    }
+
+    document.getElementById('cpf').addEventListener('input', (e) => {
+      e.target.value = CulturaRegister.maskCpf(e.target.value);
+      setFieldError('cpf', '');
+    });
+
+    document.getElementById('phone').addEventListener('input', (e) => {
+      e.target.value = CulturaRegister.maskPhone(e.target.value);
+      setFieldError('phone', '');
+    });
+
+    fields.filter((f) => f !== 'agreeTerms').forEach((field) => {
+      const el = document.getElementById(field);
+      if (el) el.addEventListener('input', () => setFieldError(field, ''));
+    });
+
+    document.getElementById('agreeTerms').addEventListener('change', () => setFieldError('agreeTerms', ''));
+
+    function bindToggle(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      btn.addEventListener('click', () => {
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+        btn.setAttribute('aria-label', visible ? 'Ocultar senha' : 'Mostrar senha');
+        btn.innerHTML = visible
+          ? '<i data-lucide="eye"></i>'
+          : '<i data-lucide="eye-off"></i>';
+        lucide.createIcons();
+      });
+    }
+    bindToggle('toggle-password', 'password');
+    bindToggle('toggle-confirm', 'confirmpassword');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const values = getValues();
+      const agreeTerms = document.getElementById('agreeTerms').checked;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Cadastrando...';
+
+      try {
+        const data = await CulturaRegister.submitRegister(values, agreeTerms);
+        showMessage(data.message || 'Cadastro realizado! Verifique seu e-mail para ativar a conta.', 'success');
+        form.reset();
+        setTimeout(() => { window.location.href = './login.html'; }, 2800);
+      } catch (err) {
+        if (err.errors) {
+          Object.entries(err.errors).forEach(([field, msg]) => setFieldError(field, msg));
+          showMessage('Corrija os campos destacados antes de continuar.', 'error');
+        } else if (err.field) {
+          setFieldError(err.field, err.message);
+          showMessage(err.message, 'error');
+        } else {
+          showMessage(err.message || 'Erro ao cadastrar. Tente novamente.', 'error');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Cadastrar';
+      }
+    });
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

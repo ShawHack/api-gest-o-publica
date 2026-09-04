@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="cultura-api.js"></script>
+  <script src="/auth-refresh.js"></script>
+  <title>SECULT - Meu Painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .dashboard-section {
+      padding: 100px 5% 80px;
+      min-height: calc(100vh - 80px);
+      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* Abstract shapes for background */
+    .dashboard-section::before,
+    .dashboard-section::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      animation: float 10s infinite ease-in-out;
+    }
+    
+    .dashboard-section::before {
+      top: -100px;
+      right: -50px;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 113, 110, 0.2);
+      animation-delay: 0s;
+    }
+
+    .dashboard-section::after {
+      bottom: -150px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: rgba(59, 130, 246, 0.15);
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(30px) scale(1.05); }
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 24px;
+      padding: 50px;
+      margin-bottom: 50px;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-card::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 500px;
+      height: 100%;
+      background: radial-gradient(circle at right, rgba(255, 113, 110, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .welcome-text h1 {
+      font-size: clamp(1.55rem, 2.6vw + 0.6rem, 2rem);
+      color: #ffffff;
+      margin-bottom: 15px;
+      letter-spacing: -0.5px;
+    }
+    
+    .welcome-text span {
+      background: rgba(255, 113, 110, 0.15);
+      color: #ffb4b2;
+      padding: 4px 18px;
+      border-radius: 30px;
+      font-weight: 800;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(255, 113, 110, 0.1);
+      border: 1px solid rgba(255, 113, 110, 0.2);
+    }
+
+    .welcome-text p {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 35px;
+    }
+
+    .event-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.04);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .event-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 25px 50px rgba(255, 113, 110, 0.15);
+      border-color: rgba(255, 113, 110, 0.3);
+    }
+
+    .event-image {
+      height: 220px;
+      background: #e2e8f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .event-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+
+    .event-card:hover .event-image img {
+      transform: scale(1.08);
+    }
+
+    .event-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; width: 100%; height: 50%;
+      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    }
+
+    .event-tag {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #ff716e;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .event-details {
+      padding: 30px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .event-date {
+      color: #3b82f6;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .event-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 15px;
+      line-height: 1.3;
+      transition: color 0.3s;
+    }
+    
+    .event-card:hover .event-title {
+      color: #ff716e;
+    }
+
+    .event-actions {
+      margin-top: auto;
+      padding-top: 25px;
+    }
+
+    .btn-mark {
+      background: #f8fafc;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
+    .btn-mark:hover {
+      background: #ff716e;
+      color: white;
+      border-color: #ff716e;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(255, 113, 110, 0.2);
+    }
+
+    .btn-mark.active {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    }
+
+    /* GAMIFICATION STYLES */
+    .gamification-section {
+      margin-top: 60px;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+      border: 1px solid #f1f5f9;
+    }
+
+    .gamification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .points-display {
+      background: linear-gradient(135deg, #fff0f0 0%, #ffeae8 100%);
+      padding: 15px 30px;
+      border-radius: 20px;
+      border: 1px solid #ff716e;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .points-display i {
+      color: #ff716e;
+      width: 30px;
+      height: 30px;
+    }
+
+    .points-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .points-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1;
+    }
+
+    .points-label {
+      color: #ff716e;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 20px;
+    }
+
+    .badge-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .badge-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      border-color: #cbd5e1;
+    }
+
+    .badge-card.unlocked {
+      background: linear-gradient(to bottom, #ffffff, #fff5f5);
+      border-color: #ff716e;
+    }
+
+    .badge-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #94a3b8;
+      transition: all 0.3s ease;
+    }
+
+    .badge-card.unlocked .badge-icon {
+      background: #ff716e;
+      color: white;
+      box-shadow: 0 5px 15px rgba(255, 113, 110, 0.3);
+    }
+
+    .badge-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      margin-bottom: 5px;
+    }
+
+    .badge-desc {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    
+    .progress-container {
+      margin-top: 30px;
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 25px;
+    }
+    
+    .progress-bar-bg {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff9f66 0%, #ff716e 100%);
+      width: 65%;
+      border-radius: 10px;
+      transition: width 1s ease;
+    }
+
+    /* Override Navbar actions for logged-in state */
+    .btn-logout {
+      background: transparent;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .btn-logout:hover {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='./index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="./index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Início</a>
+        <a href="./emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="./biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="./teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="./museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="./eventos/eventos.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos/Notícias</a>
+        <a href="./pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+</nav>
+
+      <div class="header-actions-wrapper" style="display: flex; align-items: center;">
+        <div class="desktop-nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="./perfil.html" style="color: #475569; text-decoration: none; font-weight: 600; margin-right: 10px;">Meu Perfil</a>
+          <button id="btnLogout" class="btn-logout">Sair</button>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer; margin-left: 1rem;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="./painel_usuario.html" class="nav-link" onclick="toggleMenu()">Painel de Eventos</a>
+    <a href="./index.html" class="nav-link" onclick="toggleMenu()">Página Inicial</a>
+    <a href="./perfil.html" class="nav-link" onclick="toggleMenu()">Meu Perfil</a>
+    <a href="./pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+    <hr style="border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 5px 0;">
+    <span id="mobile-greeting" style="color: #ff716e; font-weight: 700; padding: 10px 0; display: block;"></span>
+    <button id="btnMobileLogout" class="btn-logout" style="width: 100%; margin-top: 10px;">Sair da Conta</button>
+  
+    <div class="mobile-menu-actions">
+      <a href="./mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="./login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="./cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <main class="dashboard-section">
+    <div class="welcome-card" style="padding: 35px 40px;">
+      <div class="welcome-text">
+        <h1 style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">Bem-vindo(a), <span id="userNameDisplay">Visitante</span></h1>
+        <p>Acompanhe os próximos eventos culturais e marque sua presença.</p>
+        
+        <div style="margin-top: 25px;">
+           <a href="https://chat.whatsapp.com/LvbTMjtWSvC7PRTDzXOUx2" target="_blank" style="display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white; font-weight: 600; padding: 12px 25px; border-radius: 30px; text-decoration: none; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+             <i data-lucide="message-circle" style="width: 20px; height: 20px;"></i>
+             Entrar no Grupo do WhatsApp
+           </a>
+        </div>
+      </div>
+    </div>
+
+
+
+    <h2 style="font-size: 1.8rem; color: #1e293b; margin-bottom: 25px;">Eventos em Destaque</h2>
+    
+    <div class="events-grid" id="dashboardEventsGrid">
+      <p style="color: #64748b; font-weight: 500; font-family: 'Rubik', sans-serif;">Carregando os eventos e destaques da secretaria...</p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Load user data
+    document.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      let userName = "Visitante";
+      
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          if (userObj && userObj.nome) {
+            userName = userObj.nome;
+          }
+        } catch(e) { console.error("Error parsing user data"); }
+      }
+
+      document.getElementById('userNameDisplay').textContent = userName;
+      document.getElementById('nav-user-greeting').textContent = `Olá, ${userName}`;
+      document.getElementById('mobile-greeting').textContent = `Olá, ${userName}`;
+    });
+
+    // Logout logic
+    const handleLogout = () => {
+      if (window.CulturaApi) CulturaApi.clearSession();
+      window.location.href = 'index.html';
+    };
+
+    document.getElementById('btnLogout').addEventListener('click', handleLogout);
+    document.getElementById('btnMobileLogout').addEventListener('click', handleLogout);
+
+    // Event Toggle Logic
+    window.toggleEvent = async function(btn, eventId) {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        alert('Você precisa estar logado para salvar eventos.');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      let userObj;
+      try { userObj = JSON.parse(userStr); } catch(e) { return; }
+      
+      const span = btn.querySelector('span');
+      const icon = btn.querySelector('i');
+      const isActive = btn.classList.contains('active');
+      
+      // Atualização Otimista da Interface
+      if (isActive) {
+        btn.classList.remove('active');
+        span.textContent = 'Ativar Notificação';
+        icon.setAttribute('data-lucide', 'bell');
+      } else {
+        btn.classList.add('active');
+        span.textContent = 'Presença Confirmada';
+        icon.setAttribute('data-lucide', 'check-circle');
+      }
+      lucide.createIcons();
+
+      // Chamada à API
+      try {
+        const res = await CulturaApi.culturaFetch(`/api/users/${userObj.id}/events`, {
+          method: 'POST',
+          body: JSON.stringify({ eventId })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          // Salva no localStorage para não perder ao recarregar
+          userObj.eventosSalvos = data.eventosSalvos;
+          localStorage.setItem('user', JSON.stringify(userObj));
+        } else {
+          throw new Error('Falha na API');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Houve um problema ao tentar salvar o evento.');
+        // Reverte a UI em caso de erro
+        if (isActive) {
+          btn.classList.add('active');
+          span.textContent = 'Presença Confirmada';
+          icon.setAttribute('data-lucide', 'check-circle');
+        } else {
+          btn.classList.remove('active');
+          span.textContent = 'Ativar Notificação';
+          icon.setAttribute('data-lucide', 'bell');
+        }
+        lucide.createIcons();
+      }
+    };
+
+    // Load Dynamic Events
+    async function loadDashboardEvents() {
+      const grid = document.getElementById('dashboardEventsGrid');
+      try {
+        const catRes = await fetch('/api/categories');
+        const categories = await catRes.json();
+
+        const postRes = await fetch('/api/posts');
+        const posts = await postRes.json();
+
+        grid.innerHTML = '';
+        if(posts.length === 0) {
+          grid.innerHTML = '<p style="color:#64748b;">Ainda não há eventos ou destaques no momento.</p>';
+          return;
+        }
+
+        posts.forEach(post => {
+          let catColor = '#64748b';
+          const foundCat = categories.find(c => c.nome === post.tipo);
+          if(foundCat && foundCat.cor) catColor = foundCat.cor;
+
+          let imageHTML = '';
+          if (post.imagensUrl && post.imagensUrl.length > 0) {
+            const pImg = post.imagensUrl[0];
+            const imgPath = pImg.startsWith('http') ? pImg : `${pImg}`;
+            imageHTML = `<img src="${imgPath}" alt="${post.titulo}" style="width:100%; height:100%; object-fit:cover;">`;
+          } else {
+            imageHTML = `<div style="width:100%; height:100%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; color:#94a3b8;"><i data-lucide="image" style="width:40px;height:40px;"></i></div>`;
+          }
+
+          let dateHtml = '';
+          if(post.datasHorarios && post.datasHorarios.length > 0) {
+             const sess = post.datasHorarios[0];
+             dateHtml = `<div class="event-date" style="color:#3b82f6;"><i data-lucide="calendar"></i> ${sess.data} às ${sess.horario}</div>`;
+          } else {
+             dateHtml = `<div class="event-date" style="color:#94a3b8;"><i data-lucide="info"></i> Sem agendamento</div>`;
+          }
+
+          let isSaved = false;
+          try {
+            const u = JSON.parse(localStorage.getItem('user'));
+            if(u && u.eventosSalvos && u.eventosSalvos.includes(post._id)) {
+              isSaved = true;
+            }
+          } catch(e){}
+
+          const activeClass = isSaved ? 'active' : '';
+          const btnText = isSaved ? 'Presença Confirmada' : 'Ativar Notificação';
+          const iconName = isSaved ? 'check-circle' : 'bell';
+
+          grid.innerHTML += `
+            <div class="event-card" onclick="window.location.href='eventos/detalhes.html?id=${post._id}'">
+              <div class="event-image">
+                ${imageHTML}
+                <span class="event-tag" style="background:${catColor};">${post.tipo}</span>
+              </div>
+              <div class="event-details">
+                ${dateHtml}
+                <h3 class="event-title">${post.titulo}</h3>
+                <div class="event-actions" onclick="event.stopPropagation()">
+                  <button class="btn-mark ${activeClass}" onclick="toggleEvent(this, '${post._id}')">
+                    <i data-lucide="${iconName}"></i> <span>${btnText}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        lucide.createIcons();
+      } catch(e) {
+        grid.innerHTML = '<p style="color:red;">Erro ao carregar os eventos.</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardEvents);
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

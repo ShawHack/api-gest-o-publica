@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes do Evento - Garça Cidade de Culturas</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="detalhes.css?v=20260814e">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="detalhes.js?v=20260814e" defer></script>
+</head>
+<body>
+
+  <!-- VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
+
+  <!-- NAVBAR -->
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='../index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="../index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Início</a>
+        <a href="../emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="../biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="../teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="../museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="./eventos.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos/Notícias</a>
+        <a href="../pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+</nav>
+
+      <div class="header-actions-wrapper" style="display: flex; align-items: center;">
+        <div class="desktop-nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="../mapa.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">
+            <i data-lucide="map" style="width: 18px; height: 18px;"></i> <span class="map-text">Mapa</span>
+          </a>
+          <a href="../login.html" class="btn-login" style="padding: 10px 20px; border-radius: 30px; border: 1px solid #e2e8f0; color: #475569; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease;">Login</a>
+          <a href="../cadastro.html" class="btn-cadastro" style="background: linear-gradient(135deg, #ff9f66 0%, #ff716e 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: all 0.3s ease; box-shadow: 0 6px 15px rgba(255, 113, 110, 0.3);">Cadastro</a>
+        </div>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer; margin-left: 1rem;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="../index.html" class="nav-link" onclick="toggleMenu()">Início</a>
+    <a href="../emca/emca.html" class="nav-link" onclick="toggleMenu()">EMCA</a>
+    <a href="../biblioteca/biblioteca.html" class="nav-link" onclick="toggleMenu()">Biblioteca</a>
+    <a href="../teatro/teatro.html" class="nav-link" onclick="toggleMenu()">Teatro</a>
+    <a href="../museu/museu.html" class="nav-link" onclick="toggleMenu()">Museu</a>
+    <a href="./eventos.html" class="nav-link" onclick="toggleMenu()">Eventos/Notícias</a>
+  
+        <a href="../pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+<div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <main id="detalhes-main">
+    <div class="detalhes-loading">
+      <i data-lucide="loader-2" class="spin-icon" style="width:28px;height:28px;"></i>
+      <p>Carregando...</p>
+    </div>
+  </main>
+
+  <!-- FOOTER GLOBAL -->
+  <footer class="biblio-footer">
+    <div class="biblio-footer-wrapper">
+      <div class="footer-col brand-col">
+        <div class="logo-title">GAR&Ccedil;A</div>
+        <div class="logo-subtitle">Cidade de Culturas</div>
+        <p style="color: #ffffff; line-height: 1.6; margin: 0;">Espa&ccedil;os dedicados ao conhecimento, &agrave; arte e ao desenvolvimento de toda a nossa comunidade.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Acesso R&aacute;pido</h4>
+        <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:10px;">
+          <li><a href="../index.html" style="color:#fff; text-decoration:none;">In&iacute;cio</a></li>
+          <li><a href="../emca/emca.html" style="color:#fff; text-decoration:none;">EMCA</a></li>
+          <li><a href="./eventos.html" style="color:#ea580c; text-decoration:none; font-weight:bold;">Eventos/Notícias</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div style="color:#fff; display:flex; flex-direction:column; gap:10px;">
+          <span>(14) 3471-1616</span>
+          <span>cultura@garca.sp.gov.br</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar" style="text-align: center; margin-top:30px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.8);">
+      <p>&copy; 2026 Gar&ccedil;a Cidade de Culturas. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+    function toggleMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const overlay = document.getElementById("menu-overlay");
+      if (menu) {
+          menu.classList.toggle("open");
+          if(overlay) {
+              if(menu.classList.contains("open")) {
+                  overlay.classList.add("active");
+              } else {
+                  overlay.classList.remove("active");
+              }
+          }
+      }
+    }}
+  </script>
+  <style>
+    .biblio-footer { background: #111; color: #fff; padding-top: 50px; padding-bottom: 30px; font-family: 'Rubik', sans-serif; }
+    .biblio-footer-wrapper { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+  </style>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

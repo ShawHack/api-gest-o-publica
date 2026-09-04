@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMCA - Galeria de Fotos</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../logo.jpg" type="image/jpeg">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="emca.css">
+
+    <style>
+        :root {
+            --primary: #0A192F;
+            --peach: #ffb583;
+            --lavender: #7481d1;
+            --coral: #ff716e;
+            --bg-main: #fdfbfb;
+            --bg-alt: #ffffff;
+            --text-main: #333333;
+            --text-light: #666666;
+            --transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        body {
+            background-color: transparent;
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background Modern�o com Carculos Magicos */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: n�one;
+            overflow: hidden;
+            background: var(--bg-main);
+        }
+        
+        .bg-shapes::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(116, 129, 209, 0.08) 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+            z-index: 1;
+        }
+
+        .shape-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.55;
+            animation: floating 25s infinite ease-in-out alternate;
+            z-index: 0;
+        }
+
+        .circle-1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(116, 129, 209, 0.6); /* lavender */
+            top: -15%;
+            left: -10%;
+        }
+
+        .circle-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 181, 131, 0.6); /* peach */
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        .circle-3 {
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 113, 110, 0.4); /* coral */
+            top: 25%;
+            left: 35%;
+            animation-delay: -12s;
+        }
+
+        @keyframes floating {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(80px, 60px) scale(1.1) rotate(10deg); }
+            66% { transform: translate(-60px, 40px) scale(0.9) rotate(-10deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        }
+
+
+
+        .btn-back {
+            background: linear-gradient(135deg, #ffb583 0%, #7481d1 30%, #7481d1 100%);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            text-decoration: n�one;
+            font-weight: 300;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(116, 129, 209, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.6s ease;
+        }
+
+        .btn-back:hover::before {
+            left: 100%;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(116, 129, 209, 0.4);
+            animation: glowPulse 3s ease infinite;
+        }
+
+        /* Header da Galeria */
+        .gallery-header {
+            margin-top: 120px;
+            text-align: center;
+            padding: 0 20px;
+            margin-bottom: 40px;
+        }
+
+        .gallery-header h1 {
+            font-family: 'Rubik', sans-serif;
+            font-size: clamp(1.55rem, 2.6vw + 0.6rem, 2rem);
+            color: #ffb583;
+            margin-bottom: 15px;
+            font-weight: 800;
+            line-height: 1.15;
+        }
+
+        .gallery-header p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 50px;
+            padding: 0 20px;
+        }
+
+        .filter-btn {
+            background: rgba(116, 129, 209, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 300;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 12px rgba(116, 129, 209, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .filter-btn:hover::after {
+            width: 200px;
+            height: 200px;
+        }
+
+        .filter-btn:hover {
+            background: linear-gradient(135deg, #ffb583 0%, #7481d1 30%, #7481d1 100%);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(116, 129, 209, 0.3);
+            animation: glowPulse 3s ease infinite;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #ffb583 0%, #7481d1 30%, #7481d1 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 6px 15px rgba(116, 129, 209, 0.4);
+            animation: glowPulse 3s ease infinite;
+        }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 8px 20px rgba(116, 129, 209, 0.3); }
+            50% { box-shadow: 0 12px 25px rgba(255, 181, 131, 0.5); }
+            100% { box-shadow: 0 8px 20px rgba(116, 129, 209, 0.3); }
+        }
+
+        /* Grid da Galeria (Masonry Layout Simulado) */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-auto-rows: 250px;
+            gap: 20px;
+            padding: 0 40px 80px;
+            max-width: 1400px;
+            margin: 0 auto;
+            perspective: 1200px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease;
+            transform-style: preserve-3d;
+            background: transparent;
+            opacity: 0;
+            transform: translate(var(--start-x, 0), var(--start-y, 100px)) translateZ(-150px) rotateX(-15deg);
+            will-change: transform, opacity;
+        }
+
+        .gallery-item.animate-in {
+            animation: flyInRandom 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes flyInRandom {
+            to {
+                opacity: 1;
+                transform: translate(0, 0) translateZ(0) rotateX(0deg);
+            }
+        }
+
+        /* Padraes de varia��o de tamanho do grid */
+        .gallery-item:nth-child(4n+1) {
+            grid-row: span 2;
+        }
+
+        .gallery-item:nth-child(5n) {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-item:nth-child(5n) {
+                grid-column: span 1;
+            }
+            .gallery-grid {
+                padding: 0 20px 60px;
+            }
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-15px) translateZ(50px) rotateX(5deg) rotateY(-5deg);
+            box-shadow: -15px 25px 40px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(116, 129, 209, 0.3);
+            z-index: 10;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.08);
+        }
+
+        /* Overlay n�o Hover */
+        .item-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10, 25, 47, 0.85) 0%, rgba(10, 25, 47, 0) 60%);
+            display: flex;
+            align-items: flex-end;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .gallery-item:hover .item-overlay {
+            opacity: 1;
+        }
+
+        .item-info {
+            color: white;
+            transform: translateY(15px);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .gallery-item:hover .item-info {
+            transform: translateY(0);
+        }
+
+        .item-category {
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--peach);
+            margin-bottom: 0;
+            font-weight: 800;
+        }
+
+        .zoom-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .gallery-item:hover .zoom-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Lightbox Modal */
+        .lightbox {
+            display: n�one;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 25, 47, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .lightbox.active .lightbox-img {
+            transform: scale(1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            background: n�one;
+            border: n�one;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .lightbox-close:hover {
+            color: var(--coral);
+            transform: rotate(90deg);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: n�one;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-nav:hover {
+            background: linear-gradient(135deg, var(--lavender), var(--coral));
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-prev {
+            left: -80px;
+        }
+
+        .lightbox-next {
+            right: -80px;
+        }
+
+        .lightbox-caption {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 1400px) {
+            .lightbox-prev { left: 10px; }
+            .lightbox-next { right: 10px; }
+            .lightbox-close { top: -40px; right: 0; }
+        }
+
+    
+        @media (max-width: 768px) {
+            .hide-mobile { display: n�one !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Background Animado -->
+    <div class="bg-shapes">
+        <div class="shape-circle circle-1"></div>
+        <div class="shape-circle circle-2"></div>
+        <div class="shape-circle circle-3"></div>
+    </div>
+
+    <!-- Navbar -->
+        <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-area" onclick="window.location.href='./emca.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.8rem; color: #1e293b; letter-spacing: 2px;">EMCA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Escola de Cultura e Artes</span>
+      </div>
+      
+      <nav class="nav-menu" style="display: flex; gap: 30px; align-items: center;">
+        <a href="./emca.html" class="nav-link" style="color: #475569; text-decoration: n�one; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">In&iacute;cio</a>
+        <a href="./emca.html#sobre" class="nav-link" style="color: #475569; text-decoration: n�one; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Sobre</a>
+        
+        <div class="nav-item-dropdown">
+            <a href="./emca.html#cursos" class="nav-link" style="color: #475569; text-decoration: n�one; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s; display: flex; align-items: center; gap: 5px;">Cursos <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></a>
+            <div class="dropdown-menu">
+                <a href="./cursos/danca.html" class="dropdown-item">Ballet & Jazz</a>
+                <a href="./cursos/teatro.html" class="dropdown-item">Teatro</a>
+                <a href="./cursos/musica.html" class="dropdown-item">M&uacute;sica</a>
+                <a href="./cursos/circo.html" class="dropdown-item">Circo</a>
+                <a href="./cursos/desenho.html" class="dropdown-item">Desenho e Pintura</a>
+                </div>
+        </div>
+
+        <a href="./emca.html#contato" class="nav-link" style="color: #475569; text-decoration: n�one; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Contato</a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="../index.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: n�one; font-weight: 600; font-family: 'Rubik', sans-serif; transition: background 0.3s;">
+          <i data-lucide="map"></i> <span class="hide-mobile">Voltar ao </span>Mapa
+        </a>
+          <button class="hamburger" onclick="toggleMenu()" style="background: n�one; border: n�one; color: #1e293b; cursor: pointer; display: n�one;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="n�one" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MOBILE MENU -->
+    <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+      <a href="./emca.html" class="nav-link" onclick="toggleMenu()">In�cio</a>
+      <a href="./emca.html#sobre" class="nav-link" onclick="toggleMenu()">Sobre</a>
+      <a href="./emca.html#cursos" class="nav-link" onclick="toggleMenu()">Cursos</a>
+      <a href="./emca.html#contato" class="nav-link" onclick="toggleMenu()">Contato</a>
+  
+    <div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+    
+    <script>
+      function toggleMenu() {
+      const menu = document.getElementById("mobile-menu");
+      const overlay = document.getElementById("menu-overlay");
+      if (menu) {
+          menu.classList.toggle("open");
+          if(overlay) {
+              if(menu.classList.contains("open")) {
+                  overlay.classList.add("active");
+              } else {
+                  overlay.classList.remove("active");
+              }
+          }
+      }
+    }
+    </script>
+
+    <!-- Header -->
+    <section class="gallery-header">
+        <h1>Nosso Acervo</h1>
+        <p>Explore os momentos, as artes e as performances que marcam a hist�ria da Escola Municipal de Cultura e Arte.</p>
+    </section>
+
+    <!-- Filtros -->
+    <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="ballet">Ballet</button>
+        <button class="filter-btn" data-filter="circo">Circo</button>
+        <button class="filter-btn" data-filter="danca">Dan�a</button>
+        <button class="filter-btn" data-filter="musica">M�sica</button>
+        <button class="filter-btn" data-filter="pintura">Pintura</button>
+        <button class="filter-btn" data-filter="teatro">Teatro</button>
+    </div>
+
+    <!-- Galeria -->
+    <div class="gallery-grid" id="gallery">
+        <!-- Renderizado via JavaScript -->
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">&times;</button>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+            <img class="lightbox-img" id="lightboxImg" src="" alt="Imagem da Galeria">
+            <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+            <div class="lightbox-caption" id="lightboxCaption"></div>
+        </div>
+    </div>
+
+    <script>
+        // Banco de Dados das Imagens
+        const galleryData = [
+            // Ballet
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7394.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7449.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7466.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7522.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7675.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7834.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7857.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7940.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7964.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7988.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8060.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8173.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8261.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8312.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8323.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8505.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8536.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II8865.jpg", category: "ballet", title: "Alice n�o Pa�s das Maravilhas" },
+
+            // Circo
+            { src: "imagesemca/circo/R6II4118.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4145.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4147.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4162.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4347.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4398.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4419.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4420.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4423.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4429.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4430.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4436.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4445.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4474.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4488.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4519.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4545.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4552.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4572.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4581.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4640.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4652.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4680.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4690.jpg", category: "circo", title: "Acrobacias e Tecido" },
+            { src: "imagesemca/circo/R6II4691.jpg", category: "circo", title: "Acrobacias e Tecido" },
+
+            // Dan�a
+            { src: "imagesemca/Alice n�o Pa�s das Maravilhas (Ballet)/R6II7394.jpg", category: "danca", title: "Apresenta��o de Dan�a" },
+
+            // Desenho
+            { src: "imagesemca/desenho/desenho1.jpg", category: "desenho", title: "Estudos de Desenho" },
+
+            // M�sica
+            { src: "imagesemca/musica/IMG_0126.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/IMG_0252.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/IMG_0373.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/IMG_0454.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4374.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4408.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4432.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4456.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4500.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4584.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4712.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4753.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4817.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4848.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4862.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II4916.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II5028.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II5051.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II5063.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II5091.jpg", category: "musica", title: "Apresenta��o Musical" },
+            { src: "imagesemca/musica/R6II5147.jpg", category: "musica", title: "Apresenta��o Musical" },
+
+            // Pintura
+            { src: "imagesemca/pintura/pintura1.jpg", category: "pintura", title: "Obras de Pintura" },
+
+            // Teatro
+            { src: "imagesemca/teatro/banheiro.jpeg", category: "teatro", title: "Bastidores e Apresenta��o" },
+            { src: "imagesemca/teatro/banheiro2.jpeg", category: "teatro", title: "Bastidores e Apresenta��o" },
+            { src: "imagesemca/teatro/estudio.jpeg", category: "teatro", title: "Estadios de Ensaio" },
+            { src: "imagesemca/teatro/teatro.jpeg", category: "teatro", title: "Palco Principal" },
+            { src: "imagesemca/teatro/teatro2.jpeg", category: "teatro", title: "Apresenta��o de Teatro" }
+        ];
+
+        let currentFilteredImages = [...galleryData];
+        let currentIndex = 0;
+
+        const galleryContainer = document.getElementById('gallery');
+        const filtersContainer = document.getElementById('filters');
+        
+        // Modal Elements
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        const btnClose = document.getElementById('lightboxClose');
+        const btnPrev = document.getElementById('lightboxPrev');
+        const btnNext = document.getElementById('lightboxNext');
+
+        // Randomizar o array inicial para ter um mix bonito
+        function shuffle(array) {
+            let remaining = array.length;
+            let randomIndex;
+            while (remaining !== 0) {
+                randomIndex = Math.floor(Math.random() * remaining);
+                remaining--;
+                [array[remaining], array[randomIndex]] = [array[randomIndex], array[remaining]];
+            }
+            return array;
+        }
+
+        // Renderizar Galeria
+        function renderGallery(filter = 'all') {
+            galleryContainer.innerHTML = '';
+            
+            if (filter === 'all') {
+                // Para nao travar o navegador carregando e animando 70+ imagens pesadas de uma vez,
+                // vamos exibir uma sele��o de 16 imagens misturadas ao carregar.
+                currentFilteredImages = shuffle([...galleryData]).slice(0, 16);
+            } else {
+                currentFilteredImages = galleryData.filter(img => img.category === filter);
+            }
+
+            currentFilteredImages.forEach((image, index) => {
+                const delay = (index % 10) * 0.05; // Cascading animation
+                
+                // Dire��es aleatarias para a entrada
+                const directions = [
+                    {x: '0px', y: '100px'},   // Baixo
+                    {x: '0px', y: '-100px'},  // Cima
+                    {x: '100px', y: '0px'},   // Direita
+                    {x: '-100px', y: '0px'}   // Esquerda
+                ];
+                const dir = directions[Math.floor(Math.random() * directions.length)];
+                
+                const item = document.createElement('div');
+                item.className = 'gallery-item animate-in';
+                
+                // Delay sequencial estrito para entrarem uma por uma
+                // (Limitado a %20 para evitar tempos gigantescos em categorias com mais imagens)
+                const realDelay = (index % 20) * 0.15; 
+                item.style.animationDelay = `${realDelay}s`;
+                
+                item.style.setProperty('--start-x', dir.x);
+                item.style.setProperty('--start-y', dir.y);
+                item.onclick = () => openLightbox(index);
+
+                const img = new Image();
+                img.src = image.src;
+                img.alt = image.title;
+                img.loading = "lazy";
+
+                const overlay = document.createElement('div');
+                overlay.className = 'item-overlay';
+                overlay.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-category">${image.category}</div>
+                    </div>
+                    <div class="zoom-icon"><i class="fa-solid fa-expand"></i></div>
+                `;
+
+                item.appendChild(img);
+                item.appendChild(overlay);
+                galleryContainer.appendChild(item);
+            });
+        }
+
+        // Sistema de Filtros
+        filtersContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                // Atualizar botoes ativos
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const filter = e.target.getAttribute('data-filter');
+                renderGallery(filter);
+            }
+        });
+
+        // Inicializar com "Todos"
+        renderGallery('all');
+
+        // Lightbox Logic
+        function openLightbox(index) {
+            currentIndex = index;
+            updateLightbox();
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Impede o scroll de fundo
+        }
+
+        function updateLightbox() {
+            const image = currentFilteredImages[currentIndex];
+            lightboxImg.src = image.src;
+            lightboxCaption.textContent = image.title;
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function prevImage(e) {
+            e.stopPropagation();
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : currentFilteredImages.length - 1;
+            updateLightbox();
+        }
+
+        function nextImage(e) {
+            e.stopPropagation();
+            currentIndex = (currentIndex < currentFilteredImages.length - 1) ? currentIndex + 1 : 0;
+            updateLightbox();
+        }
+
+        // Event Listeners for Lightbox
+        btnClose.addEventListener('click', closeLightbox);
+        btnPrev.addEventListener('click', prevImage);
+        btnNext.addEventListener('click', nextImage);
+        
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target === lightbox.querySelector('.lightbox-content')) {
+                closeLightbox();
+            }
+        });
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevImage(e);
+            if (e.key === 'ArrowRight') nextImage(e);
+        });
+
+        // Mobile Menu Toggle
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        const navList = document.querySelector('.nav-list');
+        
+        if(mobileBtn && navList) {
+            mobileBtn.addEventListener('click', () => {
+                navList.classList.toggle('active');
+                const icon = mobileBtn.querySelector('i');
+                if(navList.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-xmark');
+                } else {
+                    icon.classList.remove('fa-xmark');
+                    icon.classList.add('fa-bars');
+                }
+            });
+        }
+
+        // Mobile Dropdown Toggle
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        if(dropdownToggle) {
+            dropdownToggle.addEventListener('click', (e) => {
+                if(window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdownToggle.parentElement.classList.toggle('active');
+                }
+            });
+        }
+
+    </script>
+  <script>lucide.createIcons();</script>
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="n�one" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+</button>
+<style>
+    #backToTopBtn {
+        display: n�one;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        background: #ff716e;
+        color: white;
+        border: n�one;
+        border-radius: 50%;
+        width: 55px;
+        height: 55px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 113, 110, 0.4);
+        transition: all 0.3s ease;
+    }
+    #backToTopBtn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(255, 113, 110, 0.6);
+        background: #fa5f5c;
+    }
+    #backToTopBtn.show {
+        display: flex;
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+        #backToTopBtn {
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+    }
+
+        @media (max-width: 768px) {
+            .hide-mobile { display: n�one !important; }
+            .btn-mapa { padding: 8px 12px !important; font-size: 0.9rem !important; }
+        }
+        </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const backBtn = document.getElementById("backToTopBtn");
+        if (backBtn) {
+            window.addEventListener("scroll", () => {
+                if (window.scrollY > 400) {
+                    backBtn.classList.add("show");
+                } else {
+                    backBtn.classList.remove("show");
+                    backBtn.style.display = window.scrollY > 400 ? "flex" : "n�one";
+                }
+            });
+            backBtn.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+    });
+</script>
+<!-- /BACK TO TOP BUTTON -->
+
+  <!-- VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

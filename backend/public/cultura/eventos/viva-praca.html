@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viva Praça, Viva! - Eventos Garça</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="eventos.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="biblio-header" style="background-color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;">
+    <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5%;">
+      <div class="logo-area" onclick="window.location.href='../index.html'" style="cursor: pointer; display: flex; flex-direction: column;">
+        <span class="logo-title" style="font-family: 'Rubik', sans-serif; font-weight: 700; font-size: 1.5rem; color: #ff716e; letter-spacing: 2px;">GARÇA</span>
+        <span class="logo-subtitle" style="font-family: 'Rubik', sans-serif; font-size: 0.8rem; color: #364ba3; text-transform: uppercase; letter-spacing: 1px;">Cidade de Culturas</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="../index.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Início</a>
+        <a href="../emca/emca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">EMCA</a>
+        <a href="../biblioteca/biblioteca.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Biblioteca</a>
+        <a href="../teatro/teatro.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Teatro</a>
+        <a href="../museu/museu.html" class="nav-link" style="color: #475569; text-decoration: none; font-weight: 500; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Museu</a>
+        <a href="./eventos.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">Eventos</a>
+        <a href="../pnab.html" class="nav-link" style="color: #ea580c; text-decoration: none; font-weight: 700; font-family: 'Rubik', sans-serif; transition: color 0.3s;">PNAB</a>
+</nav>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="./eventos.html" class="btn-mapa" style="display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px 20px; border-radius: 30px; color: #1e293b; text-decoration: none; font-weight: 600; font-family: 'Rubik', sans-serif; transition: background 0.3s;">
+          <i data-lucide="arrow-left"></i> <span class="map-text">Voltar</span>
+        </a>
+        <button class="hamburger" onclick="toggleMenu()" style="background: none; border: none; color: #1e293b; cursor: pointer;">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU OVERLAY -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="../index.html" class="nav-link" onclick="toggleMenu()">Início</a>
+    <a href="../emca/emca.html" class="nav-link" onclick="toggleMenu()">EMCA</a>
+    <a href="../biblioteca/biblioteca.html" class="nav-link" onclick="toggleMenu()">Biblioteca</a>
+    <a href="../teatro/teatro.html" class="nav-link" onclick="toggleMenu()">Teatro</a>
+    <a href="../museu/museu.html" class="nav-link" onclick="toggleMenu()">Museu</a>
+    <a href="./eventos.html" class="nav-link" onclick="toggleMenu()">Eventos</a>
+    
+        <a href="../pnab.html" class="nav-link" onclick="toggleMenu()">PNAB</a>
+<div class="mobile-menu-actions">
+      <a href="../mapa.html" class="mobile-btn-mapa"><i data-lucide="map" style="width:18px;height:18px;"></i> Mapa Cultural</a>
+      <a href="../login.html" class="mobile-btn-login"><i data-lucide="log-in" style="width:18px;height:18px;"></i> Login</a>
+      <a href="../cadastro.html" class="mobile-btn-cadastro"><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Cadastre-se</a>
+    </div>
+  </div>
+
+  <script>
+    if (typeof toggleMenu === 'undefined') {
+      window.toggleMenu = function() {
+        const menu = document.getElementById("mobile-menu");
+        const overlay = document.getElementById("menu-overlay");
+        if (menu) {
+            menu.classList.toggle("open");
+            if(menu.classList.contains("open")) {
+                overlay.classList.add("active");
+            } else {
+                overlay.classList.remove("active");
+            }
+        }
+      }
+    }
+  </script>
+
+
+  <main class="news-detail-container">
+    <div class="news-hero">
+      <div class="news-badge" style="background: #ea580c;">Ao Ar Livre</div>
+      <h1 class="news-title">Viva Praça, Viva!</h1>
+      <div class="news-meta">
+        <span><i data-lucide="calendar"></i> 28 de Março de 2025</span>
+        <span><i data-lucide="clock"></i> 18h30</span>
+        <span><i data-lucide="map-pin"></i> Lago Artificial</span>
+      </div>
+    </div>
+
+    <div class="news-content">
+      <p class="lead-text">O Viva Praça Viva está de volta e será no Lago Artificial! Eventos ocasionais organizados pela Secretaria de Cultura trazendo uma programação especial com música, gastronomia, artesanato e muitas outras atrações para toda a família.</p>
+      
+      <h2>Programação Musical</h2>
+      <p>Confira a programação completa para a noite do evento:</p>
+      <ul>
+        <li><strong>18h30</strong> – Abertura</li>
+        <li><strong>19h30</strong> – Grupo Resenha: Uma apresentação vibrante de samba e pagode.</li>
+        <li><strong>20h30</strong> – Bon Odori: Uma verdadeira imersão na cultura japonesa.</li>
+        <li><strong>21h00</strong> – Banda Ponto G: Para fechar a noite com chave de ouro, o melhor do forró.</li>
+      </ul>
+      
+      <h2>Gastronomia e Artesanato</h2>
+      <p>A Feira Sabor e Arte traz uma seleção de expositores com delícias gastronômicas e artesanato local, proporcionando uma experiência completa para o público. Saboreie pratos incríveis enquanto aprecia o talento dos artesãos da Casa do artesão de Garça.</p>
+
+      <div class="news-footer-info">
+        <strong>Realização:</strong> SECULT e SEDETUR<br>
+        PREFEITURA MUNICIPAL - Administração 2025-2028
+      </div>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      if(menu) menu.classList.toggle('active');
+    }
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>

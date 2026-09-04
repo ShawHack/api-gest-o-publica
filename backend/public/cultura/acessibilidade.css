@@ -1,0 +1,273 @@
+/* ==========================================================================
+   ACESSBILIDADE UNIVERSAL - PREFEITURA DE GARÇA (SECULT / CULTURA)
+   Conformidade com eMAG, WCAG 2.1 AA e Diretrizes de Inclusão Digital
+   ========================================================================== */
+
+/* 1. Skip Links para Teclado (Visíveis apenas com foco) */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 10px;
+  background: #0b5fff;
+  color: #ffffff !important;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 0 0 8px 8px;
+  z-index: 999999;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #ffcc00;
+}
+
+/* 2. Botão Flutuante de Acessibilidade */
+#accessibility-trigger {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0b5fff 0%, #003db3 100%);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99998;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+#accessibility-trigger:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 25px rgba(11, 95, 255, 0.5);
+}
+#accessibility-trigger:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 3px;
+}
+#accessibility-trigger svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+/* 3. Modal / Menu de Ferramentas de Acessibilidade */
+#accessibility-modal {
+  position: fixed;
+  bottom: 85px;
+  left: 24px;
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e5e7eb;
+  z-index: 99999;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: a11yFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+}
+#accessibility-modal.open {
+  display: flex;
+}
+@keyframes a11yFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.a11y-header {
+  background: #0b5fff;
+  color: #ffffff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 16px;
+}
+.a11y-header button {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+}
+.a11y-header button:focus {
+  outline: 2px solid #ffcc00;
+}
+
+.a11y-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.a11y-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.a11y-btn-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.a11y-btn-group-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.a11y-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #1f2937;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.a11y-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+.a11y-btn:focus-visible {
+  outline: 2px solid #0b5fff;
+}
+.a11y-btn.active {
+  background: #0b5fff;
+  color: #ffffff;
+  border-color: #003db3;
+}
+
+.a11y-footer {
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+.a11y-reset-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.a11y-reset-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* ==========================================================================
+   MODOS DE ACESSIBILIDADE ATIVADOS (Aplicados na tag <html> ou <body>)
+   ========================================================================== */
+
+/* Alto Contraste */
+html.a11y-high-contrast {
+  filter: contrast(140%) !important;
+}
+html.a11y-high-contrast body {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+}
+html.a11y-high-contrast * {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffff00 !important;
+}
+html.a11y-high-contrast a,
+html.a11y-high-contrast button {
+  color: #ffff00 !important;
+  text-decoration: underline !important;
+}
+html.a11y-high-contrast img,
+html.a11y-high-contrast video,
+html.a11y-high-contrast iframe {
+  filter: contrast(120%) brightness(95%) !important;
+}
+
+/* Monocromático / Preto e Branco */
+html.a11y-monochrome {
+  filter: grayscale(100%) !important;
+}
+
+/* Fonte para Dislexia */
+html.a11y-dyslexic * {
+  font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif !important;
+  letter-spacing: 0.8px !important;
+  word-spacing: 2px !important;
+  line-height: 1.8 !important;
+}
+
+/* Espaçamento Expandido */
+html.a11y-spacing * {
+  letter-spacing: 1px !important;
+  line-height: 2 !important;
+  word-spacing: 3px !important;
+}
+
+/* Destaque de Links */
+html.a11y-highlight-links a {
+  background-color: #ffeb3b !important;
+  color: #000000 !important;
+  text-decoration: underline !important;
+  font-weight: 700 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+/* Cursor Ampliado */
+html.a11y-large-cursor,
+html.a11y-large-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='%230b5fff' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='m3 3 7 18 3-7 7-3L3 3z'/%3E%3C/svg%3E"), auto !important;
+}
+
+/* Guia de Leitura */
+#a11y-reading-guide {
+  display: none;
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  height: 24px;
+  background: rgba(255, 235, 59, 0.35);
+  border-top: 2px solid #f59e0b;
+  border-bottom: 2px solid #f59e0b;
+  pointer-events: none;
+  z-index: 99997;
+}
+html.a11y-guide-active #a11y-reading-guide {
+  display: block;
+}

@@ -39,10 +39,6 @@
     .opt input { width: auto; }
     .cand-line { display: flex; align-items: center; gap: 12px; }
     .cand-photo { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid #e2e8f0; }
-    .candidate-search { margin: 12px 0; }
-    .candidate-search input { background: #fff; }
-    .candidate-search-count { margin: 6px 0 0; }
-    .candidate-empty { display: none; padding: 12px; margin: 8px 0; border-radius: 8px; background: #f8fafc; }
     .steps { display: flex; gap: 6px; margin-bottom: 12px; }
     .step { flex: 1; text-align: center; padding: 6px; border-radius: 6px; background: #e2e8f0; font-size: 0.8rem; }
     .step.on { background: var(--primary); color: #fff; }
@@ -376,56 +372,18 @@
       return c ? `${c.number} — ${c.name}` : 'Candidato';
     }
 
-    function normalizeCandidateSearch(value) {
-      return String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .trim();
-    }
-
-    function filterCandidates(catId, value) {
-      const category = S.ballot.find((cat) => cat.id === catId);
-      if (!category) return;
-      const term = normalizeCandidateSearch(value);
-      let visible = 0;
-      document.querySelectorAll(`[data-candidate-category="${catId}"]`).forEach((option) => {
-        const candidateId = option.getAttribute('data-candidate-id');
-        const candidate = (category.candidates || []).find((item) => item.id === candidateId);
-        const matches = !term || normalizeCandidateSearch(candidate?.name).includes(term);
-        option.style.display = matches ? 'flex' : 'none';
-        if (matches) visible += 1;
-      });
-      const count = el(`candidateCount_${catId}`);
-      if (count) count.textContent = term
-        ? `${visible} candidato(s) encontrado(s)`
-        : `${(category.candidates || []).length} candidato(s)`;
-      const empty = el(`candidateEmpty_${catId}`);
-      if (empty) empty.style.display = visible ? 'none' : 'block';
-    }
-
     function renderBallot() {
       el('ballotBody').innerHTML = S.ballot.map((cat) => `
         <div class="category">
           <h3>${cat.name}</h3>
           ${cat.description ? `<p class="muted">${cat.description}</p>` : ''}
-          ${(cat.candidates || []).length > 20 ? `
-            <div class="candidate-search">
-              <label for="candidateSearch_${cat.id}">Pesquisar candidato por nome</label>
-              <input id="candidateSearch_${cat.id}" type="search" autocomplete="off"
-                placeholder="Digite o nome do candidato"
-                oninput="filterCandidates('${cat.id}', this.value)" />
-              <p class="muted candidate-search-count" id="candidateCount_${cat.id}">${(cat.candidates || []).length} candidato(s)</p>
-            </div>
-          ` : ''}
           ${(cat.candidates || []).map((c) => `
-            <label class="opt cand-line" data-candidate-category="${cat.id}" data-candidate-id="${c.id}">
+            <label class="opt cand-line">
               <input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'candidate', '${c.id}')" />
               ${c.photoUrl ? `<img class="cand-photo" src="${c.photoUrl}" alt="" />` : ''}
               <span><strong>${c.number}</strong> — ${c.name}</span>
             </label>
           `).join('')}
-          ${(cat.candidates || []).length > 20 ? `<p class="muted candidate-empty" id="candidateEmpty_${cat.id}">Nenhum candidato encontrado com esse nome.</p>` : ''}
           <label class="opt"><input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'blank')" /> Voto em branco</label>
           <label class="opt"><input type="radio" name="cat_${cat.id}" onchange="pick('${cat.id}', 'null')" /> Voto nulo</label>
         </div>
@@ -527,7 +485,6 @@
     }
 
     window.pick = pick;
-    window.filterCandidates = filterCandidates;
 
     el('btnUnlock').addEventListener('click', unlock);
     el('btnReview').addEventListener('click', () => { renderReview(); setStep(2); });

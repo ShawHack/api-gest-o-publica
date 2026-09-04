@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Votação</title>
+  <style>
+    :root { --blue: #1e3a8a; --bg: #f0f4fa; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: #1f2937; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    h1 { color: var(--blue); font-size: 1.3rem; }
+    .card { background: #fff; border: 1px solid #dbe3f2; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    input, select, textarea, button { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    button { background: var(--blue); color: #fff; border-color: var(--blue); cursor: pointer; }
+    button.secondary { background: #fff; color: var(--blue); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 8px; }
+    .row > * { flex: 1; min-width: 120px; }
+    label { font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: left; }
+    .muted { color: #64748b; font-size: 0.85rem; }
+    .danger { color: #b91c1c; }
+    .tabs button { margin-right: 6px; margin-bottom: 8px; }
+    .tabs button.active { background: #0f766e; border-color: #0f766e; }
+    pre { background: #f8fafc; padding: 10px; overflow: auto; font-size: 0.8rem; border-radius: 8px; }
+    .cand-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; flex-shrink: 0; }
+    .cand-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap; }
+    .cand-actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+    .cand-edit { width: 100%; margin-top: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .cand-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; align-items: end; }
+    .cand-form-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    #candPhotoPreview { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; display: none; margin-top: 8px; }
+    .link-btn { background: none; border: none; color: #1e3a8a; cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+    .link-btn.danger { color: #b91c1c; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+    .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-card strong { display: block; font-size: 1.6rem; color: var(--blue); line-height: 1.2; }
+    .stat-card span { font-size: 0.8rem; color: #64748b; }
+    .apur-cat { margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+    .apur-cat h4 { margin: 0 0 12px; color: var(--blue); }
+    .stack-bar { display: flex; height: 28px; border-radius: 8px; overflow: hidden; background: #e2e8f0; margin-bottom: 8px; }
+    .stack-seg { height: 100%; min-width: 2px; transition: width .3s; }
+    .stack-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; font-size: 0.8rem; margin-bottom: 14px; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; }
+    .rank-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .rank-table th { font-size: 0.75rem; color: #64748b; font-weight: 600; padding: 8px 6px; border-bottom: 2px solid #e2e8f0; }
+    .rank-table td { padding: 10px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .rank-table tr.leader { background: #f0fdf4; }
+    .rank-bar-wrap { background: #e2e8f0; border-radius: 6px; height: 8px; min-width: 80px; }
+    .rank-bar { height: 100%; border-radius: 6px; background: var(--blue); }
+    .rank-pos { font-weight: 700; color: #64748b; width: 32px; }
+    .badge-partial { display: inline-block; background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; margin-bottom: 12px; }
+    .donut-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+    .donut { width: 120px; height: 120px; border-radius: 50%; position: relative; flex-shrink: 0; }
+    .donut-hole { position: absolute; inset: 22px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 0.75rem; color: #64748b; }
+    .donut-hole strong { font-size: 1.1rem; color: var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Administração — Votação de Servidores</h1>
+    <p class="muted"><a href="index.html">Portal do eleitor</a></p>
+
+    <div class="card">
+      <p class="muted">Acesso restrito a usuários com perfil <strong>admin-votacao</strong> ou <strong>admin</strong> do Memorial.</p>
+      <div class="row">
+        <div><label>E-mail</label><input id="adminEmail" type="email" autocomplete="username" /></div>
+        <div><label>Senha</label><input id="adminPassword" type="password" autocomplete="current-password" /></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <button id="btnLoginAdmin">Entrar</button>
+        <button id="btnLogoutAdmin" class="secondary" style="display:none;">Sair</button>
+      </div>
+      <p id="authMsg" class="muted"></p>
+    </div>
+
+    <div id="panel" style="display:none;">
+      <div class="card tabs">
+        <button class="active" data-tab="dash">Dashboard</button>
+        <button data-tab="pleitos">Pleitos</button>
+        <button data-tab="eleitores">Eleitores</button>
+        <button data-tab="apuracao">Apuração</button>
+      </div>
+
+      <div class="card tab-pane" id="tab-dash">
+        <h3>Resumo</h3>
+        <pre id="dashData">—</pre>
+      </div>
+
+      <div class="card tab-pane" id="tab-pleitos" style="display:none;">
+        <h3>Novo pleito</h3>
+        <div class="row">
+          <div><label>Título</label><input id="pTitle" /></div>
+          <div><label>Início</label><input id="pStart" type="datetime-local" /></div>
+          <div><label>Fim</label><input id="pEnd" type="datetime-local" /></div>
+        </div>
+        <div class="row"><div><label>Descrição</label><textarea id="pDesc" rows="2"></textarea></div></div>
+        <button id="btnCreatePleito">Criar pleito</button>
+        <hr />
+        <h3>Pleitos</h3>
+        <div id="pleitosList" class="muted">Carregando...</div>
+        <div id="pleitoDetail" style="display:none;margin-top:16px;">
+          <h3 id="detailTitle"></h3>
+          <p class="muted" id="landingUrlBlock" style="display:none;">Landing page: <a id="landingUrl" href="#" target="_blank" rel="noopener"></a></p>
+          <h4>Identidade da landing page</h4>
+          <div class="row">
+            <div><label>Instruções aos eleitores</label><textarea id="pInstructions" rows="3" placeholder="Orientações exibidas na página do pleito"></textarea></div>
+          </div>
+          <div class="row">
+            <div><label>Cor do tema</label><input id="pTheme" type="color" value="#1e3a8a" /></div>
+            <div><label>Banner (capa)</label><input id="pBanner" type="file" accept="image/*" /><p class="muted" style="margin:4px 0 0;">Recomendado: 1200×630 px (formato Facebook), JPG ou PNG.</p></div>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <button id="btnSaveLanding">Salvar landing page</button>
+          </div>
+          <p id="landingMsg" class="muted"></p>
+          <hr />
+          <div class="row">
+            <select id="pStatus"><option value="draft">Rascunho</option><option value="active">Ativo</option><option value="closed">Encerrado</option></select>
+            <button id="btnPatchPleito">Salvar status</button>
+          </div>
+          <h4>Categorias / Cargos</h4>
+          <div class="row">
+            <div><label>Nome</label><input id="catName" /></div>
+            <div><label>Ordem</label><input id="catOrder" type="number" value="0" /></div>
+            <button id="btnAddCat">Adicionar</button>
+          </div>
+          <div id="catsList"></div>
+          <h4>Candidatos</h4>
+          <div class="cand-form-grid">
+            <div><label>Categoria</label><select id="candCat"></select></div>
+            <div><label>Número</label><input id="candNum" type="number" min="1" /></div>
+            <div><label>Nome</label><input id="candName" /></div>
+            <div><label>Foto</label><input id="candPhoto" type="file" accept="image/*" /></div>
+          </div>
+          <div class="cand-form-actions">
+            <img id="candPhotoPreview" alt="Prévia da foto" />
+            <button id="btnAddCand">Adicionar candidato</button>
+          </div>
+          <div id="candsList" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <div class="card tab-pane" id="tab-eleitores" style="display:none;">
+        <h3>Importar CSV</h3>
+        <p class="muted">Colunas: Nome; Empresa; Departamento; Cargo; Matrícula; CPF (separador ;)</p>
+        <textarea id="csvContent" rows="6" placeholder="Cole o conteúdo do CSV ou use o endpoint com arquivo no servidor"></textarea>
+        <button id="btnImport">Importar eleitores</button>
+        <pre id="importResult"></pre>
+        <h3>Cadastrados</h3>
+        <div id="servidoresList" class="muted">—</div>
+      </div>
+
+      <div class="card tab-pane" id="tab-apuracao" style="display:none;">
+        <h3>Dashboard de apuração</h3>
+        <div class="row">
+          <div><label>Pleito</label><select id="apurPleito"></select></div>
+          <button id="btnApurar">Atualizar</button>
+          <button class="secondary" id="btnExportVotos">Exportar votos (sigiloso)</button>
+          <button class="secondary" id="btnExportPresenca">Exportar comparecimento</button>
+        </div>
+        <p id="apurMsg" class="muted">Selecione um pleito e clique em Atualizar.</p>
+        <div id="apurDashboard"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/votacao';
+    const MEMORIAL_API = '/api/users';
+    const ALLOWED_ROLES = new Set(['admin', 'admin-votacao']);
+    let token = localStorage.getItem('votacao_admin_token') || '';
+    let selectedPleito = null;
+    let pleitoCategories = [];
+    let editingCandId = null;
+    const el = (id) => document.getElementById(id);
+
+    function esc(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+
+    function categoryOptions(selectedId) {
+      return pleitoCategories.map((c) =>
+        `<option value="${c._id}" ${String(c._id) === String(selectedId) ? 'selected' : ''}>${esc(c.name)}</option>`
+      ).join('');
+    }
+
+    async function api(path, opts = {}) {
+      const headers = { ...(opts.headers || {}) };
+      if (!opts.rawBody) headers['Content-Type'] = 'application/json';
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const r = await fetch(`${API}${path}`, { ...opts, headers });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.message || `Erro ${r.status}`);
+      return data;
+    }
+
+    el('candPhoto').addEventListener('change', () => {
+      const file = el('candPhoto').files?.[0];
+      const preview = el('candPhotoPreview');
+      if (!file) {
+        preview.style.display = 'none';
+        preview.src = '';
+        return;
+      }
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    });
+
+    function showTab(name) {
+      document.querySelectorAll('.tab-pane').forEach((p) => p.style.display = 'none');
+      document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+      el('tab-' + name).style.display = 'block';
+      if (name === 'apuracao' && el('apurPleito').value) apurar();
+    }
+
+    const CHART_COLORS = ['#1e3a8a', '#0f766e', '#7c3aed', '#db2777', '#ea580c', '#0891b2', '#65a30d', '#64748b'];
+
+    function pct(n, total) {
+      if (!total) return 0;
+      return Math.round((n * 10000) / total) / 100;
+    }
+
+    function donutStyle(segments) {
+      if (!segments.length) return 'background:#e2e8f0';
+      let acc = 0;
+      const parts = segments.map((s, i) => {
+        const start = acc;
+        acc += s.pct;
+        return `${CHART_COLORS[i % CHART_COLORS.length]} ${start}% ${acc}%`;
+      });
+      return `background:conic-gradient(${parts.join(', ')})`;
+    }
+
+    function renderApuracaoDashboard(data) {
+      const host = el('apurDashboard');
+      const eligible = data.eligibleVoters || 0;
+      const participants = data.participants || 0;
+      const abstentions = data.abstentions || 0;
+      const turnout = pct(participants, eligible);
+      const abstPct = pct(abstentions, eligible);
+
+      let html = '';
+      if (data.partial) {
+        html += '<div class="badge-partial">Apuração parcial — pleito ainda em andamento</div>';
+      }
+      html += `<div class="stats-grid">
+        <div class="stat-card"><strong>${eligible}</strong><span>Eleitores aptos</span></div>
+        <div class="stat-card"><strong>${participants}</strong><span>Votaram</span></div>
+        <div class="stat-card"><strong>${abstentions}</strong><span>Abstenções</span></div>
+        <div class="stat-card"><strong>${turnout}%</strong><span>Comparecimento</span></div>
+        <div class="stat-card"><strong>${abstPct}%</strong><span>Abstenção</span></div>
+      </div>`;
+
+      const categories = data.categories || [];
+      if (!categories.length) {
+        html += '<p class="muted">Nenhuma categoria configurada neste pleito.</p>';
+        host.innerHTML = html;
+        return;
+      }
+
+      categories.forEach((cat) => {
+        const total = cat.totalVotes || 0;
+        const segments = [];
+        (cat.candidates || []).forEach((c, i) => {
+          if (c.votes > 0) segments.push({ label: `${c.number} ${c.name}`, votes: c.votes, pct: pct(c.votes, total) });
+        });
+        if (cat.blank > 0) segments.push({ label: 'Branco', votes: cat.blank, pct: pct(cat.blank, total) });
+        if (cat.null > 0) segments.push({ label: 'Nulo', votes: cat.null, pct: pct(cat.null, total) });
+
+        html += `<div class="apur-cat">
+          <h4>${esc(cat.name)} <span class="muted">(${total} voto${total === 1 ? '' : 's'} na categoria)</span></h4>
+          <div class="donut-wrap">
+            <div class="donut" style="${donutStyle(segments)}">
+              <div class="donut-hole"><strong>${total}</strong>votos</div>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <div class="stack-bar">`;
+        segments.forEach((s, i) => {
+          html += `<div class="stack-seg" style="width:${s.pct}%;background:${CHART_COLORS[i % CHART_COLORS.length]}" title="${esc(s.label)}: ${s.votes} (${s.pct}%)"></div>`;
+        });
+        html += `</div>
+              <div class="stack-legend">`;
+        segments.forEach((s, i) => {
+          html += `<span><span class="legend-dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>${esc(s.label)}: ${s.votes} (${s.pct}%)</span>`;
+        });
+        html += `</div></div></div>`;
+
+        const ranked = [...(cat.candidates || [])].sort((a, b) => b.votes - a.votes);
+        html += `<table class="rank-table">
+          <thead><tr>
+            <th>#</th><th>Candidato</th><th>Votos</th><th>%</th><th>Distribuição</th>
+          </tr></thead><tbody>`;
+        ranked.forEach((c, idx) => {
+          const p = pct(c.votes, total);
+          const isLeader = idx === 0 && c.votes > 0;
+          const thumb = c.photoUrl
+            ? `<img class="cand-thumb" src="${esc(c.photoUrl)}" alt="" />`
+            : '<span class="cand-thumb" style="display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;font-size:9px;color:#94a3b8;">—</span>';
+          html += `<tr class="${isLeader ? 'leader' : ''}">
+            <td class="rank-pos">${idx + 1}º</td>
+            <td><div class="cand-row" style="border:0;padding:0;">${thumb}<div><strong>${esc(c.number)} — ${esc(c.name)}</strong>${isLeader ? ' <span style="color:#0f766e;font-size:0.8rem;">▲ líder</span>' : ''}</div></div></td>
+            <td><strong>${c.votes}</strong></td>
+            <td>${p}%</td>
+            <td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${p}%"></div></div></td>
+          </tr>`;
+        });
+        if (cat.blank > 0 || cat.null > 0) {
+          if (cat.blank > 0) {
+            const p = pct(cat.blank, total);
+            html += `<tr><td class="rank-pos">—</td><td><em>Voto em branco</em></td><td>${cat.blank}</td><td>${p}%</td><td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${p}%;background:#94a3b8"></div></div></td></tr>`;
+          }
+          if (cat.null > 0) {
+            const p = pct(cat.null, total);
+            html += `<tr><td class="rank-pos">—</td><td><em>Voto nulo</em></td><td>${cat.null}</td><td>${p}%</td><td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${p}%;background:#cbd5e1"></div></div></td></tr>`;
+          }
+        }
+        html += `</tbody></table></div>`;
+      });
+
+      host.innerHTML = html;
+    }
+
+    async function apurar() {
+      const id = el('apurPleito').value;
+      if (!id) {
+        el('apurMsg').textContent = 'Selecione um pleito.';
+        el('apurDashboard').innerHTML = '';
+        return;
+      }
+      el('apurMsg').textContent = 'Carregando apuração...';
+      el('apurDashboard').innerHTML = '';
+      try {
+        const data = await api(`/admin/votacoes/${id}/resultado-v2`);
+        el('apurMsg').textContent = `${data.votation?.title || 'Pleito'} — atualizado em ${new Date().toLocaleString('pt-BR')}`;
+        renderApuracaoDashboard(data);
+      } catch (e) {
+        el('apurMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+        el('apurDashboard').innerHTML = '';
+      }
+    }
+
+    async function loginAdmin() {
+      const email = el('adminEmail').value.trim();
+      const password = el('adminPassword').value;
+      if (!email || !password) {
+        el('authMsg').textContent = 'Informe e-mail e senha.';
+        return;
+      }
+      el('authMsg').textContent = 'Autenticando...';
+      try {
+        const r = await fetch(`${MEMORIAL_API}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.message || 'Falha no login.');
+        const role = data.role || data.user?.role || '';
+        if (!ALLOWED_ROLES.has(role)) {
+          throw new Error('Sem permissão. Solicite o perfil admin-votacao à SEMIT.');
+        }
+        token = data.accessToken || data.token;
+        localStorage.setItem('votacao_admin_token', token);
+        el('authMsg').innerHTML = `<span style="color:#0f766e">Bem-vindo(a), ${data.user?.name || email}.</span>`;
+        el('btnLogoutAdmin').style.display = 'inline-block';
+        await openPanel();
+      } catch (e) {
+        el('authMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+        el('panel').style.display = 'none';
+      }
+    }
+
+    function logoutAdmin() {
+      token = '';
+      localStorage.removeItem('votacao_admin_token');
+      el('panel').style.display = 'none';
+      el('btnLogoutAdmin').style.display = 'none';
+      el('authMsg').textContent = 'Sessão encerrada.';
+    }
+
+    async function openPanel() {
+      const dash = await api('/admin/dashboard');
+      el('panel').style.display = 'block';
+      el('dashData').textContent = JSON.stringify(dash, null, 2);
+      await loadPleitos();
+      await loadServidores();
+    }
+
+    async function connect() {
+      try {
+        await openPanel();
+        el('authMsg').textContent = 'Sessão restaurada.';
+        el('btnLogoutAdmin').style.display = 'inline-block';
+      } catch (e) {
+        el('authMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+        logoutAdmin();
+      }
+    }
+
+    async function loadPleitos() {
+      const data = await api('/admin/votacoes');
+      const list = data.votations || [];
+      el('pleitosList').innerHTML = list.length
+        ? list.map((v) => {
+          const landing = v.slug ? `/votacao/p/${v.slug}` : '';
+          const landingLink = landing ? ` <a class="muted" href="${landing}" target="_blank" rel="noopener">[landing]</a>` : '';
+          return `<div><button class="secondary" onclick="selectPleito('${v._id}','${v.title.replace(/'/g, '')}')">${v.title}</button> <span class="muted">[${v.status}]</span>${landingLink}</div>`;
+        }).join('')
+        : '<p>Nenhum pleito.</p>';
+      el('apurPleito').innerHTML = list.map((v) => `<option value="${v._id}">${v.title}</option>`).join('');
+    }
+
+    async function selectPleito(id, title) {
+      selectedPleito = id;
+      el('pleitoDetail').style.display = 'block';
+      el('detailTitle').textContent = title;
+      const data = await api(`/admin/votacoes/${id}/detail`);
+      pleitoCategories = data.categories || [];
+      editingCandId = null;
+      el('pStatus').value = data.votation.status;
+      if (data.votation.slug) {
+        const url = `/votacao/p/${data.votation.slug}`;
+        el('landingUrlBlock').style.display = 'block';
+        el('landingUrl').href = url;
+        el('landingUrl').textContent = url;
+      } else {
+        el('landingUrlBlock').style.display = 'none';
+      }
+      el('pInstructions').value = data.votation.voterInstructions || '';
+      el('pTheme').value = data.votation.themeColor || '#1e3a8a';
+      el('pBanner').value = '';
+      el('landingMsg').textContent = data.votation.bannerUrl ? `Banner atual: ${data.votation.bannerUrl}` : '';
+      el('catsList').innerHTML = pleitoCategories.map((c) =>
+        `<div>${c.order}. <strong>${esc(c.name)}</strong> <span class="muted">${c.active ? '' : '(inativa)'}</span></div>`
+      ).join('') || '<p class="muted">Nenhuma categoria.</p>';
+      el('candCat').innerHTML = categoryOptions('');
+      renderCandidatesList(data.candidates || []);
+    }
+
+    function renderCandidatesList(candidates) {
+      el('candsList').innerHTML = candidates.length ? candidates.map((c) => {
+        const cat = pleitoCategories.find((x) => String(x._id) === String(c.categoryId));
+        const thumb = c.photoUrl
+          ? `<img class="cand-thumb" src="${esc(c.photoUrl)}" alt="" />`
+          : '<span class="cand-thumb" style="display:inline-flex;align-items:center;justify-content:center;background:#f1f5f9;font-size:10px;color:#94a3b8;">sem foto</span>';
+        const editing = editingCandId === String(c._id);
+        const editPanel = editing ? `
+          <div class="cand-edit">
+            <div class="cand-form-grid">
+              <div><label>Categoria</label><select id="editCat_${c._id}">${categoryOptions(c.categoryId)}</select></div>
+              <div><label>Número</label><input id="editNum_${c._id}" type="number" min="1" value="${esc(c.number)}" /></div>
+              <div><label>Nome</label><input id="editName_${c._id}" value="${esc(c.name)}" /></div>
+              <div><label>Ativo</label><select id="editActive_${c._id}"><option value="true" ${c.active !== false ? 'selected' : ''}>Sim</option><option value="false" ${c.active === false ? 'selected' : ''}>Não</option></select></div>
+              <div><label>Nova foto</label><input id="editPhoto_${c._id}" type="file" accept="image/*" /></div>
+            </div>
+            <div class="cand-form-actions">
+              <button onclick="saveCandEdit('${c._id}')">Salvar</button>
+              <button class="secondary" onclick="cancelCandEdit()">Cancelar</button>
+            </div>
+          </div>` : '';
+        return `<div class="cand-block">
+          <div class="cand-row">
+            ${thumb}
+            <div>
+              <div><strong>#${esc(c.number)} ${esc(c.name)}</strong></div>
+              <div class="muted">${esc(cat?.name || 'Sem categoria')} · ${c.active !== false ? 'ativo' : 'inativo'}</div>
+            </div>
+            <div class="cand-actions">
+              <button type="button" class="link-btn" onclick="startCandEdit('${c._id}')">Editar</button>
+              <button type="button" class="link-btn danger" onclick="deleteCand('${c._id}')">Excluir</button>
+            </div>
+          </div>
+          ${editPanel}
+        </div>`;
+      }).join('') : '<p class="muted">Nenhum candidato.</p>';
+    }
+
+    function startCandEdit(id) {
+      editingCandId = String(id);
+      api(`/admin/votacoes/${selectedPleito}/detail`).then((data) => {
+        renderCandidatesList(data.candidates || []);
+      });
+    }
+
+    function cancelCandEdit() {
+      editingCandId = null;
+      api(`/admin/votacoes/${selectedPleito}/detail`).then((data) => {
+        renderCandidatesList(data.candidates || []);
+      });
+    }
+
+    async function saveCandEdit(id) {
+      if (!selectedPleito) return;
+      const photoInput = document.getElementById(`editPhoto_${id}`);
+      const photoFile = photoInput?.files?.[0];
+      const payload = {
+        categoryId: document.getElementById(`editCat_${id}`).value,
+        number: Number(document.getElementById(`editNum_${id}`).value),
+        name: document.getElementById(`editName_${id}`).value.trim(),
+        active: document.getElementById(`editActive_${id}`).value === 'true',
+      };
+      if (!payload.name || !payload.number) return alert('Nome e número são obrigatórios.');
+      try {
+        if (photoFile) {
+          const fd = new FormData();
+          Object.entries(payload).forEach(([k, v]) => fd.append(k, String(v)));
+          fd.append('photo', photoFile);
+          const r = await fetch(`${API}/admin/votacoes/${selectedPleito}/candidates-v2/${id}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}` },
+            body: fd,
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(data.message || 'Erro ao salvar.');
+        } else {
+          await api(`/admin/votacoes/${selectedPleito}/candidates-v2/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+        }
+        editingCandId = null;
+        await selectPleito(selectedPleito, el('detailTitle').textContent);
+      } catch (e) {
+        alert(e.message || 'Erro ao salvar candidato.');
+      }
+    }
+
+    async function deleteCand(id) {
+      if (!selectedPleito) return;
+      if (!confirm('Excluir este candidato?')) return;
+      try {
+        await api(`/admin/votacoes/${selectedPleito}/candidates-v2/${id}`, { method: 'DELETE' });
+        editingCandId = null;
+        await selectPleito(selectedPleito, el('detailTitle').textContent);
+      } catch (e) {
+        alert(e.message || 'Erro ao excluir.');
+      }
+    }
+
+    async function changeCandPhoto(candidateId, input) {
+      if (!selectedPleito || !input.files?.[0]) return;
+      const fd = new FormData();
+      fd.append('photo', input.files[0]);
+      const r = await fetch(`${API}/admin/votacoes/${selectedPleito}/candidates-v2/${candidateId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) return alert(data.message || 'Erro ao enviar foto.');
+      await selectPleito(selectedPleito, el('detailTitle').textContent);
+    }
+    window.changeCandPhoto = changeCandPhoto;
+    window.startCandEdit = startCandEdit;
+    window.cancelCandEdit = cancelCandEdit;
+    window.saveCandEdit = saveCandEdit;
+    window.deleteCand = deleteCand;
+    window.selectPleito = selectPleito;
+
+    async function createPleito() {
+      const title = el('pTitle').value.trim();
+      const startDate = el('pStart').value;
+      const endDate = el('pEnd').value;
+      const description = el('pDesc').value.trim();
+      if (!title || !startDate || !endDate) return alert('Preencha título e datas.');
+      const data = await api('/admin/votacoes', { method: 'POST', body: JSON.stringify({ title, description, startDate, endDate, status: 'draft' }) });
+      await loadPleitos();
+      if (data.landingUrl) alert(`Pleito criado. Landing page: ${data.landingUrl}`);
+    }
+
+    async function saveLanding() {
+      if (!selectedPleito) return;
+      const fd = new FormData();
+      fd.append('voterInstructions', el('pInstructions').value.trim());
+      fd.append('themeColor', el('pTheme').value);
+      const banner = el('pBanner').files?.[0];
+      if (banner) fd.append('banner', banner);
+      el('landingMsg').textContent = 'Salvando...';
+      try {
+        const r = await fetch(`${API}/admin/votacoes/${selectedPleito}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.message || 'Erro ao salvar.');
+        el('landingMsg').textContent = data.landingUrl ? `Salvo. URL: ${data.landingUrl}` : 'Salvo.';
+        await selectPleito(selectedPleito, el('detailTitle').textContent);
+      } catch (e) {
+        el('landingMsg').innerHTML = `<span class="danger">${e.message}</span>`;
+      }
+    }
+
+    async function patchPleito() {
+      if (!selectedPleito) return;
+      await api(`/admin/votacoes/${selectedPleito}`, { method: 'PATCH', body: JSON.stringify({ status: el('pStatus').value }) });
+      await loadPleitos();
+    }
+
+    async function addCat() {
+      if (!selectedPleito) return;
+      await api(`/admin/votacoes/${selectedPleito}/categories`, {
+        method: 'POST',
+        body: JSON.stringify({ name: el('catName').value.trim(), order: Number(el('catOrder').value) || 0 }),
+      });
+      await selectPleito(selectedPleito, el('detailTitle').textContent);
+    }
+
+    async function addCand() {
+      if (!selectedPleito) return;
+      const photoFile = el('candPhoto').files?.[0];
+      if (photoFile) {
+        const fd = new FormData();
+        fd.append('categoryId', el('candCat').value);
+        fd.append('number', String(Number(el('candNum').value)));
+        fd.append('name', el('candName').value.trim());
+        fd.append('photo', photoFile);
+        const r = await fetch(`${API}/admin/votacoes/${selectedPleito}/candidates-v2`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) return alert(data.message || 'Erro ao adicionar candidato.');
+      } else {
+        await api(`/admin/votacoes/${selectedPleito}/candidates-v2`, {
+          method: 'POST',
+          body: JSON.stringify({
+            categoryId: el('candCat').value,
+            number: Number(el('candNum').value),
+            name: el('candName').value.trim(),
+          }),
+        });
+      }
+      el('candPhoto').value = '';
+      el('candPhotoPreview').style.display = 'none';
+      el('candNum').value = '';
+      el('candName').value = '';
+      await selectPleito(selectedPleito, el('detailTitle').textContent);
+    }
+
+    async function loadServidores() {
+      const data = await api('/admin/servidores');
+      const list = data.servidores || [];
+      el('servidoresList').textContent = `${list.length} eleitor(es) cadastrado(s).`;
+    }
+
+    async function importCsv() {
+      const csv = el('csvContent').value;
+      const result = await api('/admin/servidores/import', { method: 'POST', body: JSON.stringify({ csv }) });
+      el('importResult').textContent = JSON.stringify(result, null, 2);
+      await loadServidores();
+    }
+
+    async function downloadExport(path) {
+      const id = el('apurPleito').value;
+      if (!id || !token) return;
+      const url = `${API}${path.replace(':id', id)}`;
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) { alert('Erro ao exportar'); return; }
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = path.includes('comparecimento') ? 'comparecimento.csv' : 'votos.csv';
+      a.click();
+    }
+
+    document.querySelectorAll('.tabs button').forEach((b) => {
+      b.addEventListener('click', () => showTab(b.dataset.tab));
+    });
+    el('btnLoginAdmin').addEventListener('click', loginAdmin);
+    el('btnLogoutAdmin').addEventListener('click', logoutAdmin);
+    el('btnCreatePleito').addEventListener('click', createPleito);
+    el('btnSaveLanding').addEventListener('click', saveLanding);
+    el('btnPatchPleito').addEventListener('click', patchPleito);
+    el('btnAddCat').addEventListener('click', addCat);
+    el('btnAddCand').addEventListener('click', addCand);
+    el('btnImport').addEventListener('click', importCsv);
+    el('btnApurar').addEventListener('click', apurar);
+    el('apurPleito').addEventListener('change', apurar);
+    el('btnExportVotos').addEventListener('click', () => downloadExport('/admin/votacoes/:id/export-votos-v2.csv'));
+    el('btnExportPresenca').addEventListener('click', () => downloadExport('/admin/votacoes/:id/export-comparecimento.csv'));
+
+    if (token) connect();
+  </script>
+</body>
+</html>

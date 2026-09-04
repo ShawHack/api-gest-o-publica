@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--
+      If you are serving your web app in a path other than the root, change the
+      href value below to reflect the base path you are serving from.
+
+      The path provided below has to start and end with a slash "/" in order for
+      it to work correctly.
+
+      For more details:
+      * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+      This is a placeholder for base href that will be replaced by the value of
+      the `--base-href` argument provided to `flutter build`.
+    -->
+    <base href="/servicos/">
+
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Agendamentos - Prefeitura Municipal de Garça">
+
+    <!-- iOS meta tags & icons -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Agendamentos - Prefeitura de Garça">
+    <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <title>Sistema de Agendamentos - Prefeitura Municipal de Garça</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            font-family: sans-serif;
+        }
+
+        #loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .logo-pulse {
+            width: 120px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #384D9C;
+            /* Azul Semit */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-container">
+        <!-- Tenta carregar a logo, com fallback se não achar -->
+        <img src="assets/garca.png" onerror="this.style.display='none'" class="logo-pulse" alt="Logo">
+        <div class="loader"></div>
+        <p class="loading-text">CARREGANDO SISTEMA...</p>
+    </div>
+
+    <script>
+        // REMOVE SERVICE WORKERS ANTIGOS (Solução para lentidão/cache preso)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    console.log('Removendo Service Worker antigo:', registration);
+                    registration.unregister();
+                }
+            });
+        }
+
+        // Configuração para forçar renderizador HTML (mais leve e rápido que CanvasKit)
+        window.flutterWebRenderer = "html";
+        window.flutterConfiguration = {
+            renderer: "html"
+        };
+
+        // Timeout de segurança para remover o loader caso o Flutter demore a assumir o controle
+        // O ideal é que o Flutter remova, mas como injetamos no index estático:
+
+        // Observador para detectar quando o Flutter insere conteúdo na tela (canvas ou shadow-root)
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    for (const node of mutation.addedNodes) {
+                        // Flutter adiciona tags como <flt-glass-pane> ou interage com shadow DOM
+                        if (node.tagName && (node.tagName.toLowerCase().includes('flt') || node.tagName === 'CANVAS')) {
+                            removeLoader();
+                        }
+                    }
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        function removeLoader() {
+            var loader = document.getElementById('loading-container');
+            // Verifica se já não estamos removendo para evitar chamadas múltiplas
+            if (loader && !loader.classList.contains('removing')) {
+                loader.classList.add('removing');
+
+                // Aguarda 4 segundos extras para garantir que o Flutter desenhou a tela
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        if (loader) loader.remove();
+                        observer.disconnect();
+                    }, 500); // Tempo da animação CSS (0.5s)
+                }, 4000); // 4 segundos de gordura
+            }
+        }
+    </script>
+    <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

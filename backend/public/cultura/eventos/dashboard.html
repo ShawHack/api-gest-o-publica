@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Eventos</title>
+  <link rel="icon" href="../logo.jpg" type="image/jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --primary: #ea580c;
+      --primary-dark: #c2410c;
+      --bg-dark: #1e293b;
+      --bg-light: #f8fafc;
+      --text-main: #334155;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --white: #ffffff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg-light); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Sidebar */
+    .sidebar { width: 260px; background: var(--bg-dark); color: var(--white); display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-header { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-header h2 { font-family: 'Rubik', sans-serif; font-size: 1.5rem; letter-spacing: 1px; color: #ff716e; }
+    .sidebar-header span { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-links { flex: 1; padding: 20px 0; }
+    .nav-link { display: flex; align-items: center; gap: 12px; padding: 15px 24px; color: #cbd5e1; text-decoration: none; transition: all 0.3s; cursor: pointer; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: var(--white); border-left: 4px solid var(--primary); }
+    .logout-btn { margin-top: auto; padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); cursor: pointer; display: flex; align-items: center; gap: 12px; color: #f87171; transition: color 0.3s; }
+    .logout-btn:hover { color: #ef4444; }
+
+    /* Main Content */
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .topbar { background: var(--white); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .topbar h1 { font-size: 1.4rem; font-weight: 600; color: var(--bg-dark); margin: 0; }
+    .user-info { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--text-muted); }
+
+    .content-area { padding: 40px; flex: 1; display: none; }
+    .content-area.active { display: block; }
+    
+    /* Card/Table */
+    .card { background: var(--white); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); overflow: hidden; }
+    .card-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .card-header h3 { font-size: 1.2rem; font-weight: 600; }
+    .btn-primary { background: var(--primary); color: var(--white); border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.3s; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 16px 24px; background: #f1f5f9; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    td { padding: 16px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:hover { background: #f8fafc; }
+    
+    .event-info { display: flex; align-items: center; gap: 15px; }
+    .event-img { width: 60px; height: 40px; border-radius: 6px; object-fit: cover; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8; overflow: hidden; }
+    .event-img img { width: 100%; height: 100%; object-fit: cover; }
+    .event-title { font-weight: 600; color: var(--bg-dark); margin-bottom: 4px; }
+    .event-desc { font-size: 0.85rem; color: var(--text-muted); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-block; }
+    .badge.orange { background: #ffedd5; color: #c2410c; }
+    .badge.blue { background: #e0f2fe; color: #0369a1; }
+    .badge.green { background: #dcfce7; color: #15803d; }
+    .badge.red { background: #fee2e2; color: #b91c1c; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s; color: var(--text-muted); }
+    .btn-icon:hover { background: #f1f5f9; color: var(--primary); }
+    .btn-icon.delete:hover { color: #ef4444; background: #fef2f2; }
+
+    /* Modal Form */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--white); width: 100%; max-width: 600px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1.25rem; font-weight: 600; margin: 0; }
+    .modal-close { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; color: var(--bg-dark); }
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group select,
+    .form-group textarea,
+    .form-group input[type="file"],
+    .form-group input[type="date"],
+    .form-group input[type="time"] { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; color: var(--text-main); transition: border-color 0.3s; }
+    input[type="file"] { width: 100%; padding: 8px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--text-main); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
+    
+    .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc; }
+    .btn-secondary { background: var(--white); border: 1px solid var(--border); color: var(--text-main); padding: 10px 20px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+    .btn-secondary:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+    /* Category List Styles */
+    .color-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: middle; margin-right: 8px; }
+    .color-swatch.orange { background: #ea580c; }
+    .color-swatch.blue { background: #0284c7; }
+    .color-swatch.green { background: #16a34a; }
+    .color-swatch.red { background: #dc2626; }
+
+    /* Dynamic Dates */
+    .date-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .btn-add-date { background: #f1f5f9; color: var(--primary); border: 1px dashed var(--primary); padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 500; font-family: 'Poppins', sans-serif; transition: background 0.3s; }
+    .btn-add-date:hover { background: #ffedd5; }
+    .btn-remove-date { background: none; border: none; color: #ef4444; cursor: pointer; padding: 8px; border-radius: 6px; }
+    .btn-remove-date:hover { background: #fef2f2; }
+
+    /* Responsivo / Mobile */
+    .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; color: var(--bg-dark); }
+    .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); z-index: 999; backdrop-filter: blur(2px); }
+    .sidebar-overlay.active-mobile { display: block; }
+    .table-responsive { width: 100%; overflow-x: auto; }
+
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; height: 100%; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.active-mobile { transform: translateX(0); }
+      .mobile-menu-btn { display: block; }
+      .topbar { padding: 15px 20px; }
+      .topbar h1 { font-size: 1.1rem; }
+      .user-info { display: none; }
+      .content-area { padding: 20px; }
+      .card-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+      #view-events table { min-width: 600px; }
+      #view-categories table { min-width: 100%; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .table-responsive { -webkit-overflow-scrolling: touch; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>GARÇA</h2>
+      <span>Painel Administrativo</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link active" id="nav-events" onclick="switchView('events')"><i data-lucide="calendar-days"></i> Eventos</a>
+      <a href="#" class="nav-link" id="nav-categories" onclick="switchView('categories')"><i data-lucide="tags"></i> Categorias</a>
+      <a href="#" class="nav-link" id="nav-users" onclick="switchView('users')"><i data-lucide="users"></i> Usuários</a>
+      <a href="./eventos.html" class="nav-link" style="margin-top: 15px;"><i data-lucide="external-link"></i> Ver Site Público</a>
+    </div>
+    <div class="logout-btn" onclick="logout()">
+      <i data-lucide="log-out"></i> Sair do Painel
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+        <h1 id="topbar-title">Gerenciamento de Eventos</h1>
+      </div>
+      <div class="user-info">
+        <i data-lucide="user-circle" style="width:24px;height:24px;"></i>
+        <span id="topbar-user-name">Carregando...</span>
+      </div>
+    </header>
+
+    <!-- VIEW: EVENTOS -->
+    <div class="content-area active" id="view-events">
+      <div class="card">
+        <div class="card-header">
+          <h3>Todos os Eventos</h3>
+          <button class="btn-primary" onclick="openEventModal()"><i data-lucide="plus"></i> Adicionar Evento</button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Data Principal</th>
+                <th>Categoria</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="events-table-body">
+              <!-- Rows rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: CATEGORIAS -->
+    <div class="content-area" id="view-categories">
+      <div class="card">
+        <div class="card-header">
+          <h3>Suas Categorias</h3>
+          <button class="btn-primary" onclick="openCatModal()"><i data-lucide="plus"></i> Nova Categoria</button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome da Categoria</th>
+                <th>Cor Padrão</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="categories-table-body">
+              <!-- Rows rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: USUÁRIOS -->
+    <div class="content-area" id="view-users">
+      <div class="card">
+        <div class="card-header">
+          <h3>Equipe e Acessos</h3>
+          <button class="btn-primary" onclick="openUserModal()"><i data-lucide="plus"></i> Novo Usuário</button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Nível de Acesso</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <!-- Rows rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- EVENT MODAL -->
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="event-modal-title">Novo Evento</h3>
+        <button class="modal-close" type="button" onclick="closeEventModal()"><i data-lucide="x"></i></button>
+      </div>
+      <form id="event-form" onsubmit="saveEvent(event)" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="ev-title">Título do Evento</label>
+            <input type="text" id="ev-title" required placeholder="Ex: Festival de Inverno">
+          </div>
+          <div class="form-group">
+            <label for="ev-desc">Descrição</label>
+            <textarea id="ev-desc" rows="3" required placeholder="Breve descrição do evento..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="ev-image-file">Imagem do Evento (Upload)</label>
+            <input type="file" id="ev-image-file" accept="image/*">
+            <input type="hidden" id="ev-image-b64">
+            <div id="ev-image-preview" style="margin-top:10px; display:none; max-width: 150px; border-radius:8px; overflow:hidden; border:1px solid var(--border);">
+              <img id="ev-image-preview-img" src="" style="width:100%; display:block;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ev-category-select">Categoria do Evento</label>
+            <select id="ev-category-select" required>
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+
+          <!-- Dynamic Dates -->
+          <div class="form-group">
+            <label>Datas e Horários do Evento</label>
+            <div id="dates-container"></div>
+            <button type="button" class="btn-add-date" onclick="addDateRow()"><i data-lucide="plus"></i> Adicionar mais dias</button>
+          </div>
+
+          <div class="form-group">
+            <label for="ev-link">Link da Página Detalhada (Opcional)</label>
+            <input type="text" id="ev-link" placeholder="Ex: /eventos/detalhe.html">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeEventModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CATEGORY MODAL -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 id="cat-modal-title">Nova Categoria</h3>
+        <button class="modal-close" type="button" onclick="closeCatModal()"><i data-lucide="x"></i></button>
+      </div>
+      <form id="category-form" onsubmit="saveCategory(event)" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="cat-name">Nome da Categoria</label>
+            <input type="text" id="cat-name" required placeholder="Ex: Show Musical">
+          </div>
+          <div class="form-group">
+            <label for="cat-color">Cor da Categoria</label>
+            <select id="cat-color" required>
+              <option value="orange">Laranja</option>
+              <option value="blue">Azul</option>
+              <option value="green">Verde</option>
+              <option value="red">Vermelho</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeCatModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- USER MODAL -->
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 id="user-modal-title">Novo Usuário</h3>
+        <button class="modal-close" type="button" onclick="closeUserModal()"><i data-lucide="x"></i></button>
+      </div>
+      <form id="user-form" onsubmit="saveUser(event)" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="usr-name">Nome Completo</label>
+            <input type="text" id="usr-name" required placeholder="Ex: João da Silva">
+          </div>
+          <div class="form-group">
+            <label for="usr-email">E-mail de Acesso</label>
+            <input type="email" id="usr-email" required placeholder="exemplo@garca.sp.gov.br">
+          </div>
+          <div class="form-group">
+            <label for="usr-password">Senha</label>
+            <input type="password" id="usr-password" required placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="form-group">
+            <label for="usr-role">Nível de Acesso</label>
+            <select id="usr-role" required>
+              <option value="admin">Administrador (Total)</option>
+              <option value="user">Comum (Restrito)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeUserModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CUSTOM DIALOG MODAL -->
+  <div class="modal-overlay" id="dialog-modal" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 400px; padding: 32px 24px; text-align: center; justify-content: center; align-items: center; display: flex;">
+      <div id="dialog-icon" style="margin-bottom: 16px;"></div>
+      <h3 id="dialog-title" style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;"></h3>
+      <p id="dialog-message" style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem;"></p>
+      <div style="display: flex; gap: 12px; justify-content: center; width: 100%;">
+        <button id="dialog-btn-cancel" class="btn-secondary" style="display: none; flex: 1;">Cancelar</button>
+        <button id="dialog-btn-confirm" class="btn-primary" style="flex: 1; justify-content: center;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Dialog Customizado
+    function customAlert(title, message) {
+      const modal = document.getElementById('dialog-modal');
+      document.getElementById('dialog-title').textContent = title;
+      document.getElementById('dialog-message').textContent = message;
+      document.getElementById('dialog-btn-cancel').style.display = 'none';
+      
+      const btnConfirm = document.getElementById('dialog-btn-confirm');
+      btnConfirm.textContent = 'OK';
+      btnConfirm.onclick = () => modal.classList.remove('active');
+      
+      document.getElementById('dialog-icon').innerHTML = '<i data-lucide="info" style="width:48px;height:48px;color:var(--primary);"></i>';
+      lucide.createIcons();
+      modal.classList.add('active');
+    }
+
+    function customConfirm(title, message, onConfirm) {
+      const modal = document.getElementById('dialog-modal');
+      document.getElementById('dialog-title').textContent = title;
+      document.getElementById('dialog-message').textContent = message;
+      document.getElementById('dialog-btn-cancel').style.display = 'block';
+      
+      const btnConfirm = document.getElementById('dialog-btn-confirm');
+      btnConfirm.textContent = 'Confirmar';
+      
+      document.getElementById('dialog-btn-cancel').onclick = () => modal.classList.remove('active');
+      btnConfirm.onclick = () => {
+        modal.classList.remove('active');
+        onConfirm();
+      };
+      
+      document.getElementById('dialog-icon').innerHTML = '<i data-lucide="help-circle" style="width:48px;height:48px;color:#f59e0b;"></i>';
+      lucide.createIcons();
+      modal.classList.add('active');
+    }
+
+    // Verificação Admin
+    if (localStorage.getItem('garca_admin_logged_in') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('garca_admin_logged_in');
+      window.location.href = 'login.html';
+    }
+
+    function toggleSidebar() {
+      document.querySelector('.sidebar').classList.toggle('active-mobile');
+      document.getElementById('sidebar-overlay').classList.toggle('active-mobile');
+    }
+
+    // Navegação de Telas
+    function switchView(viewName) {
+      if (viewName === 'users') {
+        if (localStorage.getItem('garca_admin_role') !== 'admin') {
+          customAlert('Acesso Negado', 'Apenas Administradores podem gerenciar usuários.');
+          return;
+        }
+      }
+
+      document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-' + viewName).classList.add('active');
+      document.getElementById('nav-' + viewName).classList.add('active');
+
+      if (viewName === 'events') {
+        document.getElementById('topbar-title').textContent = 'Gerenciamento de Eventos';
+        renderEventsTable();
+      } else if (viewName === 'categories') {
+        document.getElementById('topbar-title').textContent = 'Gerenciamento de Categorias';
+        renderCategoriesTable();
+      } else if (viewName === 'users') {
+        document.getElementById('topbar-title').textContent = 'Usuários e Acessos';
+        renderUsersTable();
+      }
+
+      if (window.innerWidth <= 768) {
+        document.querySelector('.sidebar').classList.remove('active-mobile');
+        document.getElementById('sidebar-overlay').classList.remove('active-mobile');
+      }
+    }
+
+    // ----- DADOS -----
+    const defaultCategories = [
+      { id: 1, name: 'Ao Ar Livre', color: 'orange' },
+      { id: 2, name: 'Festival', color: 'blue' },
+      { id: 3, name: 'Cultura', color: 'green' }
+    ];
+    let categories = JSON.parse(localStorage.getItem('garca_categories')) || defaultCategories;
+    if (!localStorage.getItem('garca_categories')) {
+      localStorage.setItem('garca_categories', JSON.stringify(categories));
+    }
+
+    let users = JSON.parse(localStorage.getItem('garca_users'));
+    if (!users) {
+      users = [
+        { id: 1, name: 'Administrador', email: 'admin@gmail.com', password: 'admin123', role: 'admin' },
+        { id: 2, name: 'Marjorie', email: 'marjorietalberg1@gmail.com', password: 'admin123', role: 'admin' }
+      ];
+      localStorage.setItem('garca_users', JSON.stringify(users));
+    } else {
+      // Migrate old users to have a role
+      let updated = false;
+      users.forEach(u => {
+        if (!u.role) { u.role = 'admin'; updated = true; }
+      });
+      if(updated) localStorage.setItem('garca_users', JSON.stringify(users));
+    }
+
+    let events = JSON.parse(localStorage.getItem('garca_events')) || [];
+
+    let currentEditingId = null;
+    let currentCatEditingId = null;
+    let currentUserEditingId = null;
+
+    // ----- CATEGORIAS -----
+    function renderCategoriesTable() {
+      const tbody = document.getElementById('categories-table-body');
+      tbody.innerHTML = '';
+      
+      if (categories.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#64748b;">Nenhuma categoria.</td></tr>';
+        return;
+      }
+
+      categories.forEach(cat => {
+        let colorName = '';
+        if(cat.color === 'orange') colorName = 'Laranja';
+        if(cat.color === 'blue') colorName = 'Azul';
+        if(cat.color === 'green') colorName = 'Verde';
+        if(cat.color === 'red') colorName = 'Vermelho';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${cat.name}</strong></td>
+          <td><span class="color-swatch ${cat.color}"></span> ${colorName}</td>
+          <td style="text-align:right;">
+            <div class="action-btns" style="justify-content:flex-end;">
+              <button class="btn-icon" title="Editar" onclick="openCatModal(${cat.id})"><i data-lucide="edit-2"></i></button>
+              <button class="btn-icon delete" title="Excluir" onclick="deleteCategory(${cat.id})"><i data-lucide="trash-2"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function openCatModal(id = null) {
+      currentCatEditingId = id;
+      const modal = document.getElementById('category-modal');
+      const form = document.getElementById('category-form');
+      const titleEl = document.getElementById('cat-modal-title');
+
+      form.reset();
+
+      if (id !== null) {
+        titleEl.textContent = "Editar Categoria";
+        const cat = categories.find(c => c.id === id);
+        if (cat) {
+          document.getElementById('cat-name').value = cat.name;
+          document.getElementById('cat-color').value = cat.color;
+        }
+      } else {
+        titleEl.textContent = "Nova Categoria";
+      }
+      modal.classList.add('active');
+    }
+
+    function closeCatModal() {
+      document.getElementById('category-modal').classList.remove('active');
+    }
+
+    function saveCategory(e) {
+      e.preventDefault();
+      const catData = {
+        name: document.getElementById('cat-name').value,
+        color: document.getElementById('cat-color').value
+      };
+
+      if (currentCatEditingId !== null) {
+        const idx = categories.findIndex(c => c.id === currentCatEditingId);
+        if (idx !== -1) categories[idx] = { ...categories[idx], ...catData };
+      } else {
+        const newId = categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1;
+        categories.push({ id: newId, ...catData });
+      }
+
+      localStorage.setItem('garca_categories', JSON.stringify(categories));
+      closeCatModal();
+      renderCategoriesTable();
+      populateCategorySelect();
+    }
+
+    function deleteCategory(id) {
+      customConfirm(
+        "Excluir Categoria?", 
+        "Eventos que a utilizam não serão excluídos, mas poderão ficar sem selo adequado.", 
+        () => {
+          categories = categories.filter(c => c.id !== id);
+          localStorage.setItem('garca_categories', JSON.stringify(categories));
+          renderCategoriesTable();
+          populateCategorySelect();
+        }
+      );
+    }
+
+    // ----- EVENTOS -----
+    let currentEventEditingId = null;
+
+    function populateCategorySelect() {
+      const select = document.getElementById('ev-category-select');
+      select.innerHTML = '<option value="">Selecione uma categoria...</option>';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        select.appendChild(opt);
+      });
+    }
+
+    // Image Upload Handler
+    document.getElementById('ev-image-file').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('ev-image-b64').value = evt.target.result;
+          document.getElementById('ev-image-preview-img').src = evt.target.result;
+          document.getElementById('ev-image-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        document.getElementById('ev-image-b64').value = '';
+        document.getElementById('ev-image-preview').style.display = 'none';
+      }
+    });
+
+    // Dynamic Dates
+    function addDateRow(dateVal = '', timeVal = '') {
+      const container = document.getElementById('dates-container');
+      const row = document.createElement('div');
+      row.className = 'date-row';
+      row.innerHTML = `
+        <input type="date" class="ev-date-input" value="${dateVal}" required>
+        <input type="time" class="ev-time-input" value="${timeVal}" required>
+        <button type="button" class="btn-remove-date" onclick="this.parentElement.remove();"><i data-lucide="trash-2"></i></button>
+      `;
+      container.appendChild(row);
+      lucide.createIcons();
+    }
+
+    function formatDisplayDate(ev) {
+      if (ev.dates && ev.dates.length > 0) {
+        const dateStr = ev.dates[0].date;
+        if(dateStr) {
+          const parts = dateStr.split('-');
+          if(parts.length === 3) {
+            const d = new Date(parts[0], parts[1]-1, parts[2]); // local time parse
+            const day = String(d.getDate()).padStart(2, '0');
+            const monthStr = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.','');
+            return `<strong>${day}</strong> <span style="color:#64748b;font-size:0.9rem;">${monthStr}</span>`;
+          }
+        }
+      }
+      return `<strong>${ev.day || ''}</strong> <span style="color:#64748b;font-size:0.9rem;">${ev.month || ''}</span>`;
+    }
+
+    function renderEventsTable() {
+      const tbody = document.getElementById('events-table-body');
+      tbody.innerHTML = '';
+      
+      if (events.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;">Nenhum evento cadastrado.</td></tr>';
+        return;
+      }
+
+      events.forEach(ev => {
+        let imgHtml = '';
+        if (ev.image && ev.image.trim() !== '') {
+          imgHtml = `<img src="${ev.image}" alt="${ev.title}">`;
+        } else {
+          imgHtml = `<i data-lucide="image" style="width:20px;height:20px;"></i>`;
+        }
+        
+        let colorClass = ev.badgeClass ? ev.badgeClass.replace('badge-', '') : 'orange';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div class="event-info">
+              <div class="event-img">${imgHtml}</div>
+              <div>
+                <div class="event-title">${ev.title}</div>
+                <div class="event-desc">${ev.description}</div>
+              </div>
+            </div>
+          </td>
+          <td>${formatDisplayDate(ev)}</td>
+          <td><span class="badge ${colorClass}">${ev.badgeText}</span></td>
+          <td style="text-align:right;">
+            <div class="action-btns" style="justify-content:flex-end;">
+              <button class="btn-icon" title="Editar" onclick="openEventModal(${ev.id})"><i data-lucide="edit-2"></i></button>
+              <button class="btn-icon delete" title="Excluir" onclick="deleteEvent(${ev.id})"><i data-lucide="trash-2"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function openEventModal(id = null) {
+      currentEventEditingId = id;
+      const modal = document.getElementById('event-modal');
+      const form = document.getElementById('event-form');
+      const titleEl = document.getElementById('event-modal-title');
+      const datesContainer = document.getElementById('dates-container');
+      
+      populateCategorySelect();
+      form.reset();
+      document.getElementById('ev-image-preview').style.display = 'none';
+      document.getElementById('ev-image-b64').value = '';
+      datesContainer.innerHTML = '';
+
+      if (id !== null) {
+        titleEl.textContent = "Editar Evento";
+        const ev = events.find(e => e.id === id);
+        if (ev) {
+          document.getElementById('ev-title').value = ev.title;
+          document.getElementById('ev-desc').value = ev.description;
+          
+          if (ev.image && ev.image.startsWith('data:image')) {
+            document.getElementById('ev-image-b64').value = ev.image;
+            document.getElementById('ev-image-preview-img').src = ev.image;
+            document.getElementById('ev-image-preview').style.display = 'block';
+          } else if (ev.image) {
+            document.getElementById('ev-image-b64').value = ev.image;
+            document.getElementById('ev-image-preview-img').src = ev.image;
+            document.getElementById('ev-image-preview').style.display = 'block';
+          }
+
+          let matchedCat = categories.find(c => c.name === ev.badgeText);
+          if (matchedCat) {
+            document.getElementById('ev-category-select').value = matchedCat.id;
+          }
+
+          if (ev.dates && ev.dates.length > 0) {
+            ev.dates.forEach(d => addDateRow(d.date, d.time));
+          } else {
+            addDateRow('', '');
+          }
+
+          document.getElementById('ev-link').value = ev.link || '';
+        }
+      } else {
+        titleEl.textContent = "Novo Evento";
+        addDateRow();
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeEventModal() {
+      document.getElementById('event-modal').classList.remove('active');
+    }
+
+    function saveEvent(e) {
+      e.preventDefault();
+      
+      const catId = parseInt(document.getElementById('ev-category-select').value);
+      const cat = categories.find(c => c.id === catId);
+      
+      const badgeText = cat ? cat.name : 'Geral';
+      const badgeClass = cat ? 'badge-' + cat.color : 'badge-orange';
+
+      const dateRows = document.querySelectorAll('#dates-container .date-row');
+      let datesArr = [];
+      dateRows.forEach(row => {
+        datesArr.push({
+          date: row.querySelector('.ev-date-input').value,
+          time: row.querySelector('.ev-time-input').value
+        });
+      });
+
+      if (datesArr.length === 0) {
+        customAlert("Atenção", "Por favor, adicione pelo menos uma data.");
+        return;
+      }
+
+      // Backward comp (salvar primeiro dia e mês)
+      let firstDay = '';
+      let firstMonth = '';
+      const parts = datesArr[0].date.split('-');
+      if(parts.length === 3) {
+        const d = new Date(parts[0], parts[1]-1, parts[2]);
+        firstDay = String(d.getDate()).padStart(2, '0');
+        firstMonth = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.','');
+      }
+
+      const evData = {
+        title: document.getElementById('ev-title').value,
+        description: document.getElementById('ev-desc').value,
+        image: document.getElementById('ev-image-b64').value, 
+        badgeText: badgeText,
+        badgeClass: badgeClass,
+        dates: datesArr,
+        day: firstDay,
+        month: firstMonth,
+        link: document.getElementById('ev-link').value,
+      };
+
+      if (currentEventEditingId !== null) {
+        const index = events.findIndex(e => e.id === currentEventEditingId);
+        if (index !== -1) events[index] = { ...events[index], ...evData };
+      } else {
+        const newId = events.length > 0 ? Math.max(...events.map(e => e.id)) + 1 : 1;
+        events.unshift({ id: newId, ...evData });
+      }
+
+      localStorage.setItem('garca_events', JSON.stringify(events));
+      closeEventModal();
+      renderEventsTable();
+    }
+
+    function deleteEvent(id) {
+      customConfirm(
+        "Excluir Evento?", 
+        "Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.", 
+        () => {
+          events = events.filter(e => e.id !== id);
+          localStorage.setItem('garca_events', JSON.stringify(events));
+          renderEventsTable();
+        }
+      );
+    }
+
+    // ----- USUÁRIOS -----
+    function renderUsersTable() {
+      const tbody = document.getElementById('users-table-body');
+      tbody.innerHTML = '';
+
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Nenhum usuário cadastrado.</td></tr>';
+        return;
+      }
+
+      users.forEach(u => {
+        let roleBadge = '';
+        if (u.role === 'admin') {
+          roleBadge = '<span class="event-badge badge-orange" style="display:inline-flex;align-items:center;"><i data-lucide="shield" style="width:14px;height:14px;margin-right:4px;"></i> Admin</span>';
+        } else {
+          roleBadge = '<span class="event-badge badge-blue" style="display:inline-flex;align-items:center;"><i data-lucide="user" style="width:14px;height:14px;margin-right:4px;"></i> Comum</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${u.name}</strong></td>
+          <td>${u.email}</td>
+          <td>${roleBadge}</td>
+          <td style="text-align:right;">
+            <button class="btn-icon edit" onclick="openUserModal(${u.id})"><i data-lucide="edit-2"></i></button>
+            <button class="btn-icon delete" onclick="deleteUser(${u.id})"><i data-lucide="trash-2"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function openUserModal(id = null) {
+      currentUserEditingId = id;
+      const modal = document.getElementById('user-modal');
+      const form = document.getElementById('user-form');
+      const titleEl = document.getElementById('user-modal-title');
+
+      form.reset();
+
+      if (id !== null) {
+        titleEl.textContent = 'Editar Usuário';
+        const usr = users.find(u => u.id === id);
+        if (usr) {
+          document.getElementById('usr-name').value = usr.name;
+          document.getElementById('usr-email').value = usr.email;
+          document.getElementById('usr-password').value = usr.password;
+          document.getElementById('usr-role').value = usr.role || 'user';
+        }
+      } else {
+        titleEl.textContent = 'Novo Usuário';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.remove('active');
+    }
+
+    function saveUser(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('usr-name').value;
+      const email = document.getElementById('usr-email').value;
+      const password = document.getElementById('usr-password').value;
+      const role = document.getElementById('usr-role').value;
+
+      if (currentUserEditingId !== null) {
+        // Edit
+        const usr = users.find(u => u.id === currentUserEditingId);
+        if (usr) {
+          usr.name = name;
+          usr.email = email;
+          usr.password = password;
+          usr.role = role;
+        }
+      } else {
+        // Add
+        const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+        users.push({ id: newId, name, email, password, role });
+      }
+
+      localStorage.setItem('garca_users', JSON.stringify(users));
+      closeUserModal();
+      renderUsersTable();
+    }
+
+    function deleteUser(id) {
+      if (users.length <= 1) {
+        customAlert("Atenção", "Você não pode excluir o único usuário do sistema!");
+        return;
+      }
+
+      customConfirm(
+        "Excluir Usuário?", 
+        "Esta pessoa perderá o acesso ao painel. Confirma?", 
+        () => {
+          users = users.filter(u => u.id !== id);
+          localStorage.setItem('garca_users', JSON.stringify(users));
+          renderUsersTable();
+        }
+      );
+    }
+
+    // ----- INIT -----
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set User Info
+      document.getElementById('topbar-user-name').textContent = localStorage.getItem('garca_admin_name') || 'Usuário';
+
+      // Access Control
+      if (localStorage.getItem('garca_admin_role') !== 'admin') {
+        const usersBtn = document.getElementById('nav-users');
+        if (usersBtn) usersBtn.style.display = 'none';
+      }
+
+      populateCategorySelect();
+      switchView('events');
+    });
+  </script>
+<!-- VLibras Widget -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  
+  <script src="/cultura/acessibilidade.js" defer></script>
+</body>
+</html>
