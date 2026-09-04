@@ -896,7 +896,7 @@ module.exports = class AgendaController {
         filter[field] = String(req.query[field])
       }
     }
-    if (filter.unitId && !operatorUnitAllowed(req, filter.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+    if (req.query?.unitId && !operatorUnitAllowed(req, req.query.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
     if (req.query?.status) {
       const statuses = String(req.query.status).split(',').filter((status) => ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'].includes(status))
       if (!statuses.length) return res.status(422).json({ message: 'Status inválido.' })
@@ -1094,4 +1094,217 @@ module.exports = class AgendaController {
       return res.status(500).json({ message: 'Não foi possível salvar a exceção de disponibilidade.' })
     }
   }
+
+  static async adminCalendar(req, res) {
+    try {
+      const monthStr = String(req.query?.month || '').trim() || new Date().toISOString().slice(0, 7)
+      const match = monthStr.match(/^(\d{4})-(\d{2})$/)
+      if (!match) return res.status(422).json({ message: 'Mês inválido. Formato esperado: AAAA-MM' })
+      const year = parseInt(match[1], 10)
+      const monthNum = parseInt(match[2], 10)
+      const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0))
+      const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
+
+      const filter = {
+        startsAt: { $gte: startDate, $lte: endDate },
+      }
+      if (!agendaHasAllUnits(req)) {
+        filter.unitId = { $in: allowedUnitIds(req).map((id) => new mongoose.Types.ObjectId(id)) }
+      }
+      if (req.query?.unitId) {
+        if (!mongoose.Types.ObjectId.isValid(String(req.query.unitId))) return res.status(422).json({ message: 'Unidade inválida.' })
+        filter.unitId = new mongoose.Types.ObjectId(String(req.query.unitId))
+      }
+      if (req.query?.serviceId) {
+        if (!mongoose.Types.ObjectId.isValid(String(req.query.serviceId))) return res.status(422).json({ message: 'Serviço inválido.' })
+        filter.serviceId = new mongoose.Types.ObjectId(String(req.query.serviceId))
+      }
+      if (req.query?.resourceId) {
+        if (!mongoose.Types.ObjectId.isValid(String(req.query.resourceId))) return res.status(422).json({ message: 'Atendente inválido.' })
+        filter.resourceId = new mongoose.Types.ObjectId(String(req.query.resourceId))
+      }
+
+      const appointments = await AgendaAppointment.find(filter)
+        .select('startsAt status unitId serviceId resourceId')
+        .lean()
+
+      const days = {}
+      for (const app of appointments) {
+        const dateKey = zonedDateKey(app.startsAt, 'America/Sao_Paulo')
+        if (!days[dateKey]) {
+          days[dateKey] = {
+            total: 0,
+            booked: 0,
+            confirmed: 0,
+            completed: 0,
+            noShow: 0,
+            cancelled: 0,
+            pending: 0,
+          }
+        }
+        days[dateKey].total++
+        if (app.status === 'booked') {
+          days[dateKey].booked++
+          days[dateKey].pending++
+        } else if (app.status === 'confirmed') {
+          days[dateKey].confirmed++
+          days[dateKey].pending++
+        } else if (app.status === 'completed') {
+          days[dateKey].completed++
+        } else if (app.status === 'no_show') {
+          days[dateKey].noShow++
+        } else if (app.status === 'cancelled') {
+          days[dateKey].cancelled++
+        }
+      }
+
+      return res.status(200).json({ month: monthStr, days })
+    } catch (error) {
+      console.error('adminCalendar error:', error)
+      return res.status(500).json({ message: 'Erro ao carregar calendário de atendimentos.' })
+    }
+  }
+
+  static async listPanels(_req, res) {
+    const items = [
+      { _id: 'panel-semit', name: 'Painel Geral SEMIT', slug: 'semit', active: true },
+      { _id: 'panel-sedetur', name: 'Painel SEDETUR', slug: 'sedetur', active: true },
+      { _id: 'panel-semads', name: 'Painel SEMADS', slug: 'semads', active: true },
+      { _id: 'panel-saae', name: 'Painel SAAE', slug: 'saae', active: true },
+    ]
+    return res.status(200).json({ items })
+  }
+
+  static async callAppointment(req, res) {
+    try {
+      const appointmentId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(appointmentId)) return res.status(422).json({ message: 'Agendamento inválido.' })
+      const appointment = await AgendaAppointment.findById(appointmentId)
+        .populate('serviceId')
+        .populate('unitId')
+        .populate('userId', 'name email phone')
+      if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
+
+      const localName = String(req.body?.localName || 'Guichê').trim()
+      const localNumber = Number(req.body?.localNumber) || 1
+      const citizenName = appointment.identitySnapshot?.name || appointment.userId?.name || 'Cidadão'
+
+      void recordAudit(req, {
+        action: 'agenda.appointment.call',
+        resourceType: 'agenda_appointment',
+        resourceId: appointment._id,
+        module: 'agenda-garca',
+        eventType: 'CALL',
+        metadata: { localName, localNumber, citizenName, unitId: String(appointment.unitId?._id || appointment.unitId) },
+      })
+
+      return res.status(200).json({
+        success: true,
+        call: {
+          senha: appointment.protocol || 'AGD-01',
+          localName,
+          localNumber,
+          citizenName,
+          calledAt: new Date(),
+        },
+        service: appointment.serviceId,
+      })
+    } catch (error) {
+      console.error('callAppointment error:', error)
+      return res.status(500).json({ message: 'Erro ao chamar atendimento.' })
+    }
+  }
+
+  static async deleteUnit(req, res) {
+    try {
+      const unitId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      const unit = await AgendaUnit.findById(unitId)
+      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      unit.active = false
+      await unit.save()
+      void recordAudit(req, {
+        action: 'agenda.unit.delete',
+        resourceType: 'agenda_unit',
+        resourceId: unit._id,
+        module: 'agenda-garca',
+        eventType: 'DELETE',
+      })
+      return res.status(200).json({ message: 'Unidade desativada com sucesso.', unit })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao excluir unidade.' })
+    }
+  }
+
+  static async deleteResource(req, res) {
+    try {
+      const resourceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(resourceId)) return res.status(422).json({ message: 'Recurso/Atendente inválido.' })
+      const resource = await AgendaResource.findById(resourceId)
+      if (!resource) return res.status(404).json({ message: 'Recurso não encontrado.' })
+      resource.active = false
+      await resource.save()
+      void recordAudit(req, {
+        action: 'agenda.resource.delete',
+        resourceType: 'agenda_resource',
+        resourceId: resource._id,
+        module: 'agenda-garca',
+        eventType: 'DELETE',
+      })
+      return res.status(200).json({ message: 'Atendente removido com sucesso.', resource })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao remover atendente.' })
+    }
+  }
+
+  static async uploadServiceBanner(req, res) {
+    try {
+      const serviceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(serviceId)) return res.status(422).json({ message: 'Serviço inválido.' })
+      const service = await AgendaService.findById(serviceId)
+      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
+      const bannerUrl = req.file ? `/uploads/agenda/${req.file.filename}` : service.landingBannerUrl || '/agendamentos/logos/logo_agenda-fundoclaro.png'
+      service.landingBannerUrl = bannerUrl
+      await service.save()
+      return res.status(200).json({ success: true, landingBannerUrl: bannerUrl, service })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao processar banner do serviço.' })
+    }
+  }
+
+  static async getPublicService(req, res) {
+    try {
+      const unitSlug = normalizeSlug(req.params.unitSlug)
+      const serviceSlug = normalizeSlug(req.params.serviceSlug)
+      const unit = await AgendaUnit.findOne({ slug: unitSlug, active: true }).lean()
+      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      const service = await AgendaService.findOne({ unitId: unit._id, slug: serviceSlug, active: true })
+        .populate('unitId', 'name slug address timezone')
+        .populate('resourceIds', 'name type active')
+        .lean()
+      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
+      return res.status(200).json({ unit, service, address: service.landingAddress || unit.address })
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao carregar serviço.' })
+    }
+  }
+
+  static async getPublicAvailability(req, res) {
+    try {
+      const unitSlug = normalizeSlug(req.params.unitSlug)
+      const serviceSlug = normalizeSlug(req.params.serviceSlug)
+      const dateKey = String(req.query?.date || '')
+      if (!validDateKey(dateKey)) return res.status(422).json({ message: 'Data inválida.' })
+      const unit = await AgendaUnit.findOne({ slug: unitSlug, active: true }).lean()
+      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      const service = await AgendaService.findOne({ unitId: unit._id, slug: serviceSlug, active: true })
+      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
+
+      req.params.id = String(service._id)
+      return AgendaController.availability(req, res)
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao calcular horários disponíveis.' })
+    }
+  }
 }
+
