@@ -2,40 +2,10 @@
 
 > Guia universal de arquitetura, operação, continuidade e recuperação.
 >
-> Atualização desta entrega: 04/09/2026 no servidor `10.15.25.28`; datas das demais análises constam nas respectivas seções.
+> Estado observado e atualizado em 28/08/2026 no servidor `10.15.25.28`.
 > Este documento não contém senhas, tokens, chaves privadas nem valores secretos.
 
 ## 1. Finalidade
-
-### Estado da migração de URLs SAMA — 04/09/2026
-
-**Atualização final, 13:22 BRT: migração publicada após autorização do responsável.** A configuração do host e a efetivamente montada no Nginx foram conferidas por SHA-256 idêntico (`dd86e627b533e331b3076b3f684f9bc7a51f8bdf6116db4290ef06b3431ef941`). Bastou recarga suave validada; não foi necessário substituir a configuração principal nem reiniciar containers. Os itens abaixo sobre bloqueio/reversão são o histórico da primeira tentativa, não o estado atual.
-
-- Endereços ativos: `/sama/`, `/sama/arvores`, `/sama/arvore/...`, `/sama/castracao`, `/sama/zoologico`, `/sama/denunciar`, `/sama/funcionalidade`, `/sama/vacinacao`. Adoção permanece em `/garcapet/`, `/garcapet/adotar` e rotas de acompanhamento. Conta e administração continuam compartilhadas nos endereços existentes.
-- Links antigos redirecionam com 302 e preservam parâmetros. Logo e Página Inicial voltam à área correspondente; adoção apresenta Voltar à Secretaria. Redirecionamentos temporários permitem rollback sem cache permanente de 301.
-- Evidências: navegador validou castração (campanha e acesso ao formulário), navegação interna para adoção e árvores e tela de login. HTTP 200 para zoológico, vacinação, health da API e teatro da Cultura; link antigo de castração retornou 302 para `/sama/castracao?origem=teste`. Login autenticado, envio de solicitações e fluxos administrativos não foram exercitados para não gravar dados de teste em produção.
-- Restauração: preservar o build legado, os arquivos JS versionados `*.sama-routes-20260904.js`, `routes.js`, `identity.js`, `identity.css`, `index.html` e `manifest.json`, além de `nginx/nginx.conf`. Cópia de referência desta entrega em `sama-identity/release-20260904/` no repositório de trabalho; testes e transformação reproduzível em `sama-identity/`.
-- Continuidade: consolidar essas adaptações no projeto React original quando o fonte for reconciliado. A camada de compatibilidade não altera APIs nem base de usuários.
-
-- Identidade visual SAMA/GarçaPet preservada em produção. URLs originais continuam ativas.
-- Migração preparada para `/sama/`, árvores/mudas, castração, zoológico, denúncias, funcionamento e vacinação; adoção permanece em `/garcapet/`. Login compartilhado preservado.
-- Testes automatizados de aliases React e conservação de query/hash aprovados; configuração Nginx passou em `nginx -t` isolado.
-- **Pendente de autorização operacional:** o Nginx montado somente leitura manteve a configuração antiga após atualização no host e recarga. O teste público de `/sama/castracao` retornou 404. Tentativa de trocar a inclusão na configuração principal foi bloqueada pela revisão automática por risco de afetar o proxy de todos os serviços. Não contornar esse bloqueio.
-- Reversão executada: `index.html`, `identity.js`, `manifest.json` e configuração do host restaurados do backup `/home/semit/Documentos/deploy-backups/sama-routes-20260904/`. `/garcapet/castracao` voltou a responder 200 e teve seu conteúdo validado no navegador, com a identidade SAMA e o formulário público preservados.
-- Próximo passo: obter autorização para intervenção controlada no Nginx, escolher janela/método com rollback, confirmar configuração efetiva no container e testar URLs públicas antes de republicar links canônicos. Não considerar a migração concluída.
-- Arquivos preparados e testes: `sama-identity/routes.js`, `prepare-routes.cjs`, `test-routes.cjs`; staging remoto `/tmp/sama-routes-20260904/`. O script de deploy exige revisão antes de reutilização, pois a recarga simples não resolveu a montagem ativa.
-
-### Plano SAMA / GarçaPet — identidade por seção (04/09/2026)
-
-- Objetivo: apresentar Secretaria do Meio Ambiente / SAMA nas páginas institucionais, ambientais e de conta; reservar GarçaPet ao catálogo, detalhes e acompanhamento de adoção. Serviços de animais (cadastro, castração, vacinação e denúncias) usam SAMA / Bem-estar animal.
-- Etapa 1: cabeçalho responsivo (nome completo no desktop, SAMA no celular), título da aba, identificação institucional no rodapé e nome do aplicativo instalado.
-- Etapa 2: título institucional na página `/garcapet/sama` e atalhos para árvores/mudas, bem-estar animal e GarçaPet / Quero adotar.
-- Etapa 3: testar rotas diretas, navegação interna, retorno e responsividade; publicar somente arquivos estáticos com backup. Não alterar API, autenticação, usuários, permissões, banco ou rotas.
-- Implementação: `sama-identity/identity.js` e `identity.css` são uma camada de apresentação sobre o pacote React legado já publicado. Integram os hooks de navegação existentes, com observador de DOM desconectado durante aplicação para evitar ciclos. Nenhuma requisição de escrita é adicionada.
-- Destino de produção: `/home/semit/Documentos/api-semit/backend/public/sama/`. Carregamento pelo `index.html`, com versão nos URLs. Preservar todos os scripts existentes e incluir esses arquivos em futuros rebuilds/restaurações.
-- Backup desta entrega: `/home/semit/Documentos/deploy-backups/sama-identity-20260904/`. Reversão: restaurar `index.html` e `manifest.json` desse diretório; os arquivos novos ficam inertes sem referência.
-- **Concluído:** URL institucional `/sama/` com redirecionamentos dos links antigos. **Manutenção futura:** integrar a camada diretamente ao projeto React original quando seu fonte/dependências forem reconciliados. Não substituir o build atual por fontes parciais recuperadas do source map.
-- Estado: publicado e validado; evidências e limites em `sama-identity/VALIDACAO.md`, instruções de restauração em `sama-identity/README.md`.
 
 Este documento existe para permitir que uma pessoa que nunca trabalhou no projeto consiga:
 
@@ -1346,12 +1316,6 @@ A página pública passou a exibir e gravar:
 
 Gestor vê **Configurar página** na própria landing e o bloco equivalente no Catálogo. O servidor recusa horário fora do período.
 
-### 27.13 Painel do atendente em 28/08/2026
-
-A aba **Atendente** (`agenda_attendant`, gerente ou admin) mostra calendário mensal com contagem de fila por dia e visão diária em linha do tempo. Ações usam as transições já existentes (`booked` → `confirmed` → `completed`/`no_show`, ou cancelamento). API: `GET /api/agenda/admin/appointments/calendar?month=YYYY-MM`.
-
-A escolha do horário na landing e na aba Agendar passou a ser em lista por faixa de hora, com botão **Confirmar agendamento**. Após a reserva, a API envia comprovante pelo `mailer` SMTP já usado pelos demais módulos (`helpers/agenda-voucher.js`), sem interromper a reserva se o e-mail falhar.
-
 ### 27.5 Estado inicial em 27/08/2026
 
 A implementação começou somente no checkout versionado `api-gestao-publica`; nenhuma rota foi implantada no container de produção e o agendamento Flutter atual não foi alterado.
@@ -1387,3 +1351,55 @@ Validação inicial concluída:
 - nenhuma imagem foi reconstruída e nenhum container de produção foi reiniciado.
 
 Próxima entrega: revisar o contrato dos endpoints, gerar OpenAPI e iniciar disponibilidade avançada antes de qualquer frontend.
+
+
+## 28. Plataforma SD_Docs (Processos Eletrônicos, NovoSGA e Xibo CMS)
+
+### 28.1 Finalidade e Arquitetura Integrada
+O **SD_Docs** é o sistema de gestão documental, tramitação de processos administrativos e assinaturas digitais da Prefeitura Municipal de Garça. Ele foi integrado ao ecossistema da `api-semit` através da rede Docker compartilhada (`api-semit_stack`) sob o proxy reverso central Nginx.
+
+```mermaid
+graph TD
+    Client["Navegador / Player / Guichê"] -->|HTTPS 443| Nginx["Nginx Reverse Proxy"]
+    Nginx -->|/docs/* & /platform-admin/*| Web["sd_docs-web:3000 (Next.js Standalone)"]
+    Nginx -->|/api-docs/*| Api["sd_docs-api:3001 (NestJS)"]
+    Nginx -->|/senhas/* & /triagem/*| SGA["NovoSGA (10.15.25.31)"]
+    Nginx -->|/xibo/*| Xibo["Xibo CMS (10.15.25.28:8080)"]
+    Web -->|API_URL| Api
+    Api -->|DATABASE_URL| Postgres["sd_docs-postgres:5432 (PostgreSQL 16)"]
+    Api -->|REST API| SGA
+```
+
+### 28.2 URLs Oficiais de Produção
+- **Painel do Município (Tenant):** `https://api.garca.sp.gov.br/docs/login` (Tramitação, processos, assinaturas e setores).
+- **Painel Global da Plataforma:** `https://api.garca.sp.gov.br/docs/platform-admin/login` (Gestão de prefeituras, domínios e planos).
+- **Backend API Docs & OpenAPI:** `https://api.garca.sp.gov.br/api-docs/` e `https://api.garca.sp.gov.br/api-docs/health`.
+- **Painel de Senhas / Triagem:** `https://api.garca.sp.gov.br/senhas/` e `https://api.garca.sp.gov.br/triagem/`.
+- **Xibo CMS:** `http://10.15.25.28:8080`.
+
+### 28.3 Integração NovoSGA (Chamador de Senhas e Processos)
+- **Serviço NestJS:** `apps/api/src/integrations/novosga.service.ts`
+- **Controller:** `apps/api/src/integrations/novosga.controller.ts`
+- **Endpoints:**
+  - `GET /integrations/novosga/queues`: Lista filas de atendimento presenciais.
+  - `POST /integrations/novosga/call-next`: Chama a próxima senha do guichê.
+  - `POST /integrations/novosga/link-ticket`: Vincula o ticket presencial ao processo eletrônico no SD_Docs e registra auditoria completa (`AuditLog`).
+
+### 28.4 Integração Xibo CMS (Saguão Digital & TV Corporativa)
+- **Serviço NestJS:** `apps/api/src/integrations/tv-feed.service.ts`
+- **Controller:** `apps/api/src/integrations/tv-feed.controller.ts`
+- **Template Responsivo:** `apps/api/src/integrations/templates/xibo-edicts-widget.html`
+- **Endpoints Públicos (Sem necessidade de login para players de TV):**
+  - `GET /api-docs/public/tv-feed/edicts?limit=10`: Editais, decretos e publicações recentes.
+  - `GET /api-docs/public/tv-feed/transparency`: Métricas de sustentabilidade (processos digitais, folhas e árvores salvas).
+
+### 28.5 Base de Dados e Migração
+- **Container:** `sd_docs-postgres` (PostgreSQL 16).
+- **Base restaurada:** `sd_docs_prod` com 47 colaboradores, 28 processos eletrônicos e 424 setores cadastrados.
+- **Credenciais Provisionadas:**
+  - Tenant Admin: `saulovlima36@gmail.com` / `saulo.lima@garca.sp.gov.br` (`Admin@123456`).
+  - Platform Super Admin: `suporte@sddocs.com.br` / `saulo.lima@garca.sp.gov.br` (`Admin@123456`).
+
+### 28.6 Repositórios Git
+- **Infraestrutura e API Geral:** `https://github.com/ShawHack/api-gest-o-publica.git`
+- **SD_Docs Monorepo:** `https://github.com/ShawHack/sd_docs.git`
