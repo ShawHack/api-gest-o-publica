@@ -61,6 +61,8 @@ export function parsePath(pathname, search = '') {
   if (!parts.length) return { view: 'home', query: params.get('q') || '' }
   if (parts[0] === 'buscar') return { view: 'search', query: params.get('q') || '' }
   if (parts[0] === 'mapa') return { view: 'map' }
+  if (parts[0] === 'legislacao' && parts[1]) return { view: 'content', slug: parts[1] }
+  if (parts[0] === 'legislacao') return { view: 'legislation', query: params.get('q') || '' }
   if (parts[0] === 'comtur' && parts[1] === 'doc' && parts[2]) return { view: 'content', slug: parts[2] }
   if (parts[0] === 'comtur' && parts[1]) return { view: 'meeting', slug: parts[1] }
   if (parts[0] === 'comtur') return { view: 'comtur' }

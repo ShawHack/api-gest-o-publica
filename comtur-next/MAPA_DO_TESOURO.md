@@ -7,6 +7,34 @@
 
 ## 1. Finalidade
 
+### COMTUR — LEGISLAÇÃO — REPOSITÓRIO DOCUMENTAL ESPECIALIZADO (14/09/2026)
+
+- [x] Transformar "Legislação" (`legislation`) em um Repositório Documental estruturado no Content Manager (`comtur-content-admin.html`), eliminando a semântica genérica de publicação editorial de notícias/artigos.
+- [x] Reconstruir o cadastro com 6 seções especializadas:
+  1. **Dados do Documento:** Título oficial do documento (`#legisTitle`), Tipo de documento (`#legisDocType`: *Lei, Lei Complementar, Decreto, Portaria, Resolução, Regimento Interno, Deliberação, Instrução Normativa, Ato, Edital, Outro*), Número da norma (`#legisNumber`), Ano (`#legisYear`), Número completo / identificação oficial (`#legisOfficialIdentifier`), Órgão responsável (`#legisResponsibleBody`), Slug auto-gerado (`#legisSlug`) e Ementa / Resumo oficial (`#legisSummary`).
+  2. **Datas do Documento:** Data do documento (`#legisDocumentDate`), Data de publicação oficial (`#legisPublicationDate`), Data de início da vigência (`#legisEffectiveFrom`), Data de término da vigência (`#legisEffectiveUntil`) e Situação jurídica da norma (`#legisLegalStatus`: *Vigente, Alterado, Revogado, Suspenso, Sem informação*).
+  3. **Arquivo PDF (Essencial):** Upload exclusivo de PDF com validação no frontend (extensão `.pdf`, MIME `application/pdf`, tamanho máximo 20 MB, não vazio), card de visualização de anexo com nome original, tamanho formatado (ex: `2,4 MB`), data de envio, título para download, botões Visualizar PDF 👁️, Substituir 🔄 e Remover 🗑️ (sem base64 no banco, integrado ao storage de mídia).
+  4. **Classificação e Assuntos:** Categoria temática (`#legisCategory`: *COMTUR, Fundo Municipal de Turismo, Turismo, Eventos, Planejamento, Regionalização, Administração, Orçamento, Outro*), chips estruturados de tags (`#legisTagsChips`: *Conselho, FUMTUR, Plano Municipal, Mapa do Turismo, Cadastur, Governança, Legislação Turística, Fundo Municipal, Normativa, Eleições, Regimento*) e tags adicionais (`#legisCustomTags`).
+  5. **Documentos Relacionados:** Gestão relacional por ID com outras normas cadastradas (`#legisRelatedDocsList`, `#legisRelationTypeSelect`, `#legisRelatedDocSelect`: *Altera, Alterado por, Revoga, Revogado por, Regulamenta, Regulamentado por, Regimento relacionado, Plano relacionado, Correlato*).
+  6. **Publicação:** Data de publicação, flags "Exibir no Portal Público de Legislação" (`#legisShowOnPortal`), "Documento em destaque no repositório" (`#legisFeatured`) e botões de ação (Salvar Rascunho, Enviar para Revisão, Publicar Documento e Arquivar).
+- [x] Especializar a coluna lateral (Sidebar List):
+  - Título: `LEGISLAÇÃO`
+  - Botão: `+ Novo documento`
+  - Busca: `Buscar documento legal...`
+  - Cards dedicados com Tag de Tipo de documento, Número completo/ano em destaque (ex: `LEI Nº 5.432/2026`), Ementa, Data do documento formatada em pt-BR, Status badge e Indicador de PDF anexado (`📄 PDF | 2,4 MB`).
+- [x] Preparar Repositório Público de Legislação no portal (`/turismo/legislacao` e `/turismo/comtur`):
+  - Busca por nome/termo (`q`).
+  - Filtro por Tipo de documento (Todos, Lei, Decreto, etc.).
+  - Filtro por período com toggle Ano vs Intervalo de datas.
+  - Filtro por Categoria temática.
+  - Cards estruturados com ícone PDF, número/ano, ementa, data, tipo, tamanho do arquivo e botões diretos de Visualizar e Baixar PDF.
+  - Tratamento de estado vazio ("Nenhum documento encontrado para os filtros informados.") e erro de API.
+- [x] Atualizar helper de filtros da API pública (`publicContentFilter` em `comtur-content.js`) para suportar `year`, `docType`, `category`, `startDate`, `endDate`, `q`/`search`.
+- [x] Preservar integralmente todas as demais categorias sem qualquer alteração indesejada ou quebra de APIs.
+- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`, `/helpers/comtur-content.js`, `/public/turismo/`).
+
+**Resultado:** Concluído e publicado em 14/09/2026. A categoria Legislação foi integralmente transformada em um repositório documental especializado e transparente.
+
 ### COMTUR — MEMBROS DO CONSELHO — CADASTRO ESPECIALIZADO (14/09/2026)
 
 - [x] Transformar "Membro do Conselho" (`council_member`) em uma entidade própria e estruturada no Content Manager (`comtur-content-admin.html`), eliminando a semântica errada de formulário genérico de documento/notícia/artigo.

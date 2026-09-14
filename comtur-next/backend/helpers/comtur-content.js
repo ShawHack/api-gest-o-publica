@@ -6,7 +6,25 @@ function publicContentFilter(query={}){
   const filter={status:'published'}
   if(query.type){if(!TYPE_SET.has(String(query.type)))return{error:'Tipo inválido'};filter.type=String(query.type)}
   if(query.featured==='true'||query.featured==='1')filter.featured=true
-  const q=typeof query.q==='string'?query.q.trim().slice(0,120):''
+  if(query.year){
+    const yr = parseInt(query.year, 10)
+    if (!Number.isNaN(yr)) filter['metadata.year'] = yr
+  }
+  if(query.docType||query.documentType){
+    filter['metadata.documentType'] = String(query.docType || query.documentType)
+  }
+  if(query.category){
+    filter['metadata.category'] = String(query.category)
+  }
+  const startDate = query.startDate || query.start_date
+  const endDate = query.endDate || query.end_date
+  if(startDate || endDate){
+    const dateFilter = {}
+    if(startDate) dateFilter.$gte = new Date(startDate)
+    if(endDate) dateFilter.$lte = new Date(endDate)
+    filter['metadata.documentDate'] = dateFilter
+  }
+  const q=typeof query.q==='string'?query.q.trim().slice(0,120):(typeof query.search==='string'?query.search.trim().slice(0,120):'')
   if(q)filter.$text={$search:q}
   return{filter}
 }

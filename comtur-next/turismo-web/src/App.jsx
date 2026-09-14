@@ -236,6 +236,250 @@ function ContentCard({ item, onOpen }) {
   )
 }
 
+function LegislationCard({ item, onOpen }) {
+  const meta = item.metadata || {}
+  const docType = meta.documentType || meta.docType || 'Documento Legal'
+  const officialIdent = meta.officialIdentifier || (meta.number ? `${docType} nº ${meta.number}${meta.year ? '/' + meta.year : ''}` : item.title)
+  const docDate = meta.documentDate ? new Date(meta.documentDate).toLocaleDateString('pt-BR') : (item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('pt-BR') : '')
+  const category = meta.category || 'COMTUR'
+  const pdfMedia = (Array.isArray(item.media) && item.media.find((m) => m.kind === 'document' || m.mimeType === 'application/pdf')) || meta.pdfFile || null
+  const pdfUrl = pdfMedia?.url || ''
+  const pdfSize = pdfMedia?.sizeFormatted || (pdfMedia?.size ? `${(pdfMedia.size / (1024 * 1024)).toFixed(1)} MB` : 'PDF')
+
+  return (
+    <article className="meeting-card legislation-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+        <div style={{ width: '48px', height: '48px', background: '#dc2626', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.95rem', flexShrink: 0 }}>
+          PDF
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '4px' }}>
+            <span className="comtur-badge" style={{ background: '#e0f2fe', color: '#0369a1', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>{docType}</span>
+            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{category}</span>
+          </div>
+          <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
+            <a href={href(`comtur/doc/${item.slug}`)} onClick={(event) => { event.preventDefault(); onOpen(item.slug) }}>{officialIdent}</a>
+          </h3>
+          {item.summary ? <p style={{ margin: '0 0 8px', fontSize: '0.92rem', color: '#475569', lineHeight: '1.4' }}>{item.summary}</p> : null}
+          <div style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+            {docDate ? <span>Publicado em: <strong>{docDate}</strong></span> : null}
+            {pdfUrl ? <span style={{ color: '#dc2626', fontWeight: '700' }}>Arquivo: PDF | {pdfSize}</span> : null}
+          </div>
+        </div>
+      </div>
+      {pdfUrl ? (
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+          <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 14px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', color: '#1e293b', textDecoration: 'none' }}>
+            👁️ Visualizar
+          </a>
+          <a href={pdfUrl} download style={{ padding: '6px 14px', background: '#0f766e', color: '#fff', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none' }}>
+            📥 Baixar PDF
+          </a>
+        </div>
+      ) : null}
+    </article>
+  )
+}
+
+function LegislationRepositoryBlock({ items, onOpen }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [docType, setDocType] = useState('Todos')
+  const [periodMode, setPeriodMode] = useState('year')
+  const [year, setYear] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [category, setCategory] = useState('Todas')
+
+  const filtered = (items || []).filter((item) => {
+    if (item.type !== 'legislation') return false
+    const meta = item.metadata || {}
+    const title = (item.title || '').toLowerCase()
+    const summary = (item.summary || '').toLowerCase()
+    const ident = (meta.officialIdentifier || '').toLowerCase()
+    const num = String(meta.number || '').toLowerCase()
+    const tags = Array.isArray(meta.tags) ? meta.tags.join(' ').toLowerCase() : ''
+    const q = searchTerm.toLowerCase().trim()
+
+    if (q) {
+      const match = title.includes(q) || summary.includes(q) || ident.includes(q) || num.includes(q) || tags.includes(q) || (meta.documentType || '').toLowerCase().includes(q)
+      if (!match) return false
+    }
+
+    if (docType !== 'Todos') {
+      const itemType = meta.documentType || meta.docType || ''
+      if (itemType !== docType) return false
+    }
+
+    if (category !== 'Todas') {
+      const itemCat = meta.category || 'COMTUR'
+      if (itemCat !== category) return false
+    }
+
+    const docDateStr = meta.documentDate || item.publishedAt || ''
+    if (periodMode === 'year' && year) {
+      const itemYear = meta.year ? String(meta.year) : (docDateStr ? new Date(docDateStr).getFullYear().toString() : '')
+      if (itemYear !== String(year).trim()) return false
+    } else if (periodMode === 'range') {
+      if (startDate && docDateStr && new Date(docDateStr) < new Date(startDate)) return false
+      if (endDate && docDateStr && new Date(docDateStr) > new Date(endDate)) return false
+    }
+
+    return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dateA = new Date(a.metadata?.documentDate || a.publishedAt || a.createdAt || 0).getTime()
+    const dateB = new Date(b.metadata?.documentDate || b.publishedAt || b.createdAt || 0).getTime()
+    return dateB - dateA
+  })
+
+  return (
+    <div className="legislation-repository-section" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 12px rgba(15,23,42,0.05)' }}>
+        <h2 style={{ margin: '0 0 16px', fontSize: '1.25rem', fontWeight: '800', color: '#0f2740', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>🔍</span> Buscar Documentos Legais
+        </h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Nome / Termo de busca</label>
+            <input
+              type="text"
+              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', boxSizing: 'border-box' }}
+              placeholder="Ex.: Conselho, 5432, FUMTUR..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Tipo de documento</label>
+            <select
+              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
+              value={docType}
+              onChange={(e) => setDocType(e.target.value)}
+            >
+              <option value="Todos">Todos os tipos</option>
+              <option value="Lei">Lei</option>
+              <option value="Lei Complementar">Lei Complementar</option>
+              <option value="Decreto">Decreto</option>
+              <option value="Portaria">Portaria</option>
+              <option value="Resolução">Resolução</option>
+              <option value="Regimento Interno">Regimento Interno</option>
+              <option value="Deliberação">Deliberação</option>
+              <option value="Instrução Normativa">Instrução Normativa</option>
+              <option value="Ato">Ato</option>
+              <option value="Edital">Edital</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Categoria / Assunto</label>
+            <select
+              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="Todas">Todas as categorias</option>
+              <option value="COMTUR">COMTUR</option>
+              <option value="Fundo Municipal de Turismo">Fundo Municipal de Turismo</option>
+              <option value="Turismo">Turismo</option>
+              <option value="Eventos">Eventos</option>
+              <option value="Planejamento">Planejamento</option>
+              <option value="Regionalização">Regionalização</option>
+              <option value="Administração">Administração</option>
+              <option value="Orçamento">Orçamento</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#1e293b' }}>Filtro por período:</span>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', cursor: 'pointer' }}>
+              <input type="radio" name="periodMode" checked={periodMode === 'year'} onChange={() => setPeriodMode('year')} />
+              Ano
+            </label>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', cursor: 'pointer' }}>
+              <input type="radio" name="periodMode" checked={periodMode === 'range'} onChange={() => setPeriodMode('range')} />
+              Intervalo de datas
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {periodMode === 'year' ? (
+              <div style={{ width: '160px' }}>
+                <input
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  placeholder="Ex.: 2026"
+                  style={{ width: '100%', height: '38px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                />
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Data inicial</label>
+                  <input
+                    type="date"
+                    style={{ height: '38px', padding: '0 8px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Data final</label>
+                  <input
+                    type="date"
+                    style={{ height: '38px', padding: '0 8px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {(searchTerm || docType !== 'Todos' || category !== 'Todas' || year || startDate || endDate) ? (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setDocType('Todos'); setCategory('Todas'); setYear(''); setStartDate(''); setEndDate(''); }}
+                style={{ height: '38px', padding: '0 14px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '700', color: '#475569', cursor: 'pointer' }}
+              >
+                Limpar filtros
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 -8px' }}>
+        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '800', color: '#0f2740' }}>
+          {sorted.length} {sorted.length === 1 ? 'documento encontrado' : 'documentos encontrados'}
+        </h3>
+      </div>
+
+      {sorted.length ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {sorted.map((item) => (
+            <LegislationCard key={item.slug} item={item} onOpen={onOpen} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding: '40px 20px', textAlign: 'center', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: '12px', color: '#64748b' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📜</div>
+          <strong style={{ fontSize: '1.05rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>Nenhum documento encontrado</strong>
+          <span>Nenhum documento encontrado para os filtros informados.</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function LightboxModal({ images, initialIndex = 0, onClose }) {
   const [current, setCurrent] = useState(initialIndex)
   const total = images.length
@@ -1504,6 +1748,10 @@ export default function App() {
           ])
           setMeetings(sessions)
           setGovernance(published.filter(isGovernanceContent))
+        } else if (route.view === 'legislation') {
+          setStatus('Carregando legislação…')
+          const published = await fetchContent({ type: 'legislation', limit: 100 })
+          setGovernance(published)
         } else if (route.view === 'content') {
           setStatus('Carregando publicação…')
           setDetail(await fetchContentBySlug(route.slug))
@@ -1542,6 +1790,7 @@ export default function App() {
     ? portalHeadline(branding)
     : route.view === 'category' ? route.category.label
     : route.view === 'search' ? 'Busca'
+    : route.view === 'legislation' ? 'Legislação e Atos Oficiais'
     : route.view === 'comtur' ? 'COMTUR'
     : route.view === 'meeting' ? (detail ? meetingHeadline(detail) : 'COMTUR')
     : route.view === 'content' && detail ? detail.title
@@ -1552,6 +1801,7 @@ export default function App() {
     ? portalLead(branding)
     : route.view === 'category' ? route.category.blurb
     : route.view === 'search' ? (route.query ? `Resultados para “${route.query}”.` : 'Digite um termo para consultar o catálogo publicado.')
+    : route.view === 'legislation' ? 'Repositório de leis, decretos, resoluções e regimentos oficiais do turismo e do COMTUR.'
     : route.view === 'comtur' ? 'Membros, documentos e reuniões publicados pelo Conselho Municipal de Turismo de Garça.'
     : route.view === 'meeting' ? (detail ? [meetingWhen(detail), detail.location].filter(Boolean).join(' · ') : 'Carregando a reunião publicada.')
     : route.view === 'content' ? (detail?.summary || 'Publicação oficial do COMTUR.')
@@ -1769,6 +2019,12 @@ export default function App() {
           )
         )}
 
+        {route.view === 'legislation' && !error && !status && (
+          <section className="block">
+            <LegislationRepositoryBlock items={governance} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
+          </section>
+        )}
+
         {route.view === 'comtur' && !error && !status && (
           <>
             {governance.filter((item) => item.type === 'council_member').length ? (
@@ -1786,16 +2042,34 @@ export default function App() {
                 </div>
               </section>
             ) : null}
-            {governance.filter((item) => item.type !== 'council_member').length ? (
+            {governance.filter((item) => item.type === 'legislation').length ? (
               <section className="block">
                 <header className="block-head">
                   <div>
-                    <h2>Documentos e publicações</h2>
-                    <p>Legislação, planos, prestações de contas e demais atos oficiais.</p>
+                    <h2>Legislação e Atos Normativos</h2>
+                    <p>Leis, decretos, resoluções e regimentos do turismo e do COMTUR.</p>
+                  </div>
+                  <a className="btn-action" href={href('legislacao')} onClick={(event) => go(event, 'legislacao')}>
+                    Ver repositório completo →
+                  </a>
+                </header>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {governance.filter((item) => item.type === 'legislation').slice(0, 5).map((item) => (
+                    <LegislationCard key={item.slug} item={item} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation').length ? (
+              <section className="block">
+                <header className="block-head">
+                  <div>
+                    <h2>Outros Documentos e Publicações</h2>
+                    <p>Planos de trabalho, prestações de contas e demais atos oficiais.</p>
                   </div>
                 </header>
                 <div className="map-list">
-                  {governance.filter((item) => item.type !== 'council_member').map((item) => (
+                  {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation').map((item) => (
                     <ContentCard key={item.slug} item={item} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
                   ))}
                 </div>
