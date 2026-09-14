@@ -239,41 +239,37 @@ function ContentCard({ item, onOpen }) {
 function LegislationCard({ item, onOpen }) {
   const meta = item.metadata || {}
   const docType = meta.documentType || meta.docType || 'Documento Legal'
-  const officialIdent = meta.officialIdentifier || (meta.number ? `${docType} nº ${meta.number}${meta.year ? '/' + meta.year : ''}` : item.title)
+  const title = item.title || meta.officialIdentifier || 'Documento sem título'
   const docDate = meta.documentDate ? new Date(meta.documentDate).toLocaleDateString('pt-BR') : (item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('pt-BR') : '')
-  const category = meta.category || 'COMTUR'
-  const pdfMedia = (Array.isArray(item.media) && item.media.find((m) => m.kind === 'document' || m.mimeType === 'application/pdf')) || meta.pdfFile || null
+  const pdfMedia = (Array.isArray(item.media) && item.media.find((m) => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || meta.pdfFile || null
   const pdfUrl = pdfMedia?.url || ''
-  const pdfSize = pdfMedia?.sizeFormatted || (pdfMedia?.size ? `${(pdfMedia.size / (1024 * 1024)).toFixed(1)} MB` : 'PDF')
+  const pdfSize = pdfMedia?.sizeFormatted || (pdfMedia?.size ? `${(pdfMedia.size / (1024 * 1024)).toFixed(1).replace('.', ',')} MB` : '1,8 MB')
 
   return (
-    <article className="meeting-card legislation-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-        <div style={{ width: '48px', height: '48px', background: '#dc2626', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.95rem', flexShrink: 0 }}>
+    <article className="meeting-card legislation-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '20px 24px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', gap: '18px', alignItems: 'flex-start' }}>
+        <div style={{ width: '48px', height: '48px', background: '#dc2626', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.95rem', flexShrink: 0, boxShadow: '0 2px 4px rgba(220,38,38,0.2)' }}>
           PDF
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <span className="comtur-badge" style={{ background: '#e0f2fe', color: '#0369a1', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>{docType}</span>
-            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{category}</span>
-          </div>
-          <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
-            <a href={href(`comtur/doc/${item.slug}`)} onClick={(event) => { event.preventDefault(); onOpen(item.slug) }}>{officialIdent}</a>
+          <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800', color: '#0f2740', lineHeight: '1.3' }}>
+            {title}
           </h3>
-          {item.summary ? <p style={{ margin: '0 0 8px', fontSize: '0.92rem', color: '#475569', lineHeight: '1.4' }}>{item.summary}</p> : null}
-          <div style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            {docDate ? <span>Publicado em: <strong>{docDate}</strong></span> : null}
+          {item.summary ? <p style={{ margin: '0 0 10px', fontSize: '0.92rem', color: '#475569', lineHeight: '1.4' }}>{item.summary}</p> : null}
+          <div style={{ fontSize: '0.86rem', color: '#64748b', display: 'flex', gap: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {docDate ? <span>Publicado em: <strong style={{ color: '#1e293b' }}>{docDate}</strong></span> : null}
+            <span>Tipo: <strong style={{ color: '#0f766e' }}>{docType}</strong></span>
             {pdfUrl ? <span style={{ color: '#dc2626', fontWeight: '700' }}>Arquivo: PDF | {pdfSize}</span> : null}
           </div>
         </div>
       </div>
       {pdfUrl ? (
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-          <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 14px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', color: '#1e293b', textDecoration: 'none' }}>
-            👁️ Visualizar
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '2px', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+          <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', color: '#1e293b', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            👁️ VISUALIZAR
           </a>
-          <a href={pdfUrl} download style={{ padding: '6px 14px', background: '#0f766e', color: '#fff', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none' }}>
-            📥 Baixar PDF
+          <a href={pdfUrl} download style={{ padding: '8px 18px', background: '#0f766e', color: '#fff', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            📥 BAIXAR
           </a>
         </div>
       ) : null}
@@ -282,46 +278,81 @@ function LegislationCard({ item, onOpen }) {
 }
 
 function LegislationRepositoryBlock({ items, onOpen }) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [docType, setDocType] = useState('Todos')
+  const [nameInput, setNameInput] = useState('')
+  const [docTypeInput, setDocTypeInput] = useState('Todos')
   const [periodMode, setPeriodMode] = useState('year')
-  const [year, setYear] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [category, setCategory] = useState('Todas')
+  const [yearInput, setYearInput] = useState('')
+  const [startDateInput, setStartDateInput] = useState('')
+  const [endDateInput, setEndDateInput] = useState('')
+
+  // Active filter state applied when clicking "BUSCAR" or typing
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: '',
+    docType: 'Todos',
+    periodMode: 'year',
+    year: '',
+    startDate: '',
+    endDate: ''
+  })
+
+  const handleSearch = (e) => {
+    if (e) e.preventDefault()
+    setAppliedFilters({
+      name: nameInput,
+      docType: docTypeInput,
+      periodMode,
+      year: yearInput,
+      startDate: startDateInput,
+      endDate: endDateInput
+    })
+  }
+
+  const handleReset = () => {
+    setNameInput('')
+    setDocTypeInput('Todos')
+    setPeriodMode('year')
+    setYearInput('')
+    setStartDateInput('')
+    setEndDateInput('')
+    setAppliedFilters({
+      name: '',
+      docType: 'Todos',
+      periodMode: 'year',
+      year: '',
+      startDate: '',
+      endDate: ''
+    })
+  }
 
   const filtered = (items || []).filter((item) => {
     if (item.type !== 'legislation') return false
     const meta = item.metadata || {}
     const title = (item.title || '').toLowerCase()
-    const summary = (item.summary || '').toLowerCase()
-    const ident = (meta.officialIdentifier || '').toLowerCase()
-    const num = String(meta.number || '').toLowerCase()
-    const tags = Array.isArray(meta.tags) ? meta.tags.join(' ').toLowerCase() : ''
-    const q = searchTerm.toLowerCase().trim()
+    const summary = (item.summary || meta.description || '').toLowerCase()
+    const q = appliedFilters.name.toLowerCase().trim()
 
     if (q) {
-      const match = title.includes(q) || summary.includes(q) || ident.includes(q) || num.includes(q) || tags.includes(q) || (meta.documentType || '').toLowerCase().includes(q)
+      const match = title.includes(q) || summary.includes(q) || (meta.documentType || '').toLowerCase().includes(q)
       if (!match) return false
     }
 
-    if (docType !== 'Todos') {
-      const itemType = meta.documentType || meta.docType || ''
-      if (itemType !== docType) return false
-    }
-
-    if (category !== 'Todas') {
-      const itemCat = meta.category || 'COMTUR'
-      if (itemCat !== category) return false
+    if (appliedFilters.docType !== 'Todos') {
+      const itemType = (meta.documentType || meta.docType || '').trim()
+      const filterType = appliedFilters.docType.trim()
+      if (filterType === 'Regimento') {
+        if (!itemType.toLowerCase().includes('regimento')) return false
+      } else if (itemType.toLowerCase() !== filterType.toLowerCase()) {
+        return false
+      }
     }
 
     const docDateStr = meta.documentDate || item.publishedAt || ''
-    if (periodMode === 'year' && year) {
+    if (appliedFilters.periodMode === 'year' && appliedFilters.year) {
       const itemYear = meta.year ? String(meta.year) : (docDateStr ? new Date(docDateStr).getFullYear().toString() : '')
-      if (itemYear !== String(year).trim()) return false
-    } else if (periodMode === 'range') {
-      if (startDate && docDateStr && new Date(docDateStr) < new Date(startDate)) return false
-      if (endDate && docDateStr && new Date(docDateStr) > new Date(endDate)) return false
+      if (itemYear !== String(appliedFilters.year).trim()) return false
+    } else if (appliedFilters.periodMode === 'range') {
+      if (appliedFilters.startDate && docDateStr && new Date(docDateStr) < new Date(appliedFilters.startDate)) return false
+      if (appliedFilters.endDate && docDateStr && new Date(docDateStr) > new Date(appliedFilters.endDate + 'T23:59:59')) return false
     }
 
     return true
@@ -333,147 +364,143 @@ function LegislationRepositoryBlock({ items, onOpen }) {
     return dateB - dateA
   })
 
+  const hasActiveFilters = appliedFilters.name || appliedFilters.docType !== 'Todos' || appliedFilters.year || appliedFilters.startDate || appliedFilters.endDate
+
   return (
     <div className="legislation-repository-section" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Box de Busca e Filtros */}
       <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 12px rgba(15,23,42,0.05)' }}>
-        <h2 style={{ margin: '0 0 16px', fontSize: '1.25rem', fontWeight: '800', color: '#0f2740', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>🔍</span> Buscar Documentos Legais
+        <h2 style={{ margin: '0 0 20px', fontSize: '1.25rem', fontWeight: '800', color: '#0f2740', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>🔍</span> BUSCAR DOCUMENTOS
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Nome / Termo de busca</label>
-            <input
-              type="text"
-              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', boxSizing: 'border-box' }}
-              placeholder="Ex.: Conselho, 5432, FUMTUR..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <form onSubmit={handleSearch}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '18px' }}>
+            {/* Campo Nome */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Nome</label>
+              <input
+                type="text"
+                style={{ width: '100%', height: '42px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                placeholder="Ex.: Lei de criação do COMTUR..."
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+              />
+            </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Tipo de documento</label>
-            <select
-              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
-              value={docType}
-              onChange={(e) => setDocType(e.target.value)}
-            >
-              <option value="Todos">Todos os tipos</option>
-              <option value="Lei">Lei</option>
-              <option value="Lei Complementar">Lei Complementar</option>
-              <option value="Decreto">Decreto</option>
-              <option value="Portaria">Portaria</option>
-              <option value="Resolução">Resolução</option>
-              <option value="Regimento Interno">Regimento Interno</option>
-              <option value="Deliberação">Deliberação</option>
-              <option value="Instrução Normativa">Instrução Normativa</option>
-              <option value="Ato">Ato</option>
-              <option value="Edital">Edital</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Categoria / Assunto</label>
-            <select
-              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="Todas">Todas as categorias</option>
-              <option value="COMTUR">COMTUR</option>
-              <option value="Fundo Municipal de Turismo">Fundo Municipal de Turismo</option>
-              <option value="Turismo">Turismo</option>
-              <option value="Eventos">Eventos</option>
-              <option value="Planejamento">Planejamento</option>
-              <option value="Regionalização">Regionalização</option>
-              <option value="Administração">Administração</option>
-              <option value="Orçamento">Orçamento</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#1e293b' }}>Filtro por período:</span>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', cursor: 'pointer' }}>
-              <input type="radio" name="periodMode" checked={periodMode === 'year'} onChange={() => setPeriodMode('year')} />
-              Ano
-            </label>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', cursor: 'pointer' }}>
-              <input type="radio" name="periodMode" checked={periodMode === 'range'} onChange={() => setPeriodMode('range')} />
-              Intervalo de datas
-            </label>
-          </div>
-
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {periodMode === 'year' ? (
-              <div style={{ width: '160px' }}>
-                <input
-                  type="number"
-                  min="1900"
-                  max="2100"
-                  placeholder="Ex.: 2026"
-                  style={{ width: '100%', height: '38px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                />
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <div>
-                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Data inicial</label>
-                  <input
-                    type="date"
-                    style={{ height: '38px', padding: '0 8px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Data final</label>
-                  <input
-                    type="date"
-                    style={{ height: '38px', padding: '0 8px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {(searchTerm || docType !== 'Todos' || category !== 'Todas' || year || startDate || endDate) ? (
-              <button
-                type="button"
-                onClick={() => { setSearchTerm(''); setDocType('Todos'); setCategory('Todas'); setYear(''); setStartDate(''); setEndDate(''); }}
-                style={{ height: '38px', padding: '0 14px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '700', color: '#475569', cursor: 'pointer' }}
+            {/* Filtro Tipo */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Tipo</label>
+              <select
+                style={{ width: '100%', height: '42px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
+                value={docTypeInput}
+                onChange={(e) => setDocTypeInput(e.target.value)}
               >
-                Limpar filtros
-              </button>
-            ) : null}
+                <option value="Todos">Todos</option>
+                <option value="Lei">Lei</option>
+                <option value="Lei Complementar">Lei Complementar</option>
+                <option value="Decreto">Decreto</option>
+                <option value="Portaria">Portaria</option>
+                <option value="Resolução">Resolução</option>
+                <option value="Regimento">Regimento</option>
+                <option value="Deliberação">Deliberação</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
           </div>
-        </div>
+
+          {/* Filtro por Período */}
+          <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.86rem', fontWeight: '700', color: '#1e293b' }}>Filtro:</span>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', cursor: 'pointer', fontWeight: periodMode === 'range' ? '700' : '500' }}>
+                <input type="radio" name="periodMode" checked={periodMode === 'range'} onChange={() => setPeriodMode('range')} style={{ accentColor: '#0f766e' }} />
+                Intervalo de datas
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', cursor: 'pointer', fontWeight: periodMode === 'year' ? '700' : '500' }}>
+                <input type="radio" name="periodMode" checked={periodMode === 'year'} onChange={() => setPeriodMode('year')} style={{ accentColor: '#0f766e' }} />
+                Ano
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              {periodMode === 'year' ? (
+                <div style={{ width: '180px' }}>
+                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Ano</label>
+                  <input
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    placeholder="Ex.: 2026"
+                    style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                    value={yearInput}
+                    onChange={(e) => setYearInput(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data inicial</label>
+                    <input
+                      type="date"
+                      style={{ height: '40px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      value={startDateInput}
+                      onChange={(e) => setStartDateInput(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data final</label>
+                    <input
+                      type="date"
+                      style={{ height: '40px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      value={endDateInput}
+                      onChange={(e) => setEndDateInput(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Botão BUSCAR */}
+              <button
+                type="submit"
+                style={{ height: '40px', padding: '0 24px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '800', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', letterSpacing: '0.03em' }}
+              >
+                🔍 BUSCAR
+              </button>
+
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  style={{ height: '40px', padding: '0 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.86rem', fontWeight: '700', color: '#475569', cursor: 'pointer' }}
+                >
+                  Limpar filtros
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </form>
       </div>
 
+      {/* Contagem de Resultados */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 -8px' }}>
-        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '800', color: '#0f2740' }}>
+        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f2740' }}>
           {sorted.length} {sorted.length === 1 ? 'documento encontrado' : 'documentos encontrados'}
         </h3>
       </div>
 
+      {/* Lista de Resultados */}
       {sorted.length ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {sorted.map((item) => (
-            <LegislationCard key={item.slug} item={item} onOpen={onOpen} />
+            <LegislationCard key={item.slug || item._id} item={item} onOpen={onOpen} />
           ))}
         </div>
       ) : (
         <div style={{ padding: '40px 20px', textAlign: 'center', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: '12px', color: '#64748b' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📜</div>
-          <strong style={{ fontSize: '1.05rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>Nenhum documento encontrado</strong>
-          <span>Nenhum documento encontrado para os filtros informados.</span>
+          <div style={{ fontSize: '2.4rem', marginBottom: '8px' }}>📜</div>
+          <strong style={{ fontSize: '1.1rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>Nenhum documento encontrado</strong>
+          <span>Nenhum documento legal encontrado para os filtros informados.</span>
         </div>
       )}
     </div>
