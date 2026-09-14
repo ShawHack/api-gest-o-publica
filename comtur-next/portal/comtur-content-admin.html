@@ -3799,7 +3799,121 @@
 
           </div>
 
-          <!-- 10. STANDARD / DOCUMENT FORM (Generic Fallback for work_plan, accountability, indicator, research, open_data, qr_point, integration, news) -->
+          <!-- ================================================================= -->
+          <!-- 10. PLANO DE TRABALHO FORM (ESPECIALIZADO)                         -->
+          <!-- ================================================================= -->
+          <div id="workPlanFields" class="comtur-category-fields" style="display:none">
+            <input id="wpSlug" type="hidden">
+
+            <!-- SEÇÃO 1: Identificação do Plano -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">1</span> Identificação do Plano</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field comtur-grid-full">
+                  <label for="wpTitle">Título do Plano de Trabalho <span class="req">*</span></label>
+                  <input id="wpTitle" class="comtur-input" placeholder="Ex.: Plano de Trabalho do COMTUR — 2026">
+                </div>
+                <div class="comtur-field">
+                  <label for="wpYear">Exercício / Ano <span class="req">*</span></label>
+                  <input id="wpYear" type="number" class="comtur-input" placeholder="2026" min="1990" max="2100">
+                </div>
+                <div class="comtur-field">
+                  <label for="wpPeriodType">Período do plano</label>
+                  <select id="wpPeriodType" class="comtur-select">
+                    <option value="Anual" selected>Anual</option>
+                    <option value="Semestral">Semestral</option>
+                    <option value="Bienal">Bienal</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label for="wpResponsibleBody">Órgão responsável</label>
+                  <input id="wpResponsibleBody" class="comtur-input" value="COMTUR" placeholder="COMTUR">
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label for="wpSummary">Resumo / Descrição</label>
+                  <textarea id="wpSummary" class="comtur-textarea" rows="3" placeholder="Plano de ações e metas do Conselho Municipal de Turismo para o exercício de 2026."></textarea>
+                  <span class="comtur-hint">Campo opcional. O documento completo oficial estará no PDF anexo.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 2: Período de Vigência -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">2</span> Período de Vigência</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="wpStartDate">Data inicial</label>
+                  <input id="wpStartDate" type="date" class="comtur-input">
+                </div>
+                <div class="comtur-field">
+                  <label for="wpEndDate">Data final</label>
+                  <input id="wpEndDate" type="date" class="comtur-input">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 3: Arquivo do Plano de Trabalho -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">3</span> Arquivo do Plano de Trabalho</div>
+              <p class="comtur-hint" style="margin-bottom: 12px;">Envie o arquivo PDF com a íntegra do Plano de Trabalho aprovado pelo Conselho (máx. 20 MB).</p>
+              
+              <input id="wpPdfFileInput" type="file" accept=".pdf,application/pdf" style="display: none;">
+              
+              <!-- Empty State -->
+              <div id="wpPdfEmpty" style="border: 2px dashed #cbd5e1; border-radius: var(--comtur-radius-md); padding: 24px 16px; text-align: center; background: #f8fafc;">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">📄</div>
+                <div style="font-weight: 700; color: var(--comtur-primary-dark); margin-bottom: 4px;">Nenhum arquivo PDF anexado</div>
+                <div style="font-size: 0.85rem; color: var(--comtur-text-muted); margin-bottom: 14px;">Selecione o arquivo PDF oficial do plano de trabalho</div>
+                <button type="button" class="comtur-btn comtur-btn-primary comtur-btn-sm" onclick="$('wpPdfFileInput').click()">Selecionar PDF</button>
+              </div>
+
+              <!-- Selected / Attached State -->
+              <div id="wpPdfPreview" style="display: none; border: 1.5px solid #bbf7d0; border-radius: var(--comtur-radius-md); padding: 16px; background: #f0fdf4;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                  <div style="display: flex; gap: 12px; align-items: center; min-width: 0;">
+                    <div style="font-size: 2rem; color: #dc2626; flex-shrink: 0;">📄</div>
+                    <div style="min-width: 0;">
+                      <div id="wpPdfFileNameDisplay" style="font-weight: 800; color: var(--comtur-primary-dark); word-break: break-all;">plano-de-trabalho-comtur-2026.pdf</div>
+                      <div style="font-size: 0.82rem; color: var(--comtur-text-muted); margin-top: 2px;">
+                        Tamanho: <strong id="wpPdfSizeDisplay">PDF | 2,3 MB</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button id="btnViewWpPdf" type="button" class="comtur-btn comtur-btn-secondary comtur-btn-sm" onclick="if(wpPdfFile&&wpPdfFile.url) window.open(wpPdfFile.url, '_blank')">Visualizar</button>
+                    <button id="btnReplaceWpPdf" type="button" class="comtur-btn comtur-btn-secondary comtur-btn-sm" onclick="$('wpPdfFileInput').click()">Substituir</button>
+                    <button id="btnRemoveWpPdf" type="button" class="comtur-btn comtur-btn-danger comtur-btn-sm" onclick="wpPdfFile = null; renderWpPdfPreview();">Remover</button>
+                  </div>
+                </div>
+              </div>
+              <div id="wpPdfProgress" class="comtur-hint" style="margin-top: 8px; font-weight: 600; color: var(--comtur-primary);"></div>
+            </div>
+
+            <!-- SEÇÃO 4: Publicação -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">4</span> Publicação</div>
+              <div class="comtur-grid-2" style="margin-bottom: 16px;">
+                <div class="comtur-field">
+                  <label for="wpPublishDate">Data de publicação</label>
+                  <input id="wpPublishDate" type="date" class="comtur-input">
+                </div>
+              </div>
+              <div class="comtur-actions-bar">
+                <div class="comtur-actions-group">
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('draft')">💾 Salvar Rascunho</button>
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('review')">🔍 Enviar para Revisão</button>
+                  <button type="button" class="comtur-btn comtur-btn-success" onclick="saveContent('published')">🚀 Publicar</button>
+                </div>
+                <div class="comtur-actions-group">
+                  <button id="btnArchiveWp" type="button" class="comtur-btn comtur-btn-danger" style="display:none;" onclick="saveContent('archived')">📦 Arquivar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 11. STANDARD / DOCUMENT FORM (Generic Fallback for accountability, indicator, research, open_data, qr_point, integration, news) -->
           <!-- ================================================================= -->
           <div id="standardFields" class="comtur-category-fields" style="display:none">
             <div id="standardNotice" class="comtur-hint" style="background:#f1f5f9; border:1px dashed #cbd5e1; padding:12px 16px; border-radius:8px; margin-bottom:16px; color:#475569; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:8px;">
@@ -4375,6 +4489,9 @@
 
   // State for Legislation
   let legisPdfFile = null;
+
+  // State for Work Plan
+  let wpPdfFile = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -5220,6 +5337,85 @@
     }
   }
 
+  // --- WORK PLAN HELPERS (SPECIALIZED DOCUMENTAL FORM) ---
+  function renderWpPdfPreview() {
+    const emptyEl = $('wpPdfEmpty');
+    const previewEl = $('wpPdfPreview');
+    if (!emptyEl || !previewEl) return;
+
+    if (wpPdfFile && wpPdfFile.url) {
+      emptyEl.style.display = 'none';
+      previewEl.style.display = 'block';
+      const nameEl = $('wpPdfFileNameDisplay');
+      const sizeEl = $('wpPdfSizeDisplay');
+      if (nameEl) nameEl.textContent = wpPdfFile.originalName || wpPdfFile.name || 'plano-de-trabalho.pdf';
+      if (sizeEl) sizeEl.textContent = wpPdfFile.sizeFormatted || (wpPdfFile.size ? formatBytes(wpPdfFile.size) : 'PDF | Documento');
+    } else {
+      emptyEl.style.display = 'block';
+      previewEl.style.display = 'none';
+    }
+  }
+
+  async function uploadWpPdf(file) {
+    if (!file) return;
+
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    if (!isPdf) {
+      showNotice('Formato inválido. Por favor, envie apenas arquivos em formato PDF (.pdf).', true);
+      return;
+    }
+
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showNotice('Arquivo muito grande. O limite máximo para upload de PDF é de 20 MB.', true);
+      return;
+    }
+
+    if (file.size === 0) {
+      showNotice('O arquivo selecionado está vazio.', true);
+      return;
+    }
+
+    const progressEl = $('wpPdfProgress');
+    if (progressEl) progressEl.textContent = 'Enviando arquivo PDF do Plano de Trabalho...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const send = (window.SemitSession && typeof window.SemitSession.fetchWithAuth === 'function')
+        ? window.SemitSession.fetchWithAuth.bind(window.SemitSession)
+        : ((window.SemitSession && typeof window.SemitSession.fetchAuth === 'function')
+            ? window.SemitSession.fetchAuth.bind(window.SemitSession)
+            : fetch);
+      const res = await send('/api/comtur/admin/media/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        wpPdfFile = {
+          url: data.url,
+          name: file.name,
+          originalName: file.name,
+          size: file.size,
+          sizeFormatted: `PDF | ${formatBytes(file.size)}`,
+          mimeType: 'application/pdf',
+          uploadedAt: new Date().toISOString()
+        };
+        renderWpPdfPreview();
+        if (progressEl) progressEl.textContent = 'PDF anexado com sucesso!';
+        setTimeout(() => { if (progressEl) progressEl.textContent = ''; }, 3000);
+      } else {
+        showNotice(`Erro ao enviar PDF: ${data.error || 'Falha no upload'}`, true);
+        if (progressEl) progressEl.textContent = '';
+      }
+    } catch (err) {
+      showNotice('Erro de conexão ao enviar arquivo PDF.', true);
+      if (progressEl) progressEl.textContent = '';
+    }
+  }
+
   // --- CONTENT TYPE SWITCHING & FORM REGISTRY ---
   function onContentTypeChange(newType, pushState = true) {
     currentType = normalizeType(newType);
@@ -5245,7 +5441,8 @@
       'shopping': 'shoppingFields',
       'service': 'serviceFields',
       'council_member': 'councilMemberFields',
-      'legislation': 'legislationFields'
+      'legislation': 'legislationFields',
+      'work_plan': 'workPlanFields'
     };
 
     const targetFieldId = specializedMap[currentType];
@@ -5292,6 +5489,7 @@
     if ($('btnArchiveService')) $('btnArchiveService').style.display = 'none';
     if ($('btnArchiveCouncil')) $('btnArchiveCouncil').style.display = 'none';
     if ($('btnArchiveLegis')) $('btnArchiveLegis').style.display = 'none';
+    if ($('btnArchiveWp')) $('btnArchiveWp').style.display = 'none';
     if ($('btnArchiveShared')) $('btnArchiveShared').style.display = 'none';
 
     // Standard / Generic Form Defaults
@@ -5466,6 +5664,29 @@
       if ($('legisPdfProgress')) $('legisPdfProgress').textContent = '';
     }
 
+    // Work Plan Defaults (Specialized Documental Form)
+    if (currentType === 'work_plan') {
+      if ($('wpTitle')) {
+        $('wpTitle').value = '';
+        delete $('wpTitle').dataset.manual;
+      }
+      if ($('wpSlug')) {
+        $('wpSlug').value = '';
+        delete $('wpSlug').dataset.manual;
+      }
+      if ($('wpYear')) $('wpYear').value = new Date().getFullYear();
+      if ($('wpPeriodType')) $('wpPeriodType').value = 'Anual';
+      if ($('wpResponsibleBody')) $('wpResponsibleBody').value = 'COMTUR';
+      if ($('wpStartDate')) $('wpStartDate').value = '';
+      if ($('wpEndDate')) $('wpEndDate').value = '';
+      if ($('wpSummary')) $('wpSummary').value = '';
+      if ($('wpPublishDate')) $('wpPublishDate').value = '';
+      wpPdfFile = null;
+      renderWpPdfPreview();
+      if ($('wpPdfProgress')) $('wpPdfProgress').textContent = '';
+      if ($('btnArchiveWp')) $('btnArchiveWp').style.display = 'none';
+    }
+
     if (clearSidebarActive) {
       document.querySelectorAll('.comtur-list-item').forEach(el => el.classList.remove('is-active'));
     }
@@ -5487,10 +5708,11 @@
       const slug = (item.slug || '').toLowerCase();
       const meta = item.metadata || {};
       const docType = (meta.documentType || meta.docType || '').toLowerCase();
-      const org = (meta.organization || meta.entity || '').toLowerCase();
+      const org = (meta.organization || meta.entity || meta.responsibleBody || '').toLowerCase();
       const role = (meta.councilRole || meta.role || '').toLowerCase();
+      const year = String(meta.year || '');
 
-      return title.includes(query) || slug.includes(query) || docType.includes(query) || org.includes(query) || role.includes(query);
+      return title.includes(query) || slug.includes(query) || docType.includes(query) || org.includes(query) || role.includes(query) || year.includes(query);
     });
 
     if (!filtered.length) {
@@ -5553,6 +5775,37 @@
                 <div style="display: flex; gap: 6px; align-items: center; font-size: 0.78rem; color: var(--comtur-text-muted); line-height: 1.2;">
                   <span style="font-weight: 600; color: var(--comtur-primary);">${escapeHtml(docType)}</span>
                   ${docDate ? `<span>• ${docDate}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="comtur-list-meta" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="comtur-badge ${statusClass}">${statusLabel}</span>
+              <span style="font-size: 0.72rem; font-weight: 600; color: ${pdfAttached ? '#16a34a' : '#94a3b8'};">${pdfAttached ? 'PDF ANEXO' : 'SEM PDF'}</span>
+            </div>
+          </button>
+        `;
+      }
+
+      // 3. Work Plan Card (Documental Repository)
+      if (item.type === 'work_plan') {
+        const meta = item.metadata || {};
+        const yearVal = meta.year || (item.publishedAt ? new Date(item.publishedAt).getFullYear() : '');
+        const periodVal = meta.periodType || 'Anual';
+        const pdfAttached = (item.media && item.media.some(m => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || !!meta.pdfFile;
+
+        return `
+          <button class="comtur-list-item ${isActive ? 'is-active' : ''}" type="button" data-id="${item._id}" style="padding: 10px 12px; width: 100%; text-align: left;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="width: 36px; height: 36px; border-radius: var(--comtur-radius-md); background: ${pdfAttached ? '#dbeafe' : '#f1f5f9'}; color: ${pdfAttached ? '#2563eb' : '#64748b'}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; font-weight: 800;">
+                📋
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div class="comtur-list-title" style="font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; color: var(--comtur-primary-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${escapeHtml(item.title || 'Sem título')}
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; font-size: 0.78rem; color: var(--comtur-text-muted); line-height: 1.2;">
+                  ${yearVal ? `<span style="font-weight: 700; color: var(--comtur-primary);">Exercício ${escapeHtml(String(yearVal))}</span>` : ''}
+                  ${periodVal ? `<span>• ${escapeHtml(periodVal)}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -6006,6 +6259,40 @@
       renderLegisPdfPreview();
 
       if ($('btnArchiveLegis')) $('btnArchiveLegis').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
+
+    } else if (item.type === 'work_plan') {
+      if ($('wpTitle')) $('wpTitle').value = item.title || '';
+      if ($('wpSlug')) {
+        $('wpSlug').value = item.slug || '';
+        $('wpSlug').dataset.manual = 'true';
+      }
+      if ($('wpYear')) $('wpYear').value = meta.year || (item.publishedAt ? new Date(item.publishedAt).getFullYear() : new Date().getFullYear());
+      if ($('wpPeriodType')) $('wpPeriodType').value = meta.periodType || 'Anual';
+      if ($('wpResponsibleBody')) $('wpResponsibleBody').value = meta.responsibleBody || 'COMTUR';
+      if ($('wpStartDate')) $('wpStartDate').value = meta.startDate ? new Date(meta.startDate).toISOString().slice(0, 10) : (meta.startDate || '');
+      if ($('wpEndDate')) $('wpEndDate').value = meta.endDate ? new Date(meta.endDate).toISOString().slice(0, 10) : (meta.endDate || '');
+      if ($('wpSummary')) $('wpSummary').value = item.summary || meta.description || '';
+      if ($('wpPublishDate')) $('wpPublishDate').value = item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : '';
+
+      // PDF Attachment
+      const pdfMedia = (item.media && item.media.find(m => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || null;
+      if (meta.pdfFile && meta.pdfFile.url) {
+        wpPdfFile = meta.pdfFile;
+      } else if (pdfMedia && pdfMedia.url) {
+        wpPdfFile = {
+          url: pdfMedia.url,
+          name: pdfMedia.originalName || pdfMedia.title || 'plano-de-trabalho.pdf',
+          originalName: pdfMedia.originalName || pdfMedia.title || 'plano-de-trabalho.pdf',
+          size: pdfMedia.size || 0,
+          sizeFormatted: pdfMedia.size ? formatBytes(pdfMedia.size) : 'PDF | Documento',
+          mimeType: 'application/pdf'
+        };
+      } else {
+        wpPdfFile = null;
+      }
+      renderWpPdfPreview();
+
+      if ($('btnArchiveWp')) $('btnArchiveWp').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
 
     } else {
       // Standard / Default
@@ -6604,6 +6891,59 @@
       };
     }
 
+    if (currentType === 'work_plan') {
+      const title = $('wpTitle').value.trim();
+      const slug = slugify($('wpSlug').value) || slugify(title);
+      const year = parseInt($('wpYear').value, 10) || new Date().getFullYear();
+      const periodType = $('wpPeriodType').value;
+      const responsibleBody = $('wpResponsibleBody').value.trim() || 'COMTUR';
+      const startDate = $('wpStartDate').value || undefined;
+      const endDate = $('wpEndDate').value || undefined;
+      const summary = $('wpSummary').value.trim();
+      const publishDateVal = $('wpPublishDate').value;
+      const publishedAt = publishDateVal ? new Date(publishDateVal).toISOString() : (statusToSave === 'published' ? new Date().toISOString() : undefined);
+
+      const media = [];
+      if (wpPdfFile && wpPdfFile.url) {
+        media.push({
+          kind: 'document',
+          title: title,
+          url: wpPdfFile.url,
+          mimeType: 'application/pdf',
+          size: wpPdfFile.size,
+          originalName: wpPdfFile.originalName || wpPdfFile.name,
+          isAccessible: true
+        });
+      }
+
+      return {
+        type: 'work_plan',
+        title,
+        slug,
+        summary,
+        body: summary,
+        featured: false,
+        publishedAt,
+        status: statusToSave || 'draft',
+        metadata: {
+          title,
+          year,
+          periodType,
+          responsibleBody,
+          startDate,
+          endDate,
+          description: summary,
+          pdfFile: wpPdfFile ? {
+            ...wpPdfFile,
+            title
+          } : null,
+          showOnPortal: true,
+          featured: false
+        },
+        media
+      };
+    }
+
     // Default / Standard
     const name = $('stdTitle').value.trim();
     const slug = slugify($('stdSlug').value) || slugify(name);
@@ -6706,6 +7046,7 @@
   window.loadItems = loadItems;
   window.saveContent = saveContent;
   window.onContentTypeChange = onContentTypeChange;
+  window.loadItemForEdit = loadItemForEdit;
 
   // --- INITIALIZATION ---
   function init() {
@@ -7061,7 +7402,32 @@
       });
     }
 
-    // 10. Standard / Global Listeners
+    // 10. Work Plan Listeners (Specialized Documental)
+    if ($('wpTitle')) {
+      $('wpTitle').addEventListener('input', () => {
+        $('wpTitle').dataset.manual = 'true';
+        if (!$('id').value && $('wpSlug') && !$('wpSlug').dataset.manual) {
+          $('wpSlug').value = slugify($('wpTitle').value);
+        }
+      });
+    }
+    if ($('wpStartDate')) {
+      $('wpStartDate').addEventListener('change', () => {
+        if ($('wpStartDate').value && (!$('wpYear').value || $('wpYear').value === '')) {
+          $('wpYear').value = new Date($('wpStartDate').value).getFullYear();
+        }
+      });
+    }
+    if ($('wpPdfFileInput')) {
+      $('wpPdfFileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          uploadWpPdf(e.target.files[0]);
+        }
+        e.target.value = '';
+      });
+    }
+
+    // 11. Standard / Global Listeners
     if ($('stdTitle')) {
       $('stdTitle').addEventListener('input', () => {
         if (!$('id').value && $('stdSlug') && !$('stdSlug').dataset.manual) {
