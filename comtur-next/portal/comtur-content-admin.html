@@ -3449,7 +3449,257 @@
           </div>
 
           <!-- ================================================================= -->
-          <!-- 9. STANDARD / DOCUMENT FORM (Council, Legislation, etc.)           -->
+          <!-- 9. COUNCIL MEMBER FORM (MEMBROS DO CONSELHO / COMTUR)             -->
+          <!-- ================================================================= -->
+          <div id="councilMemberFields" class="comtur-category-fields" style="display:none">
+
+            <!-- SEÇÃO 1: Identificação do Conselheiro -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">1</span> Identificação do Conselheiro</div>
+              
+              <!-- Avatar Upload & Info Bar -->
+              <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; background: #f8fafc; border: 1px solid var(--comtur-border-light); border-radius: var(--comtur-radius-md);">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                  <div id="councilAvatarPreview" style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; border: 3px solid var(--comtur-primary); box-shadow: var(--comtur-shadow-sm);">
+                    <span style="font-size: 3.2rem;">👤</span>
+                  </div>
+                  <div style="display: flex; gap: 6px; align-items: center;">
+                    <label class="comtur-btn comtur-btn-secondary comtur-btn-sm" style="cursor: pointer; margin: 0;">
+                      📷 Selecionar foto
+                      <input id="councilPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" style="display:none">
+                    </label>
+                    <button id="btnRemoveCouncilPhoto" type="button" class="comtur-btn comtur-btn-danger comtur-btn-sm" style="display:none;">🗑️</button>
+                  </div>
+                  <span id="councilPhotoProgress" class="comtur-hint" style="margin: 0; text-align: center;"></span>
+                </div>
+                <div style="flex: 1; min-width: 260px;">
+                  <p style="font-size: 0.92rem; color: var(--comtur-text-muted); margin: 0 0 10px;">
+                    Selecione uma foto recente do membro (JPG, PNG ou WEBP). A foto será apresentada no formato circular nos cards públicos da composição do conselho.
+                  </p>
+                  <div class="comtur-field" style="margin: 0;">
+                    <label for="councilPhotoAlt">Texto alternativo da foto (Acessibilidade)</label>
+                    <input id="councilPhotoAlt" class="comtur-input" placeholder="Ex.: Foto de Maria da Silva, Presidente do COMTUR">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dados Principais -->
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilName">Nome completo <span class="req">*</span></label>
+                  <input id="councilName" class="comtur-input" placeholder="Ex.: Maria da Silva Oliveira">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilDisplayName">Nome para exibição pública</label>
+                  <input id="councilDisplayName" class="comtur-input" placeholder="Ex.: Maria da Silva (ou como prefere ser chamada)">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilRole">Cargo / Função no COMTUR <span class="req">*</span></label>
+                  <select id="councilRole" class="comtur-select">
+                    <option value="Presidente">Presidente</option>
+                    <option value="Vice-Presidente">Vice-Presidente</option>
+                    <option value="Secretário(a)">Secretário(a)</option>
+                    <option value="Conselheiro(a)" selected>Conselheiro(a)</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <div class="comtur-field">
+                  <label for="councilRepresentationType">Tipo de representação <span class="req">*</span></label>
+                  <select id="councilRepresentationType" class="comtur-select">
+                    <option value="Titular" selected>Titular</option>
+                    <option value="Suplente">Suplente</option>
+                  </select>
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label for="councilSlug">Identificador na URL (slug) <span class="req">*</span></label>
+                  <input id="councilSlug" class="comtur-input" placeholder="ex-maria-da-silva">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 2: Representação Institucional -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">2</span> Representação Institucional</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilOrganization">Entidade / Órgão representado <span class="req">*</span></label>
+                  <input id="councilOrganization" class="comtur-input" placeholder="Ex.: Secretaria Municipal de Turismo, Associação Comercial, ABIH...">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilSegment">Segmento representado <span class="req">*</span></label>
+                  <select id="councilSegment" class="comtur-select">
+                    <option value="Poder Público">Poder Público</option>
+                    <option value="Meios de Hospedagem">Meios de Hospedagem</option>
+                    <option value="Gastronomia">Gastronomia</option>
+                    <option value="Comércio">Comércio</option>
+                    <option value="Agências / Operadoras">Agências / Operadoras</option>
+                    <option value="Guias de Turismo">Guias de Turismo</option>
+                    <option value="Cultura">Cultura</option>
+                    <option value="Meio Ambiente">Meio Ambiente</option>
+                    <option value="Turismo Rural">Turismo Rural</option>
+                    <option value="Eventos">Eventos</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Associação / Sociedade Civil">Associação / Sociedade Civil</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label for="councilOrganizationRole">Cargo na entidade representada</label>
+                  <input id="councilOrganizationRole" class="comtur-input" placeholder="Ex.: Secretário Municipal, Diretor Executivo, Proprietário, Representante...">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 3: Mandato -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">3</span> Mandato</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilTermStart">Data de início do mandato</label>
+                  <input id="councilTermStart" type="date" class="comtur-input">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilTermEnd">Data de término do mandato</label>
+                  <input id="councilTermEnd" type="date" class="comtur-input">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilMemberStatus">Situação do membro <span class="req">*</span></label>
+                  <select id="councilMemberStatus" class="comtur-select">
+                    <option value="Em exercício" selected>Em exercício</option>
+                    <option value="Mandato encerrado">Mandato encerrado</option>
+                    <option value="Afastado">Afastado</option>
+                    <option value="Substituído">Substituído</option>
+                  </select>
+                </div>
+                <div class="comtur-field">
+                  <label for="councilRelatedMemberSelect">Titular / Suplente relacionado</label>
+                  <select id="councilRelatedMemberSelect" class="comtur-select">
+                    <option value="">-- Nenhum membro vinculado --</option>
+                  </select>
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; padding: 6px 0;">
+                    <input id="councilIsCurrent" type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--comtur-primary);">
+                    <span>Membro atual da composição ativa do COMTUR</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 4: Informações do Membro -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">4</span> Informações do Membro</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field comtur-grid-full">
+                  <label for="councilBio">Mini biografia / Apresentação institucional</label>
+                  <textarea id="councilBio" class="comtur-textarea" rows="3" placeholder="Ex.: Representante do setor de meios de hospedagem, atuando no fortalecimento da governança turística municipal..."></textarea>
+                </div>
+                <div class="comtur-field">
+                  <label for="councilProfessionalArea">Formação / Área de atuação</label>
+                  <input id="councilProfessionalArea" class="comtur-input" placeholder="Ex.: Bacharel em Turismo, Gestão Pública, Hotelaria...">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilTourismExperience">Experiência relacionada ao turismo</label>
+                  <input id="councilTourismExperience" class="comtur-input" placeholder="Ex.: 15 anos no setor hoteleiro, coordenador de eventos regionais...">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 5: Contato -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">5</span> Contato Institucional</div>
+              <p class="comtur-hint" style="margin-bottom: 12px;">Dados de contato institucional. A exibição na página pública é opcional e controlada:</p>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilPublicEmail">E-mail institucional público</label>
+                  <input id="councilPublicEmail" type="email" class="comtur-input" placeholder="comtur.conselho@ipojuca.pe.gov.br">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilPublicPhone">Telefone institucional público</label>
+                  <input id="councilPublicPhone" class="comtur-input" placeholder="(81) 3552-0000">
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+                    <input id="councilShowPublicContact" type="checkbox" style="width: 16px; height: 16px; accent-color: var(--comtur-primary);">
+                    <span>Exibir dados de contato no Portal Público</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 6: Exibição no Portal -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">6</span> Exibição no Portal</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilDisplayOrder">Ordem de exibição na lista</label>
+                  <input id="councilDisplayOrder" type="number" min="1" value="1" class="comtur-input" placeholder="1, 2, 3... (Prioridade para ordenação)">
+                </div>
+                <div class="comtur-field">
+                  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 26px;">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+                      <input id="councilShowOnPortal" type="checkbox" checked style="width: 16px; height: 16px; accent-color: var(--comtur-primary);">
+                      <span>Exibir no Portal Público de Turismo</span>
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+                      <input id="councilFeaturedTop" type="checkbox" style="width: 16px; height: 16px; accent-color: var(--comtur-primary);">
+                      <span>Destacar na composição do Conselho (Diretoria Executiva / Destaque)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 7: Nomeação / Designação -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">7</span> Nomeação / Designação Oficial</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilAppointmentAct">Ato de nomeação / Decreto</label>
+                  <input id="councilAppointmentAct" class="comtur-input" placeholder="Ex.: Decreto Municipal nº 123/2026, Portaria nº 45/2026">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilAppointmentDate">Data do ato oficial</label>
+                  <input id="councilAppointmentDate" type="date" class="comtur-input">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilAppointmentDocUrl">Link para o documento oficial (URL)</label>
+                  <input id="councilAppointmentDocUrl" type="url" class="comtur-input" placeholder="https://...">
+                </div>
+                <div class="comtur-field">
+                  <label for="councilLegislationSelect">Documento vinculado na Legislação</label>
+                  <select id="councilLegislationSelect" class="comtur-select">
+                    <option value="">-- Selecionar da categoria Legislação --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 8: Publicação -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">8</span> Publicação</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="councilPublishDate">Data de publicação</label>
+                  <input id="councilPublishDate" type="date" class="comtur-input">
+                </div>
+              </div>
+              <div class="comtur-actions-bar" style="margin-top: 20px;">
+                <div class="comtur-actions-group">
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('draft')">Salvar Rascunho</button>
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('review')">Enviar para Revisão</button>
+                  <button type="button" class="comtur-btn comtur-btn-primary" onclick="saveContent('published')">Publicar Imediatamente</button>
+                </div>
+                <div class="comtur-actions-group">
+                  <button id="btnArchiveCouncil" type="button" class="comtur-btn comtur-btn-danger" style="display:none;" onclick="saveContent('archived')">📦 Arquivar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- 10. STANDARD / DOCUMENT FORM (Legislation, Work Plan, etc.)       -->
           <!-- ================================================================= -->
           <div id="standardFields" class="comtur-category-fields" style="display:none">
             <div class="comtur-section">
@@ -5159,6 +5409,90 @@
     renderServiceDocs();
   };
 
+  
+  // --- COUNCIL MEMBER (MEMBROS DO CONSELHO) SPECIFIC LOGIC ---
+  let councilPhotoUrl = '';
+
+  function renderCouncilAvatarPreview(url) {
+    const previewEl = $('councilAvatarPreview');
+    const removeBtn = $('btnRemoveCouncilPhoto');
+    const altInput = $('councilPhotoAlt');
+    const nameVal = ($('councilDisplayName') ? $('councilDisplayName').value.trim() : '') || ($('councilName') ? $('councilName').value.trim() : '') || 'Conselheiro';
+
+    if (!previewEl) return;
+
+    if (url) {
+      previewEl.innerHTML = `<img src="${url}" alt="${(altInput && altInput.value) || 'Foto de ' + nameVal}" style="width: 100%; height: 100%; object-fit: cover;">`;
+      if (removeBtn) removeBtn.style.display = 'inline-flex';
+    } else {
+      previewEl.innerHTML = `<span style="font-size: 3.2rem;">👤</span>`;
+      if (removeBtn) removeBtn.style.display = 'none';
+    }
+  }
+
+  async function uploadCouncilPhoto(file) {
+    if (!file) return;
+    const progressEl = $('councilPhotoProgress');
+    if (progressEl) progressEl.textContent = 'Enviando foto...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const send = (window.SemitSession && typeof window.SemitSession.fetchWithAuth === 'function')
+        ? window.SemitSession.fetchWithAuth.bind(window.SemitSession)
+        : ((window.SemitSession && typeof window.SemitSession.fetchAuth === 'function')
+            ? window.SemitSession.fetchAuth.bind(window.SemitSession)
+            : fetch);
+      const res = await send('/api/comtur/admin/media/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        councilPhotoUrl = data.url;
+        renderCouncilAvatarPreview(councilPhotoUrl);
+        if (progressEl) progressEl.textContent = 'Foto enviada com sucesso!';
+        setTimeout(() => { if (progressEl) progressEl.textContent = ''; }, 3000);
+      } else {
+        showNotice(`Erro ao enviar foto: ${data.error || 'Falha no upload'}`, true);
+        if (progressEl) progressEl.textContent = '';
+      }
+    } catch (err) {
+      showNotice('Erro de conexão ao enviar foto.', true);
+      if (progressEl) progressEl.textContent = '';
+    }
+  }
+
+  function populateCouncilRelatedMemberSelect(selectedId = '') {
+    const select = $('councilRelatedMemberSelect');
+    if (!select) return;
+    const currentMemberId = $('id').value;
+    const councilMembers = allItems.filter(item => item.type === 'council_member' && item._id !== currentMemberId);
+    
+    let html = '<option value="">-- Nenhum membro vinculado --</option>';
+    councilMembers.forEach(m => {
+      const meta = m.metadata || {};
+      const role = meta.councilRole || meta.role || 'Conselheiro(a)';
+      const rep = meta.representationType ? ` (${meta.representationType})` : '';
+      const isSel = (m._id === selectedId) ? 'selected' : '';
+      html += `<option value="${m._id}" ${isSel}>${m.title} - ${role}${rep}</option>`;
+    });
+    select.innerHTML = html;
+  }
+
+  function populateCouncilLegislationSelect(selectedId = '') {
+    const select = $('councilLegislationSelect');
+    if (!select) return;
+    const legislationDocs = allItems.filter(item => item.type === 'legislation');
+    
+    let html = '<option value="">-- Selecionar da categoria Legislação --</option>';
+    legislationDocs.forEach(doc => {
+      const isSel = (doc._id === selectedId) ? 'selected' : '';
+      html += `<option value="${doc._id}" ${isSel}>${doc.title}</option>`;
+    });
+    select.innerHTML = html;
+  }
+
   // --- CONTENT TYPE SWITCHING & FORM REGISTRY ---
   window.onContentTypeChange = function(newType, pushState = true) {
     currentType = normalizeType(newType);
@@ -5199,6 +5533,9 @@
     } else if (currentType === 'service') {
       $('serviceFields').style.display = 'block';
       $('sharedNonGastroActions').style.display = 'none';
+    } else if (currentType === 'council_member') {
+      $('councilMemberFields').style.display = 'block';
+      $('sharedNonGastroActions').style.display = 'none';
     } else {
       $('standardFields').style.display = 'block';
       $('sharedNonGastroActions').style.display = 'block';
@@ -5237,6 +5574,7 @@
     if ($('btnArchiveRoute')) $('btnArchiveRoute').style.display = 'none';
     if ($('btnArchiveShopping')) $('btnArchiveShopping').style.display = 'none';
     if ($('btnArchiveService')) $('btnArchiveService').style.display = 'none';
+    if ($('btnArchiveCouncil')) $('btnArchiveCouncil').style.display = 'none';
     if ($('btnArchiveShared')) $('btnArchiveShared').style.display = 'none';
 
     // Event specific defaults
@@ -5590,6 +5928,50 @@
       if ($('sharedFeatured')) $('sharedFeatured').checked = false;
     }
 
+        if (currentType === 'council_member') {
+      if ($('councilName')) $('councilName').value = '';
+      if ($('councilDisplayName')) {
+        $('councilDisplayName').value = '';
+        delete $('councilDisplayName').dataset.manual;
+      }
+      if ($('councilRole')) $('councilRole').value = 'Conselheiro(a)';
+      if ($('councilRepresentationType')) $('councilRepresentationType').value = 'Titular';
+      if ($('councilSlug')) {
+        $('councilSlug').value = '';
+        delete $('councilSlug').dataset.manual;
+      }
+      if ($('councilOrganization')) $('councilOrganization').value = '';
+      if ($('councilSegment')) $('councilSegment').value = 'Poder Público';
+      if ($('councilOrganizationRole')) $('councilOrganizationRole').value = '';
+      if ($('councilTermStart')) $('councilTermStart').value = '';
+      if ($('councilTermEnd')) $('councilTermEnd').value = '';
+      if ($('councilMemberStatus')) $('councilMemberStatus').value = 'Em exercício';
+      if ($('councilIsCurrent')) $('councilIsCurrent').checked = true;
+      if ($('councilBio')) $('councilBio').value = '';
+      if ($('councilProfessionalArea')) $('councilProfessionalArea').value = '';
+      if ($('councilTourismExperience')) $('councilTourismExperience').value = '';
+      if ($('councilPublicEmail')) $('councilPublicEmail').value = '';
+      if ($('councilPublicPhone')) $('councilPublicPhone').value = '';
+      if ($('councilShowPublicContact')) $('councilShowPublicContact').checked = false;
+      if ($('councilDisplayOrder')) $('councilDisplayOrder').value = '1';
+      if ($('councilShowOnPortal')) $('councilShowOnPortal').checked = true;
+      if ($('councilFeaturedTop')) $('councilFeaturedTop').checked = false;
+      if ($('councilAppointmentAct')) $('councilAppointmentAct').value = '';
+      if ($('councilAppointmentDate')) $('councilAppointmentDate').value = '';
+      if ($('councilAppointmentDocUrl')) $('councilAppointmentDocUrl').value = '';
+      if ($('councilPublishDate')) $('councilPublishDate').value = '';
+      
+      councilPhotoUrl = '';
+      renderCouncilAvatarPreview('');
+      if ($('councilPhotoAlt')) {
+        $('councilPhotoAlt').value = '';
+        delete $('councilPhotoAlt').dataset.manual;
+      }
+      if ($('councilPhotoProgress')) $('councilPhotoProgress').textContent = '';
+      populateCouncilRelatedMemberSelect('');
+      populateCouncilLegislationSelect('');
+    }
+
     if (clearSidebarActive) {
       document.querySelectorAll('.comtur-list-item').forEach(el => el.classList.remove('is-active'));
     }
@@ -5617,6 +5999,34 @@
       const status = item.status || 'draft';
       const statusLabel = STATUS_LABELS[status] || status;
       const statusClass = `is-${status}`;
+
+      if (item.type === 'council_member') {
+        const meta = item.metadata || {};
+        const role = meta.councilRole || meta.role || 'Conselheiro(a)';
+        const org = meta.organization || meta.entity || meta.segment || 'COMTUR';
+        const repType = meta.representationType || 'Titular';
+        const memberStatus = meta.memberStatus || (item.status === 'published' ? 'Em exercício' : 'Rascunho');
+        const photoUrl = (item.media && item.media.find(m => m.type === 'photo' || m.type === 'image' || m.type === 'avatar')?.url) || meta.photoUrl || (item.media && item.media[0]?.url) || '';
+        
+        return `
+          <button class="comtur-list-item ${isActive ? 'is-active' : ''}" type="button" data-id="${item._id}" style="padding: 10px 12px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid var(--comtur-primary);">
+                ${photoUrl ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size: 1.2rem;">👤</span>`}
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div class="comtur-list-title" style="margin-bottom: 2px; font-weight: 700; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || 'Conselheiro sem nome'}</div>
+                <div style="font-size: 0.78rem; color: var(--comtur-primary); font-weight: 600; line-height: 1.2;">${role} • ${repType}</div>
+                <div style="font-size: 0.75rem; color: var(--comtur-text-muted); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${org}</div>
+              </div>
+            </div>
+            <div class="comtur-list-meta" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="comtur-badge ${statusClass}">${statusLabel}</span>
+              <span style="font-size: 0.72rem; font-weight: 600; color: #475569; text-transform: uppercase;">${memberStatus}</span>
+            </div>
+          </button>
+        `;
+      }
 
       return `
         <button class="comtur-list-item ${isActive ? 'is-active' : ''}" type="button" data-id="${item._id}">
@@ -6365,6 +6775,59 @@
       // Publication
       $('svcPublishDate').value = item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : '';
       if ($('btnArchiveService')) $('btnArchiveService').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
+
+    } else if (item.type === 'council_member') {
+      $('councilName').value = item.title || '';
+      $('councilDisplayName').value = meta.displayName || item.title || '';
+      $('councilRole').value = meta.councilRole || meta.role || 'Conselheiro(a)';
+      $('councilRepresentationType').value = meta.representationType || 'Titular';
+      $('councilSlug').value = item.slug || '';
+      $('councilSlug').dataset.manual = 'true';
+      $('councilDisplayName').dataset.manual = 'true';
+      if (meta.photoAlt) $('councilPhotoAlt').dataset.manual = 'true';
+
+      // Section 2: Representação Institucional
+      $('councilOrganization').value = meta.organization || meta.entity || '';
+      $('councilSegment').value = meta.segment || 'Poder Público';
+      $('councilOrganizationRole').value = meta.organizationRole || '';
+
+      // Section 3: Mandato
+      $('councilTermStart').value = meta.termStart ? new Date(meta.termStart).toISOString().slice(0, 10) : (meta.termStart || '');
+      $('councilTermEnd').value = meta.termEnd ? new Date(meta.termEnd).toISOString().slice(0, 10) : (meta.termEnd || '');
+      $('councilMemberStatus').value = meta.memberStatus || (item.status === 'published' ? 'Em exercício' : 'Em exercício');
+      populateCouncilRelatedMemberSelect(meta.relatedMemberId || '');
+      $('councilIsCurrent').checked = meta.isCurrent !== false;
+
+      // Section 4: Informações do Membro
+      $('councilBio').value = item.summary || meta.bio || '';
+      $('councilProfessionalArea').value = meta.professionalArea || '';
+      $('councilTourismExperience').value = meta.tourismExperience || '';
+
+      // Section 5: Contato
+      $('councilPublicEmail').value = contact.email || meta.publicEmail || '';
+      $('councilPublicPhone').value = contact.phone || meta.publicPhone || '';
+      $('councilShowPublicContact').checked = meta.showPublicContact === true;
+
+      // Section 6: Exibição no Portal
+      $('councilDisplayOrder').value = meta.displayOrder !== undefined ? meta.displayOrder : 1;
+      $('councilShowOnPortal').checked = meta.showOnPortal !== false;
+      $('councilFeaturedTop').checked = item.featured === true || meta.featuredTop === true;
+
+      // Section 7: Nomeação / Designação
+      $('councilAppointmentAct').value = meta.appointmentAct || '';
+      $('councilAppointmentDate').value = meta.appointmentDate ? new Date(meta.appointmentDate).toISOString().slice(0, 10) : (meta.appointmentDate || '');
+      $('councilAppointmentDocUrl').value = meta.appointmentDocUrl || '';
+      populateCouncilLegislationSelect(meta.appointmentDocumentId || meta.legislationId || '');
+
+      // Section 1: Foto / Avatar & Alt
+      const memberPhoto = (item.media && item.media.find(m => m.type === 'photo' || m.type === 'image' || m.type === 'avatar')) || (item.media && item.media[0]);
+      councilPhotoUrl = memberPhoto?.url || meta.photoUrl || '';
+      $('councilPhotoAlt').value = meta.photoAlt || (memberPhoto?.caption || `Foto de ${item.title || 'Conselheiro'}`);
+      renderCouncilAvatarPreview(councilPhotoUrl);
+
+      // Section 8: Publicação
+      $('councilPublishDate').value = item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : '';
+      if ($('btnArchiveCouncil')) $('btnArchiveCouncil').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
 
     } else {
       $('stdTitle').value = item.title || '';
@@ -7164,6 +7627,98 @@
       };
     }
 
+    if (currentType === 'council_member') {
+      const name = $('councilName').value.trim();
+      const displayName = $('councilDisplayName').value.trim() || name;
+      const slug = slugify($('councilSlug').value) || slugify(name);
+      const role = $('councilRole').value;
+      const repType = $('councilRepresentationType').value;
+      const organization = $('councilOrganization').value.trim();
+      const segment = $('councilSegment').value;
+      const orgRole = $('councilOrganizationRole').value.trim();
+      const termStart = $('councilTermStart').value || undefined;
+      const termEnd = $('councilTermEnd').value || undefined;
+      const memberStatus = $('councilMemberStatus').value;
+      const relatedMemberId = $('councilRelatedMemberSelect').value || undefined;
+      const isCurrent = $('councilIsCurrent').checked;
+      const bio = $('councilBio').value.trim();
+      const profArea = $('councilProfessionalArea').value.trim();
+      const tourismExp = $('councilTourismExperience').value.trim();
+      const publicEmail = $('councilPublicEmail').value.trim();
+      const publicPhone = $('councilPublicPhone').value.trim();
+      const showPublicContact = $('councilShowPublicContact').checked;
+      const displayOrder = parseInt($('councilDisplayOrder').value, 10) || 1;
+      const showOnPortal = $('councilShowOnPortal').checked;
+      const featuredTop = $('councilFeaturedTop').checked;
+      const appointmentAct = $('councilAppointmentAct').value.trim();
+      const appointmentDate = $('councilAppointmentDate').value || undefined;
+      const appointmentDocUrl = $('councilAppointmentDocUrl').value.trim();
+      const appointmentDocumentId = $('councilLegislationSelect').value || undefined;
+      const photoAlt = $('councilPhotoAlt').value.trim() || `Foto de ${displayName}`;
+      const publishedAt = $('councilPublishDate').value ? new Date($('councilPublishDate').value).toISOString() : undefined;
+
+      const media = [];
+      if (councilPhotoUrl) {
+        media.push({
+          type: 'photo',
+          url: councilPhotoUrl,
+          caption: photoAlt,
+          alt: photoAlt,
+          order: 0
+        });
+      }
+
+      return {
+        type: 'council_member',
+        title: name,
+        slug,
+        summary: bio,
+        body: bio,
+        featured: featuredTop,
+        publishedAt,
+        status: statusToSave || 'draft',
+        contact: {
+          email: publicEmail,
+          phone: publicPhone,
+          publicEmail,
+          publicPhone
+        },
+        metadata: {
+          name,
+          displayName,
+          councilRole: role,
+          role,
+          representationType: repType,
+          organization,
+          entity: organization,
+          segment,
+          organizationRole: orgRole,
+          termStart,
+          termEnd,
+          memberStatus,
+          relatedMemberId,
+          isCurrent,
+          bio,
+          professionalArea: profArea,
+          tourismExperience: tourismExp,
+          publicEmail,
+          publicPhone,
+          showPublicContact,
+          displayOrder,
+          showOnPortal,
+          featuredTop,
+          appointmentAct,
+          appointmentDate,
+          appointmentDocUrl,
+          appointmentDocumentId,
+          legislationId: appointmentDocumentId,
+          photoUrl: councilPhotoUrl || '',
+          photoAlt
+        },
+        media
+      };
+    }
+
     // Default / Standard
     const name = $('stdTitle').value.trim();
     const slug = slugify($('stdSlug').value) || slugify(name);
@@ -7246,6 +7801,9 @@
         renderRelatedEntities('shopRelatedEntitiesList', currentItem?.metadata?.relatedEntities || []);
       } else if (currentType === 'service') {
         renderRelatedEntities('svcRelatedEntitiesList', currentItem?.metadata?.relatedEntities || []);
+      } else if (currentType === 'council_member') {
+        populateCouncilRelatedMemberSelect(currentItem?.metadata?.relatedMemberId || '');
+        populateCouncilLegislationSelect(currentItem?.metadata?.appointmentDocumentId || currentItem?.metadata?.legislationId || '');
       }
     } catch (err) {
       console.error('loadItems error:', err);
@@ -7487,6 +8045,48 @@
         renderServiceGallery();
       });
       e.target.value = '';
+    });
+
+    // 8. Listeners for Membros do Conselho
+    $('councilName').addEventListener('input', () => {
+      const val = $('councilName').value;
+      if (!$('id').value && !$('councilSlug').dataset.manual) {
+        $('councilSlug').value = slugify(val);
+      }
+      if (!$('councilDisplayName').dataset.manual) {
+        $('councilDisplayName').value = val;
+      }
+      if (!$('councilPhotoAlt').dataset.manual) {
+        $('councilPhotoAlt').value = val ? `Foto de ${val}` : '';
+      }
+    });
+
+    $('councilDisplayName').addEventListener('input', () => {
+      $('councilDisplayName').dataset.manual = 'true';
+      if (!$('councilPhotoAlt').dataset.manual) {
+        const val = $('councilDisplayName').value || $('councilName').value;
+        $('councilPhotoAlt').value = val ? `Foto de ${val}` : '';
+      }
+    });
+
+    $('councilSlug').addEventListener('input', () => {
+      $('councilSlug').dataset.manual = 'true';
+    });
+
+    $('councilPhotoAlt').addEventListener('input', () => {
+      $('councilPhotoAlt').dataset.manual = 'true';
+    });
+
+    $('councilPhotoInput').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        uploadCouncilPhoto(e.target.files[0]);
+      }
+      e.target.value = '';
+    });
+
+    $('btnRemoveCouncilPhoto').addEventListener('click', () => {
+      councilPhotoUrl = '';
+      renderCouncilAvatarPreview('');
     });
 
     // Search filter

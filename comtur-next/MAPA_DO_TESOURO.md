@@ -7,6 +7,28 @@
 
 ## 1. Finalidade
 
+### COMTUR — MEMBROS DO CONSELHO — CADASTRO ESPECIALIZADO (14/09/2026)
+
+- [x] Transformar "Membro do Conselho" (`council_member`) em uma entidade própria e estruturada no Content Manager (`comtur-content-admin.html`), eliminando a semântica errada de formulário genérico de documento/notícia/artigo.
+- [x] Reconstruir o cadastro com 8 seções estruturadas e especializadas:
+  1. **Identificação do Conselheiro:** Layout em split `[FOTO/AVATAR] [DADOS DO MEMBRO]` com avatar circular ~120x120px, fallback com ícone padrão `👤`, preview imediato após upload (JPG, PNG, WEBP), substituição e remoção com restauração do ícone padrão. Campos: Nome completo (`#councilName`), Nome para exibição pública (`#councilDisplayName`), Cargo/Função no COMTUR com opções estruturadas (`Presidente`, `Vice-Presidente`, `Secretário(a)`, `Conselheiro(a)`, `Outro`), Tipo de representação (`Titular`, `Suplente`), Slug auto-gerado a partir do nome e Texto alternativo de acessibilidade para a foto com default automático `Foto de {nome}`.
+  2. **Representação Institucional:** Entidade / Órgão representado (`#councilOrganization`), Segmento representado com opções padronizadas do COMTUR (`Poder Público`, `Meios de Hospedagem`, `Gastronomia`, `Comércio`, `Agências / Operadoras`, `Guias de Turismo`, `Cultura`, `Meio Ambiente`, `Turismo Rural`, `Eventos`, `Educação`, `Associação / Sociedade Civil`, `Outro`) e Cargo na entidade representada (`#councilOrganizationRole`).
+  3. **Mandato:** Data de início do mandato (`#councilTermStart`), Data de término do mandato (`#councilTermEnd`), Situação institucional (`Em exercício`, `Mandato encerrado`, `Afastado`, `Substituído`), flag "Membro atual da composição ativa do COMTUR" (`#councilIsCurrent`) e relacionamento dinâmico por ID com suplente/titular relacionado (`#councilRelatedMemberSelect`).
+  4. **Informações do Membro:** Mini biografia / Apresentação institucional (`#councilBio`), Formação / Área de atuação (`#councilProfessionalArea`) e Experiência relacionada ao turismo (`#councilTourismExperience`).
+  5. **Contato Institucional:** E-mail institucional público (`#councilPublicEmail`), Telefone institucional público (`#councilPublicPhone`) e flag de controle de privacidade "Exibir dados de contato no Portal Público" (`#councilShowPublicContact`).
+  6. **Exibição no Portal:** Ordem de exibição (`#councilDisplayOrder`), flag "Exibir no Portal Público de Turismo" (`#councilShowOnPortal`) e flag "Destacar na composição do Conselho" (`#councilFeaturedTop`).
+  7. **Nomeação / Designação Oficial:** Ato de nomeação / Decreto (`#councilAppointmentAct`), Data do ato oficial (`#councilAppointmentDate`), Link direto para documento (URL) e relacionamento por ID com documentos cadastrados na categoria LEGISLAÇÃO (`#councilLegislationSelect`).
+  8. **Publicação:** Data de publicação (`#councilPublishDate`), workflow editorial (Salvar Rascunho, Enviar para Revisão, Publicar Imediatamente e Arquivar) e status badges.
+- [x] Especializar a coluna lateral (Sidebar List):
+  - Título: `MEMBROS DO CONSELHO`
+  - Botão: `+ Novo membro`
+  - Busca: `Buscar conselheiro...`
+  - Cards dedicados com mini avatar circular (ou fallback `👤`), Nome do conselheiro em destaque, Cargo/Função no COMTUR + Tipo (Titular/Suplente), Entidade/Órgão e badge de status institucional (`EM EXERCÍCIO`, etc.).
+- [x] Preservar integralmente todas as outras categorias (`event`, `attraction`, `gastronomy`, `news`, `lodging`, `route`, `shopping`, `service`, `legislation`, `work_plan`, `accountability`) sem qualquer alteração indesejada ou quebra de APIs.
+- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e validar simulação DOM e persistência.
+
+**Resultado:** Concluído e publicado em 14/09/2026. A categoria Membros do Conselho foi totalmente transformada em entidade representativa especializada de governança turística.
+
 ### COMTUR — Formulário Administrativo Editorial Especializado para "Notícias" (14/09/2026)
 
 - [x] Inspecionar padrão visual e arquitetural dos formulários especializados existentes (`comtur-content-admin.html`), incluindo seções numeradas, grids de 2 colunas, seleção de tags, relacionamentos com entidades por ID, galeria de imagens e SEO recolhível.
