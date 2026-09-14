@@ -7,6 +7,29 @@
 
 ## 1. Finalidade
 
+### COMTUR — PRESTAÇÃO DE CONTAS — REPOSITÓRIO DOCUMENTAL (14/09/2026)
+
+- [x] Transformar "Prestação de Contas" (`accountability`) em um Repositório Documental especializado no Content Manager (`comtur-content-admin.html`), eliminando completamente o formulário genérico de publicação editorial.
+- [x] Implementar 5 seções estruturadas no formulário especializado:
+  1. **Identificação da Prestação de Contas:** Título do documento (`#accTitle` - ex: *Prestação de Contas — 1º Quadrimestre de 2026*), Tipo do documento (`#accDocType`: *Prestação de Contas, Relatório Financeiro, Relatório de Execução, Demonstrativo, Balancete, Relatório de Atividades, Parecer, Outro*), Exercício / Ano (`#accYear` - min 1990, max 2100), Resumo / Observação opcional (`#accSummary`) e slug auto-gerado (`#accSlug`).
+  2. **Período de Referência:** Tipo de período (`#accPeriodType`: *Quadrimestral, Mensal, Bimestral, Trimestral, Semestral, Anual, Período personalizado*), Identificação/Referência dinâmica do período (`#accPeriodRefGroup` / `#accPeriodRef`: *1º Quadrimestre, 2º Quadrimestre, 3º Quadrimestre*, etc.) e campos de Data inicial (`#accStartDate`) / Data final (`#accEndDate`) para período personalizado.
+  3. **Data do Documento:** Data do documento / publicação oficial (`#accDocumentDate`) com date picker padrão.
+  4. **Arquivo da Prestação de Contas (PDF Principal):** Upload exclusivo de arquivo PDF com validação no frontend (.pdf, application/pdf, não vazio, máx. 20 MB), card de preview visual com ícone 📄, nome do arquivo, tamanho formatado (ex: `PDF | 22,07 MB`), botões de ação Visualizar 👁️, Substituir 🔄 e Remover 🗑️, integrado ao endpoint de upload (`/api/comtur/admin/media/upload`) sem base64.
+  5. **Publicação:** Data de publicação (`#accPublishDate`), workflow de publicação (Salvar Rascunho, Enviar para Revisão, Publicar e Arquivar) e status badges.
+- [x] Especializar a coluna lateral (Sidebar List):
+  - Título: `PRESTAÇÕES DE CONTAS`
+  - Botão: `+ Nova prestação`
+  - Busca: `Buscar prestação...`
+  - Cards dedicados com ícone 📊, Título do documento, Exercício / Tipo de documento / Período de referência, badge de status (`Rascunho`, `Publicado`, etc.) e indicador `PDF ANEXO` / `SEM PDF`.
+- [x] Portal Público de Turismo (`/turismo/prestacao-contas` e `/turismo/comtur`):
+  - Criar `AccountabilityCard` com ícone de PDF, título oficial, data de publicação, período de referência, tamanho formatado do arquivo e botões diretos de `[ VISUALIZAR ]` e `[ BAIXAR ]`.
+  - Criar `AccountabilityRepositoryBlock` com área `BUSCAR DOCUMENTOS`, filtros por Nome, Tipo de documento, Período, alternância Ano vs Intervalo de datas (Data inicial / Data final) e botão `BUSCAR`.
+  - Contador dinâmico de resultados (`X arquivos encontrados`).
+  - Ordenação decrescente: documentos mais recentes primeiro por exercício e data.
+  - Tratamento de estados vazios ("Nenhuma prestação de contas encontrada." e "Nenhum documento encontrado para os filtros informados.") e erro de API.
+- [x] Preservar integralmente todas as demais categorias sem regressão.
+- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`, `/public/turismo/`).
+
 ### COMTUR — LEGISLAÇÃO — REPOSITÓRIO DOCUMENTAL ESPECIALIZADO (14/09/2026)
 
 - [x] Transformar "Legislação" (`legislation`) em um Repositório Documental estruturado no Content Manager (`comtur-content-admin.html`), eliminando a semântica genérica de publicação editorial de notícias/artigos.

@@ -507,6 +507,311 @@ function LegislationRepositoryBlock({ items, onOpen }) {
   )
 }
 
+function AccountabilityCard({ item, onOpen }) {
+  const meta = item.metadata || {}
+  const docType = meta.documentType || meta.docType || 'Prestação de Contas'
+  const title = item.title || 'Prestação de Contas'
+  const docDate = meta.documentDate ? new Date(meta.documentDate).toLocaleDateString('pt-BR') : (item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('pt-BR') : '')
+  const period = meta.period || meta.periodReference || meta.periodType || ''
+  const pdfMedia = (Array.isArray(item.media) && item.media.find((m) => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || meta.pdfFile || null
+  const pdfUrl = pdfMedia?.url || ''
+  const pdfSize = pdfMedia?.sizeFormatted || (pdfMedia?.size ? `${(pdfMedia.size / (1024 * 1024)).toFixed(2).replace('.', ',')} MB` : 'PDF')
+
+  return (
+    <article className="meeting-card accountability-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '20px 24px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', gap: '18px', alignItems: 'flex-start' }}>
+        <div style={{ width: '48px', height: '48px', background: '#dc2626', color: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.95rem', flexShrink: 0, boxShadow: '0 2px 4px rgba(220,38,38,0.2)' }}>
+          PDF
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800', color: '#0f2740', lineHeight: '1.3' }}>
+            {title}
+          </h3>
+          {item.summary ? <p style={{ margin: '0 0 10px', fontSize: '0.92rem', color: '#475569', lineHeight: '1.4' }}>{item.summary}</p> : null}
+          <div style={{ fontSize: '0.86rem', color: '#64748b', display: 'flex', gap: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {docDate ? <span>Publicado em: <strong style={{ color: '#1e293b' }}>{docDate}</strong></span> : null}
+            {period ? <span>Período: <strong style={{ color: '#0f766e' }}>{period}</strong></span> : null}
+            <span>Tipo: <strong style={{ color: '#0f766e' }}>{docType}</strong></span>
+            {pdfUrl ? <span style={{ color: '#dc2626', fontWeight: '700' }}>Arquivo: PDF | {pdfSize}</span> : null}
+          </div>
+        </div>
+      </div>
+      {pdfUrl ? (
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '2px', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+          <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', color: '#1e293b', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            👁️ VISUALIZAR
+          </a>
+          <a href={pdfUrl} download style={{ padding: '8px 18px', background: '#0f766e', color: '#fff', borderRadius: '6px', fontSize: '0.88rem', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            📥 BAIXAR
+          </a>
+        </div>
+      ) : null}
+    </article>
+  )
+}
+
+function AccountabilityRepositoryBlock({ items, onOpen }) {
+  const [nameInput, setNameInput] = useState('')
+  const [docTypeInput, setDocTypeInput] = useState('Todos')
+  const [periodTypeInput, setPeriodTypeInput] = useState('Todos')
+  const [periodMode, setPeriodMode] = useState('year')
+  const [yearInput, setYearInput] = useState('')
+  const [startDateInput, setStartDateInput] = useState('')
+  const [endDateInput, setEndDateInput] = useState('')
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: '',
+    docType: 'Todos',
+    periodType: 'Todos',
+    periodMode: 'year',
+    year: '',
+    startDate: '',
+    endDate: ''
+  })
+
+  const handleSearch = (e) => {
+    if (e) e.preventDefault()
+    setAppliedFilters({
+      name: nameInput,
+      docType: docTypeInput,
+      periodType: periodTypeInput,
+      periodMode,
+      year: yearInput,
+      startDate: startDateInput,
+      endDate: endDateInput
+    })
+  }
+
+  const handleReset = () => {
+    setNameInput('')
+    setDocTypeInput('Todos')
+    setPeriodTypeInput('Todos')
+    setPeriodMode('year')
+    setYearInput('')
+    setStartDateInput('')
+    setEndDateInput('')
+    setAppliedFilters({
+      name: '',
+      docType: 'Todos',
+      periodType: 'Todos',
+      periodMode: 'year',
+      year: '',
+      startDate: '',
+      endDate: ''
+    })
+  }
+
+  const filtered = (items || []).filter((item) => {
+    if (item.type !== 'accountability') return false
+    const meta = item.metadata || {}
+    const title = (item.title || '').toLowerCase()
+    const summary = (item.summary || meta.description || '').toLowerCase()
+    const q = appliedFilters.name.toLowerCase().trim()
+
+    if (q) {
+      const match = title.includes(q) || summary.includes(q) || (meta.documentType || '').toLowerCase().includes(q) || (meta.period || '').toLowerCase().includes(q)
+      if (!match) return false
+    }
+
+    if (appliedFilters.docType !== 'Todos') {
+      const itemType = (meta.documentType || meta.docType || '').trim()
+      if (itemType.toLowerCase() !== appliedFilters.docType.toLowerCase()) {
+        return false
+      }
+    }
+
+    if (appliedFilters.periodType !== 'Todos') {
+      const itemPType = (meta.periodType || '').trim()
+      const itemPeriod = (meta.period || meta.periodReference || '').trim()
+      if (itemPType.toLowerCase() !== appliedFilters.periodType.toLowerCase() && !itemPeriod.toLowerCase().includes(appliedFilters.periodType.toLowerCase())) {
+        return false
+      }
+    }
+
+    const docDateStr = meta.documentDate || item.publishedAt || ''
+    if (appliedFilters.periodMode === 'year' && appliedFilters.year) {
+      const itemYear = meta.year ? String(meta.year) : (docDateStr ? new Date(docDateStr).getFullYear().toString() : '')
+      if (itemYear !== String(appliedFilters.year).trim()) return false
+    } else if (appliedFilters.periodMode === 'range') {
+      if (appliedFilters.startDate && docDateStr && new Date(docDateStr) < new Date(appliedFilters.startDate)) return false
+      if (appliedFilters.endDate && docDateStr && new Date(docDateStr) > new Date(appliedFilters.endDate + 'T23:59:59')) return false
+    }
+
+    return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    const yearA = parseInt(a.metadata?.year, 10) || 0
+    const yearB = parseInt(b.metadata?.year, 10) || 0
+    if (yearB !== yearA) return yearB - yearA
+    const dateA = new Date(a.metadata?.documentDate || a.publishedAt || a.createdAt || 0).getTime()
+    const dateB = new Date(b.metadata?.documentDate || b.publishedAt || b.createdAt || 0).getTime()
+    return dateB - dateA
+  })
+
+  const hasActiveFilters = appliedFilters.name || appliedFilters.docType !== 'Todos' || appliedFilters.periodType !== 'Todos' || appliedFilters.year || appliedFilters.startDate || appliedFilters.endDate
+
+  return (
+    <div className="legislation-repository-section accountability-repository-section" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Box de Busca e Filtros */}
+      <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 12px rgba(15,23,42,0.05)' }}>
+        <h2 style={{ margin: '0 0 20px', fontSize: '1.25rem', fontWeight: '800', color: '#0f2740', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>🔍</span> BUSCAR DOCUMENTOS
+        </h2>
+
+        <form onSubmit={handleSearch}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '18px' }}>
+            {/* Campo Nome */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Nome</label>
+              <input
+                type="text"
+                style={{ width: '100%', height: '42px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', boxSizing: 'border-box' }}
+                placeholder="Ex.: Prestação de Contas 1º Quadrimestre..."
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+              />
+            </div>
+
+            {/* Filtro Tipo */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Tipo de documento</label>
+              <select
+                style={{ width: '100%', height: '42px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
+                value={docTypeInput}
+                onChange={(e) => setDocTypeInput(e.target.value)}
+              >
+                <option value="Todos">Todos</option>
+                <option value="Prestação de Contas">Prestação de Contas</option>
+                <option value="Relatório Financeiro">Relatório Financeiro</option>
+                <option value="Relatório de Execução">Relatório de Execução</option>
+                <option value="Demonstrativo">Demonstrativo</option>
+                <option value="Balancete">Balancete</option>
+                <option value="Relatório de Atividades">Relatório de Atividades</option>
+                <option value="Parecer">Parecer</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            {/* Filtro Período */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>Período</label>
+              <select
+                style={{ width: '100%', height: '42px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.92rem', background: '#fff', boxSizing: 'border-box' }}
+                value={periodTypeInput}
+                onChange={(e) => setPeriodTypeInput(e.target.value)}
+              >
+                <option value="Todos">Todos os períodos</option>
+                <option value="Quadrimestral">Quadrimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Bimestral">Bimestral</option>
+                <option value="Mensal">Mensal</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Filtro por Período */}
+          <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.86rem', fontWeight: '700', color: '#1e293b' }}>Exercício / Data:</span>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', cursor: 'pointer', fontWeight: periodMode === 'year' ? '700' : '500' }}>
+                <input type="radio" name="accPeriodMode" checked={periodMode === 'year'} onChange={() => setPeriodMode('year')} style={{ accentColor: '#0f766e' }} />
+                Ano
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', cursor: 'pointer', fontWeight: periodMode === 'range' ? '700' : '500' }}>
+                <input type="radio" name="accPeriodMode" checked={periodMode === 'range'} onChange={() => setPeriodMode('range')} style={{ accentColor: '#0f766e' }} />
+                Intervalo de datas
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              {periodMode === 'year' ? (
+                <div style={{ width: '180px' }}>
+                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Exercício / Ano</label>
+                  <input
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    placeholder="Ex.: 2026"
+                    style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                    value={yearInput}
+                    onChange={(e) => setYearInput(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data inicial</label>
+                    <input
+                      type="date"
+                      style={{ height: '40px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      value={startDateInput}
+                      onChange={(e) => setStartDateInput(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data final</label>
+                    <input
+                      type="date"
+                      style={{ height: '40px', padding: '0 10px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      value={endDateInput}
+                      onChange={(e) => setEndDateInput(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Botão BUSCAR */}
+              <button
+                type="submit"
+                style={{ height: '40px', padding: '0 24px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '800', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', letterSpacing: '0.03em' }}
+              >
+                🔍 BUSCAR
+              </button>
+
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  style={{ height: '40px', padding: '0 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.86rem', fontWeight: '700', color: '#475569', cursor: 'pointer' }}
+                >
+                  Limpar filtros
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {/* Contagem de Resultados */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 -8px' }}>
+        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f2740' }}>
+          {sorted.length} {sorted.length === 1 ? 'arquivo encontrado' : 'arquivos encontrados'}
+        </h3>
+      </div>
+
+      {/* Lista de Resultados */}
+      {sorted.length ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {sorted.map((item) => (
+            <AccountabilityCard key={item.slug || item._id} item={item} onOpen={onOpen} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding: '40px 20px', textAlign: 'center', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: '12px', color: '#64748b' }}>
+          <div style={{ fontSize: '2.4rem', marginBottom: '8px' }}>📊</div>
+          <strong style={{ fontSize: '1.1rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>
+            {hasActiveFilters ? 'Nenhum documento encontrado para os filtros informados.' : 'Nenhuma prestação de contas encontrada.'}
+          </strong>
+          <span>{hasActiveFilters ? 'Tente ajustar os critérios de pesquisa ou limpar os filtros.' : 'Novas prestações de contas serão publicadas em breve.'}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function LightboxModal({ images, initialIndex = 0, onClose }) {
   const [current, setCurrent] = useState(initialIndex)
   const total = images.length
@@ -1779,6 +2084,10 @@ export default function App() {
           setStatus('Carregando legislação…')
           const published = await fetchContent({ type: 'legislation', limit: 100 })
           setGovernance(published)
+        } else if (route.view === 'accountability') {
+          setStatus('Carregando prestações de contas…')
+          const published = await fetchContent({ type: 'accountability', limit: 100 })
+          setGovernance(published)
         } else if (route.view === 'content') {
           setStatus('Carregando publicação…')
           setDetail(await fetchContentBySlug(route.slug))
@@ -1818,6 +2127,7 @@ export default function App() {
     : route.view === 'category' ? route.category.label
     : route.view === 'search' ? 'Busca'
     : route.view === 'legislation' ? 'Legislação e Atos Oficiais'
+    : route.view === 'accountability' ? 'Prestação de Contas'
     : route.view === 'comtur' ? 'COMTUR'
     : route.view === 'meeting' ? (detail ? meetingHeadline(detail) : 'COMTUR')
     : route.view === 'content' && detail ? detail.title
@@ -1829,6 +2139,7 @@ export default function App() {
     : route.view === 'category' ? route.category.blurb
     : route.view === 'search' ? (route.query ? `Resultados para “${route.query}”.` : 'Digite um termo para consultar o catálogo publicado.')
     : route.view === 'legislation' ? 'Repositório de leis, decretos, resoluções e regimentos oficiais do turismo e do COMTUR.'
+    : route.view === 'accountability' ? 'Repositório oficial de prestações de contas, demonstrativos e relatórios financeiros do COMTUR.'
     : route.view === 'comtur' ? 'Membros, documentos e reuniões publicados pelo Conselho Municipal de Turismo de Garça.'
     : route.view === 'meeting' ? (detail ? [meetingWhen(detail), detail.location].filter(Boolean).join(' · ') : 'Carregando a reunião publicada.')
     : route.view === 'content' ? (detail?.summary || 'Publicação oficial do COMTUR.')
@@ -2052,6 +2363,12 @@ export default function App() {
           </section>
         )}
 
+        {route.view === 'accountability' && !error && !status && (
+          <section className="block">
+            <AccountabilityRepositoryBlock items={governance} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
+          </section>
+        )}
+
         {route.view === 'comtur' && !error && !status && (
           <>
             {governance.filter((item) => item.type === 'council_member').length ? (
@@ -2087,16 +2404,34 @@ export default function App() {
                 </div>
               </section>
             ) : null}
-            {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation').length ? (
+            {governance.filter((item) => item.type === 'accountability').length ? (
+              <section className="block">
+                <header className="block-head">
+                  <div>
+                    <h2>Prestação de Contas</h2>
+                    <p>Relatórios financeiros, demonstrativos e prestações de contas oficiais.</p>
+                  </div>
+                  <a className="btn-action" href={href('prestacao-contas')} onClick={(event) => go(event, 'prestacao-contas')}>
+                    Ver repositório completo →
+                  </a>
+                </header>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {governance.filter((item) => item.type === 'accountability').slice(0, 5).map((item) => (
+                    <AccountabilityCard key={item.slug} item={item} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+            {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability').length ? (
               <section className="block">
                 <header className="block-head">
                   <div>
                     <h2>Outros Documentos e Publicações</h2>
-                    <p>Planos de trabalho, prestações de contas e demais atos oficiais.</p>
+                    <p>Planos de trabalho e demais atos oficiais.</p>
                   </div>
                 </header>
                 <div className="map-list">
-                  {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation').map((item) => (
+                  {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability').map((item) => (
                     <ContentCard key={item.slug} item={item} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
                   ))}
                 </div>

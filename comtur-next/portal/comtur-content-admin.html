@@ -3913,7 +3913,156 @@
 
           </div>
 
-          <!-- 11. STANDARD / DOCUMENT FORM (Generic Fallback for accountability, indicator, research, open_data, qr_point, integration, news) -->
+          <!-- ================================================================= -->
+          <!-- 11. PRESTAÇÃO DE CONTAS FORM (ESPECIALIZADO)                      -->
+          <!-- ================================================================= -->
+          <div id="accountabilityFields" class="comtur-category-fields" style="display:none">
+            <input id="accSlug" type="hidden">
+
+            <!-- SEÇÃO 1: Identificação da Prestação de Contas -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">1</span> Identificação da Prestação de Contas</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field comtur-grid-full">
+                  <label for="accTitle">Título do documento <span class="req">*</span></label>
+                  <input id="accTitle" class="comtur-input" placeholder="Ex.: Prestação de Contas — 1º Quadrimestre de 2026">
+                </div>
+                <div class="comtur-field">
+                  <label for="accDocType">Tipo do documento <span class="req">*</span></label>
+                  <select id="accDocType" class="comtur-select">
+                    <option value="Prestação de Contas" selected>Prestação de Contas</option>
+                    <option value="Relatório Financeiro">Relatório Financeiro</option>
+                    <option value="Relatório de Execução">Relatório de Execução</option>
+                    <option value="Demonstrativo">Demonstrativo</option>
+                    <option value="Balancete">Balancete</option>
+                    <option value="Relatório de Atividades">Relatório de Atividades</option>
+                    <option value="Parecer">Parecer</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <div class="comtur-field">
+                  <label for="accYear">Exercício / Ano <span class="req">*</span></label>
+                  <input id="accYear" type="number" class="comtur-input" placeholder="2026" min="1990" max="2100">
+                </div>
+                <div class="comtur-field comtur-grid-full">
+                  <label for="accSummary">Resumo / Observação</label>
+                  <textarea id="accSummary" class="comtur-textarea" rows="3" placeholder="Relatório referente à execução financeira e às atividades do primeiro quadrimestre de 2026."></textarea>
+                  <span class="comtur-hint">Campo opcional. O conteúdo oficial está no PDF anexo.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 2: Período de Referência -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">2</span> Período de Referência</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="accPeriodType">Tipo de período <span class="req">*</span></label>
+                  <select id="accPeriodType" class="comtur-select">
+                    <option value="Quadrimestral" selected>Quadrimestral</option>
+                    <option value="Mensal">Mensal</option>
+                    <option value="Bimestral">Bimestral</option>
+                    <option value="Trimestral">Trimestral</option>
+                    <option value="Semestral">Semestral</option>
+                    <option value="Anual">Anual</option>
+                    <option value="Período personalizado">Período personalizado</option>
+                  </select>
+                </div>
+                <div class="comtur-field" id="accPeriodRefGroup">
+                  <label for="accPeriodRef">Identificação do período <span class="req">*</span></label>
+                  <select id="accPeriodRef" class="comtur-select">
+                    <option value="1º Quadrimestre" selected>1º Quadrimestre</option>
+                    <option value="2º Quadrimestre">2º Quadrimestre</option>
+                    <option value="3º Quadrimestre">3º Quadrimestre</option>
+                  </select>
+                </div>
+                <div class="comtur-field comtur-grid-full" id="accCustomDatesWrap" style="display:none;">
+                  <div class="comtur-grid-2">
+                    <div class="comtur-field">
+                      <label for="accStartDate">Data inicial</label>
+                      <input id="accStartDate" type="date" class="comtur-input">
+                    </div>
+                    <div class="comtur-field">
+                      <label for="accEndDate">Data final</label>
+                      <input id="accEndDate" type="date" class="comtur-input">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 3: Data do Documento -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">3</span> Data do Documento</div>
+              <div class="comtur-grid-2">
+                <div class="comtur-field">
+                  <label for="accDocumentDate">Data do documento / publicação <span class="req">*</span></label>
+                  <input id="accDocumentDate" type="date" class="comtur-input">
+                </div>
+              </div>
+            </div>
+
+            <!-- SEÇÃO 4: Arquivo da Prestação de Contas -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">4</span> Arquivo da Prestação de Contas</div>
+              <p class="comtur-hint" style="margin-bottom: 12px;">Envie o arquivo PDF com a íntegra da prestação de contas (máx. 20 MB). O conteúdo oficial está no documento PDF.</p>
+              
+              <input id="accPdfFileInput" type="file" accept=".pdf,application/pdf" style="display: none;">
+              
+              <!-- Empty State -->
+              <div id="accPdfEmpty" style="border: 2px dashed #cbd5e1; border-radius: var(--comtur-radius-md); padding: 24px 16px; text-align: center; background: #f8fafc;">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">📄</div>
+                <div style="font-weight: 700; color: var(--comtur-primary-dark); margin-bottom: 4px;">Nenhum arquivo PDF anexado</div>
+                <div style="font-size: 0.85rem; color: var(--comtur-text-muted); margin-bottom: 14px;">Selecione o arquivo PDF oficial da prestação de contas</div>
+                <button type="button" class="comtur-btn comtur-btn-primary comtur-btn-sm" onclick="$('accPdfFileInput').click()">Selecionar PDF</button>
+              </div>
+
+              <!-- Selected / Attached State -->
+              <div id="accPdfPreview" style="display: none; border: 1.5px solid #bbf7d0; border-radius: var(--comtur-radius-md); padding: 16px; background: #f0fdf4;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                  <div style="display: flex; gap: 12px; align-items: center; min-width: 0;">
+                    <div style="font-size: 2rem; color: #dc2626; flex-shrink: 0;">📄</div>
+                    <div style="min-width: 0;">
+                      <div id="accPdfFileNameDisplay" style="font-weight: 800; color: var(--comtur-primary-dark); word-break: break-all;">prestacao-contas.pdf</div>
+                      <div style="font-size: 0.82rem; color: var(--comtur-text-muted); margin-top: 2px;">
+                        Tamanho: <strong id="accPdfSizeDisplay">PDF | 22,07 MB</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button id="btnViewAccPdf" type="button" class="comtur-btn comtur-btn-secondary comtur-btn-sm" onclick="if(accPdfFile&&accPdfFile.url) window.open(accPdfFile.url, '_blank')">Visualizar</button>
+                    <button id="btnReplaceAccPdf" type="button" class="comtur-btn comtur-btn-secondary comtur-btn-sm" onclick="$('accPdfFileInput').click()">Substituir</button>
+                    <button id="btnRemoveAccPdf" type="button" class="comtur-btn comtur-btn-danger comtur-btn-sm" onclick="accPdfFile = null; renderAccPdfPreview();">Remover</button>
+                  </div>
+                </div>
+              </div>
+              <div id="accPdfProgress" class="comtur-hint" style="margin-top: 8px; font-weight: 600; color: var(--comtur-primary);"></div>
+            </div>
+
+            <!-- SEÇÃO 5: Publicação -->
+            <div class="comtur-section">
+              <div class="comtur-section-title"><span class="num">5</span> Publicação</div>
+              <div class="comtur-grid-2" style="margin-bottom: 16px;">
+                <div class="comtur-field">
+                  <label for="accPublishDate">Data de publicação</label>
+                  <input id="accPublishDate" type="date" class="comtur-input">
+                </div>
+              </div>
+              <div class="comtur-actions-bar">
+                <div class="comtur-actions-group">
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('draft')">💾 Salvar Rascunho</button>
+                  <button type="button" class="comtur-btn comtur-btn-secondary" onclick="saveContent('review')">🔍 Enviar para Revisão</button>
+                  <button type="button" class="comtur-btn comtur-btn-success" onclick="saveContent('published')">🚀 Publicar</button>
+                </div>
+                <div class="comtur-actions-group">
+                  <button id="btnArchiveAcc" type="button" class="comtur-btn comtur-btn-danger" style="display:none;" onclick="saveContent('archived')">📦 Arquivar</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 12. STANDARD / DOCUMENT FORM (Generic Fallback for indicator, research, open_data, qr_point, integration, news) -->
           <!-- ================================================================= -->
           <div id="standardFields" class="comtur-category-fields" style="display:none">
             <div id="standardNotice" class="comtur-hint" style="background:#f1f5f9; border:1px dashed #cbd5e1; padding:12px 16px; border-radius:8px; margin-bottom:16px; color:#475569; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:8px;">
@@ -4492,6 +4641,9 @@
 
   // State for Work Plan
   let wpPdfFile = null;
+
+  // State for Accountability
+  let accPdfFile = null;
 
   const $ = (id) => document.getElementById(id);
 
@@ -5416,6 +5568,125 @@
     }
   }
 
+  // --- ACCOUNTABILITY HELPERS (SPECIALIZED DOCUMENTAL FORM) ---
+  function updateAccPeriodOptions(selectedVal = '') {
+    const pType = $('accPeriodType') ? $('accPeriodType').value : 'Quadrimestral';
+    const refGroup = $('accPeriodRefGroup');
+    const customWrap = $('accCustomDatesWrap');
+    const refSelect = $('accPeriodRef');
+    if (!refGroup || !customWrap || !refSelect) return;
+
+    if (pType === 'Período personalizado') {
+      refGroup.style.display = 'none';
+      customWrap.style.display = 'block';
+    } else {
+      refGroup.style.display = 'block';
+      customWrap.style.display = 'none';
+
+      let options = [];
+      if (pType === 'Quadrimestral') {
+        options = ['1º Quadrimestre', '2º Quadrimestre', '3º Quadrimestre'];
+      } else if (pType === 'Semestral') {
+        options = ['1º Semestre', '2º Semestre'];
+      } else if (pType === 'Trimestral') {
+        options = ['1º Trimestre', '2º Trimestre', '3º Trimestre', '4º Trimestre'];
+      } else if (pType === 'Bimestral') {
+        options = ['1º Bimestre', '2º Bimestre', '3º Bimestre', '4º Bimestre', '5º Bimestre', '6º Bimestre'];
+      } else if (pType === 'Mensal') {
+        options = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      } else if (pType === 'Anual') {
+        options = ['Exercício Anual'];
+      }
+
+      refSelect.innerHTML = options.map(opt => `<option value="${opt}" ${opt === selectedVal ? 'selected' : ''}>${opt}</option>`).join('');
+      if (selectedVal && !options.includes(selectedVal)) {
+        const optEl = document.createElement('option');
+        optEl.value = selectedVal;
+        optEl.textContent = selectedVal;
+        optEl.selected = true;
+        refSelect.appendChild(optEl);
+      }
+    }
+  }
+
+  function renderAccPdfPreview() {
+    const emptyEl = $('accPdfEmpty');
+    const previewEl = $('accPdfPreview');
+    if (!emptyEl || !previewEl) return;
+
+    if (accPdfFile && accPdfFile.url) {
+      emptyEl.style.display = 'none';
+      previewEl.style.display = 'block';
+      const nameEl = $('accPdfFileNameDisplay');
+      const sizeEl = $('accPdfSizeDisplay');
+      if (nameEl) nameEl.textContent = accPdfFile.originalName || accPdfFile.name || 'prestacao-contas.pdf';
+      if (sizeEl) sizeEl.textContent = accPdfFile.sizeFormatted || (accPdfFile.size ? `PDF | ${formatBytes(accPdfFile.size)}` : 'PDF | Documento');
+    } else {
+      emptyEl.style.display = 'block';
+      previewEl.style.display = 'none';
+    }
+  }
+
+  async function uploadAccPdf(file) {
+    if (!file) return;
+
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    if (!isPdf) {
+      showNotice('Formato inválido. Por favor, envie apenas arquivos em formato PDF (.pdf).', true);
+      return;
+    }
+
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showNotice('Arquivo muito grande. O limite máximo para upload de PDF é de 20 MB.', true);
+      return;
+    }
+
+    if (file.size === 0) {
+      showNotice('O arquivo selecionado está vazio.', true);
+      return;
+    }
+
+    const progressEl = $('accPdfProgress');
+    if (progressEl) progressEl.textContent = 'Enviando arquivo PDF da Prestação de Contas...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const send = (window.SemitSession && typeof window.SemitSession.fetchWithAuth === 'function')
+        ? window.SemitSession.fetchWithAuth.bind(window.SemitSession)
+        : ((window.SemitSession && typeof window.SemitSession.fetchAuth === 'function')
+            ? window.SemitSession.fetchAuth.bind(window.SemitSession)
+            : fetch);
+      const res = await send('/api/comtur/admin/media/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        accPdfFile = {
+          url: data.url,
+          name: file.name,
+          originalName: file.name,
+          size: file.size,
+          sizeFormatted: `PDF | ${formatBytes(file.size)}`,
+          mimeType: 'application/pdf',
+          uploadedAt: new Date().toISOString()
+        };
+        renderAccPdfPreview();
+        if (progressEl) progressEl.textContent = 'PDF anexado com sucesso!';
+        setTimeout(() => { if (progressEl) progressEl.textContent = ''; }, 3000);
+      } else {
+        showNotice(`Erro ao enviar PDF: ${data.error || 'Falha no upload'}`, true);
+        if (progressEl) progressEl.textContent = '';
+      }
+    } catch (err) {
+      showNotice('Erro de conexão ao enviar arquivo PDF.', true);
+      if (progressEl) progressEl.textContent = '';
+    }
+  }
+
   // --- CONTENT TYPE SWITCHING & FORM REGISTRY ---
   function onContentTypeChange(newType, pushState = true) {
     currentType = normalizeType(newType);
@@ -5442,7 +5713,8 @@
       'service': 'serviceFields',
       'council_member': 'councilMemberFields',
       'legislation': 'legislationFields',
-      'work_plan': 'workPlanFields'
+      'work_plan': 'workPlanFields',
+      'accountability': 'accountabilityFields'
     };
 
     const targetFieldId = specializedMap[currentType];
@@ -5687,6 +5959,31 @@
       if ($('btnArchiveWp')) $('btnArchiveWp').style.display = 'none';
     }
 
+    // Accountability Defaults (Specialized Documental Form)
+    if (currentType === 'accountability') {
+      if ($('accTitle')) {
+        $('accTitle').value = '';
+        delete $('accTitle').dataset.manual;
+      }
+      if ($('accSlug')) {
+        $('accSlug').value = '';
+        delete $('accSlug').dataset.manual;
+      }
+      if ($('accDocType')) $('accDocType').value = 'Prestação de Contas';
+      if ($('accYear')) $('accYear').value = new Date().getFullYear();
+      if ($('accPeriodType')) $('accPeriodType').value = 'Quadrimestral';
+      updateAccPeriodOptions('1º Quadrimestre');
+      if ($('accStartDate')) $('accStartDate').value = '';
+      if ($('accEndDate')) $('accEndDate').value = '';
+      if ($('accDocumentDate')) $('accDocumentDate').value = new Date().toISOString().slice(0, 10);
+      if ($('accSummary')) $('accSummary').value = '';
+      if ($('accPublishDate')) $('accPublishDate').value = '';
+      accPdfFile = null;
+      renderAccPdfPreview();
+      if ($('accPdfProgress')) $('accPdfProgress').textContent = '';
+      if ($('btnArchiveAcc')) $('btnArchiveAcc').style.display = 'none';
+    }
+
     if (clearSidebarActive) {
       document.querySelectorAll('.comtur-list-item').forEach(el => el.classList.remove('is-active'));
     }
@@ -5817,7 +6114,40 @@
         `;
       }
 
-      // 3. Default Standard Card
+      // 4. Accountability Card (Documental Repository)
+      if (item.type === 'accountability') {
+        const meta = item.metadata || {};
+        const yearVal = meta.year || (item.publishedAt ? new Date(item.publishedAt).getFullYear() : '');
+        const periodRefVal = meta.period || meta.periodReference || meta.periodType || '';
+        const docTypeVal = meta.documentType || meta.docType || 'Prestação de Contas';
+        const pdfAttached = (item.media && item.media.some(m => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || !!meta.pdfFile;
+
+        return `
+          <button class="comtur-list-item ${isActive ? 'is-active' : ''}" type="button" data-id="${item._id}" style="padding: 10px 12px; width: 100%; text-align: left;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="width: 36px; height: 36px; border-radius: var(--comtur-radius-md); background: ${pdfAttached ? '#fef3c7' : '#f1f5f9'}; color: ${pdfAttached ? '#d97706' : '#64748b'}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; font-weight: 800;">
+                📊
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div class="comtur-list-title" style="font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; color: var(--comtur-primary-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${escapeHtml(item.title || 'Sem título')}
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; font-size: 0.78rem; color: var(--comtur-text-muted); line-height: 1.2;">
+                  <span style="font-weight: 700; color: var(--comtur-primary);">${escapeHtml(docTypeVal)}</span>
+                  ${periodRefVal ? `<span>• ${escapeHtml(periodRefVal)}</span>` : ''}
+                  ${yearVal ? `<span>• ${escapeHtml(String(yearVal))}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="comtur-list-meta" style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span class="comtur-badge ${statusClass}">${statusLabel}</span>
+              <span style="font-size: 0.72rem; font-weight: 600; color: ${pdfAttached ? '#16a34a' : '#94a3b8'};">${pdfAttached ? 'PDF ANEXO' : 'SEM PDF'}</span>
+            </div>
+          </button>
+        `;
+      }
+
+      // 5. Default Standard Card
       return `
         <button class="comtur-list-item ${isActive ? 'is-active' : ''}" type="button" data-id="${item._id}">
           <div class="comtur-list-title">${escapeHtml(item.title || 'Sem título')}</div>
@@ -6293,6 +6623,42 @@
       renderWpPdfPreview();
 
       if ($('btnArchiveWp')) $('btnArchiveWp').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
+
+    } else if (item.type === 'accountability') {
+      if ($('accTitle')) $('accTitle').value = item.title || '';
+      if ($('accSlug')) {
+        $('accSlug').value = item.slug || '';
+        $('accSlug').dataset.manual = 'true';
+      }
+      if ($('accDocType')) $('accDocType').value = meta.documentType || meta.docType || 'Prestação de Contas';
+      if ($('accYear')) $('accYear').value = meta.year || (item.publishedAt ? new Date(item.publishedAt).getFullYear() : new Date().getFullYear());
+      if ($('accPeriodType')) $('accPeriodType').value = meta.periodType || 'Quadrimestral';
+      updateAccPeriodOptions(meta.period || meta.periodReference || '1º Quadrimestre');
+      if ($('accStartDate')) $('accStartDate').value = meta.startDate ? new Date(meta.startDate).toISOString().slice(0, 10) : (meta.startDate || '');
+      if ($('accEndDate')) $('accEndDate').value = meta.endDate ? new Date(meta.endDate).toISOString().slice(0, 10) : (meta.endDate || '');
+      if ($('accDocumentDate')) $('accDocumentDate').value = meta.documentDate ? new Date(meta.documentDate).toISOString().slice(0, 10) : (item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
+      if ($('accSummary')) $('accSummary').value = item.summary || meta.description || '';
+      if ($('accPublishDate')) $('accPublishDate').value = item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : '';
+
+      // PDF Attachment
+      const pdfMedia = (item.media && item.media.find(m => m.kind === 'document' || m.mimeType === 'application/pdf' || (m.url && m.url.toLowerCase().endsWith('.pdf')))) || null;
+      if (meta.pdfFile && meta.pdfFile.url) {
+        accPdfFile = meta.pdfFile;
+      } else if (pdfMedia && pdfMedia.url) {
+        accPdfFile = {
+          url: pdfMedia.url,
+          name: pdfMedia.originalName || pdfMedia.title || 'prestacao-contas.pdf',
+          originalName: pdfMedia.originalName || pdfMedia.title || 'prestacao-contas.pdf',
+          size: pdfMedia.size || 0,
+          sizeFormatted: pdfMedia.size ? `PDF | ${formatBytes(pdfMedia.size)}` : 'PDF | Documento',
+          mimeType: 'application/pdf'
+        };
+      } else {
+        accPdfFile = null;
+      }
+      renderAccPdfPreview();
+
+      if ($('btnArchiveAcc')) $('btnArchiveAcc').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
 
     } else {
       // Standard / Default
@@ -6944,6 +7310,67 @@
       };
     }
 
+    if (currentType === 'accountability') {
+      const title = $('accTitle').value.trim();
+      const slug = slugify($('accSlug').value) || slugify(title);
+      const documentType = $('accDocType').value;
+      const year = parseInt($('accYear').value, 10) || new Date().getFullYear();
+      const periodType = $('accPeriodType').value;
+      const period = (periodType === 'Período personalizado')
+        ? 'Período personalizado'
+        : ($('accPeriodRef').value || $('accPeriodRef').options?.[$('accPeriodRef').selectedIndex]?.text || periodType);
+      const startDate = $('accStartDate').value || undefined;
+      const endDate = $('accEndDate').value || undefined;
+      const documentDate = $('accDocumentDate').value || undefined;
+      const summary = $('accSummary').value.trim();
+      const publishDateVal = $('accPublishDate').value;
+      const publishedAt = publishDateVal ? new Date(publishDateVal).toISOString() : (statusToSave === 'published' ? new Date().toISOString() : undefined);
+
+      const media = [];
+      if (accPdfFile && accPdfFile.url) {
+        media.push({
+          kind: 'document',
+          title: title,
+          url: accPdfFile.url,
+          mimeType: 'application/pdf',
+          size: accPdfFile.size,
+          originalName: accPdfFile.originalName || accPdfFile.name,
+          isAccessible: true
+        });
+      }
+
+      return {
+        type: 'accountability',
+        title,
+        slug,
+        summary,
+        body: summary,
+        featured: false,
+        publishedAt,
+        status: statusToSave || 'draft',
+        metadata: {
+          title,
+          documentType,
+          year,
+          periodType,
+          period,
+          periodReference: period,
+          startDate,
+          endDate,
+          documentDate,
+          summary,
+          description: summary,
+          pdfFile: accPdfFile ? {
+            ...accPdfFile,
+            title
+          } : null,
+          showOnPortal: true,
+          featured: false
+        },
+        media
+      };
+    }
+
     // Default / Standard
     const name = $('stdTitle').value.trim();
     const slug = slugify($('stdSlug').value) || slugify(name);
@@ -7427,7 +7854,30 @@
       });
     }
 
-    // 11. Standard / Global Listeners
+    // 11. Accountability Listeners (Specialized Documental)
+    if ($('accTitle')) {
+      $('accTitle').addEventListener('input', () => {
+        $('accTitle').dataset.manual = 'true';
+        if (!$('id').value && $('accSlug') && !$('accSlug').dataset.manual) {
+          $('accSlug').value = slugify($('accTitle').value);
+        }
+      });
+    }
+    if ($('accPeriodType')) {
+      $('accPeriodType').addEventListener('change', () => {
+        updateAccPeriodOptions();
+      });
+    }
+    if ($('accPdfFileInput')) {
+      $('accPdfFileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          uploadAccPdf(e.target.files[0]);
+        }
+        e.target.value = '';
+      });
+    }
+
+    // 12. Standard / Global Listeners
     if ($('stdTitle')) {
       $('stdTitle').addEventListener('input', () => {
         if (!$('id').value && $('stdSlug') && !$('stdSlug').dataset.manual) {
