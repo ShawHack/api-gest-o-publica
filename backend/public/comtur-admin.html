@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Administração — Portal de Turismo</title>
+  <link rel="stylesheet" href="/comtur-admin.css?v=5">
+</head>
+<body>
+<main class="main page" style="padding:32px">
+  <header class="top">
+    <div>
+      <h1>Administração do portal</h1>
+      <p class="muted">Escolha o que deseja publicar ou configurar. Reuniões ficam em um módulo à parte.</p>
+    </div>
+  </header>
+  <div class="cards">
+    <a class="card" href="/comtur-branding-admin.html">
+      <b>Identidade visual</b>
+      <p>Banner, logo, cores e textos do portal público.</p>
+    </a>
+    <a class="card" href="/comtur-content-admin.html">
+      <b>Conteúdos e catálogo</b>
+      <p>Atrativos, eventos, gastronomia, hospedagem e documentos.</p>
+    </a>
+    <a class="card" href="/comtur-staff-admin.html">
+      <b>Equipe</b>
+      <p>Designar quem gerencia o COMTUR com o papel admin_comtur.</p>
+    </a>
+    <a class="card" href="/comtur-meetings-admin.html">
+      <b>Reuniões do conselho</b>
+      <p>Atas, pautas, deliberações e publicação das sessões.</p>
+    </a>
+    <a class="card" href="/turismo/" target="_blank" rel="noopener">
+      <b>Portal público</b>
+      <p>Abrir o site que o visitante vê.</p>
+    </a>
+    <a class="card" href="/dashboard.html">
+      <b>Dashboard da API</b>
+      <p>Painel técnico da SEMIT.</p>
+    </a>
+  </div>
+</main>
+<script src="/semit-session.js?v=1"></script>
+<script src="/comtur-admin-nav.js?v=5"></script>
+<script>
+  SemitSession.restoreSync()
+  if (!SemitSession.readAccess() && !SemitSession.readRefresh()) location.replace('/dashboard.html')
+</script>
+</body>
+</html>

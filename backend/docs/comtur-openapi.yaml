@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: API COMTUR e Portal Municipal de Turismo
+  version: 2.0.0
+paths:
+  /api/comtur/branding:
+    get: { summary: Identidade visual pública, responses: { '200': { description: OK } } }
+  /api/comtur/meetings:
+    get: { summary: Reuniões publicadas, responses: { '200': { description: OK }, '422': { description: Filtro inválido } } }
+  /api/comtur/meetings/{slug}:
+    get: { summary: Reunião publicada, parameters: [ { in: path, name: slug, required: true, schema: { type: string } } ], responses: { '200': { description: OK }, '404': { description: Não encontrada } } }
+  /api/comtur/content:
+    get:
+      summary: Conteúdos turísticos publicados
+      parameters:
+        - { in: query, name: type, schema: { type: string, enum: [council_member, legislation, work_plan, accountability, attraction, event, gastronomy, lodging, route, shopping, service, news, indicator, research, open_data, qr_point, integration] } }
+        - { in: query, name: featured, schema: { type: boolean } }
+        - { in: query, name: q, schema: { type: string, maxLength: 120 } }
+      responses: { '200': { description: OK }, '422': { description: Tipo inválido } }
+  /api/comtur/content/{slug}:
+    get: { summary: Conteúdo publicado, parameters: [ { in: path, name: slug, required: true, schema: { type: string } } ], responses: { '200': { description: OK }, '404': { description: Não encontrado } } }
+  /api/comtur/admin/branding:
+    get: { summary: Marca e histórico, security: [ { bearerAuth: [] } ], responses: { '200': { description: OK }, '401': { description: Não autenticado }, '403': { description: Sem permissão } } }
+    put: { summary: Publica nova versão da marca, security: [ { bearerAuth: [] } ], responses: { '200': { description: Atualizada }, '422': { description: Dados inválidos } } }
+  /api/comtur/admin/content:
+    get: { summary: Lista editorial, security: [ { bearerAuth: [] } ], responses: { '200': { description: OK } } }
+    post: { summary: Cria conteúdo em rascunho, security: [ { bearerAuth: [] } ], responses: { '201': { description: Criado } } }
+  /api/comtur/admin/media:
+    post: { summary: Envia mídia com verificação antivírus, security: [ { bearerAuth: [] } ], requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary } } } } } }, responses: { '201': { description: Verificada e armazenada }, '422': { description: Arquivo inválido }, '503': { description: Antivírus indisponível } } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }

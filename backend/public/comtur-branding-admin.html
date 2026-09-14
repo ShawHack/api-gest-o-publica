@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Identidade visual — Portal de Turismo</title>
+  <link rel="stylesheet" href="/comtur-admin.css">
+</head>
+<body class="studio-body">
+<div class="studio">
+  <aside class="studio-nav">
+    <p>Gestão COMTUR</p>
+    <a href="/comtur-admin.html">Visão geral</a>
+    <a href="/comtur-meetings-admin.html">Reuniões</a>
+    <a href="/comtur-content-admin.html">Conteúdos</a>
+    <a class="is-active" href="/comtur-branding-admin.html">Identidade visual</a>
+    <a href="/comtur-staff-admin.html">Equipe</a>
+    <a href="/turismo/" target="_blank" rel="noopener">Abrir portal</a>
+  </aside>
+  <main class="studio-main">
+    <header class="studio-top">
+      <div>
+        <h1>Identidade do portal</h1>
+        <p>O site público se adapta a estas escolhas. Banner, logo e cores entram no ar no instante em que você confirma o arquivo.</p>
+      </div>
+      <p id="version" class="studio-meta"></p>
+    </header>
+    <div id="notice" class="studio-notice" hidden></div>
+    <div class="studio-layout">
+      <form id="form" class="studio-form">
+        <section>
+          <h2>Capa do portal</h2>
+          <p class="help">Estes três campos são os textos brancos sobre a foto da página inicial.</p>
+          <label>Linha pequena acima do título
+            <input id="shortName" maxlength="80" placeholder="Garça · São Paulo">
+          </label>
+          <label>Título grande da capa
+            <textarea id="tagline" rows="3" maxlength="300" placeholder="Garça para quem visita, com a voz da Prefeitura"></textarea>
+          </label>
+          <label>Texto abaixo do título
+            <textarea id="heroLead" rows="3" maxlength="400" placeholder="Portal oficial de turismo do município…"></textarea>
+          </label>
+        </section>
+        <section>
+          <h2>Textos oficiais</h2>
+          <label>Organização<input id="organizationName" required></label>
+          <label>Conselho<input id="councilName" required></label>
+          <label>Nome do portal no menu<input id="portalTitle" required></label>
+          <label>Rodapé<input id="footerText"></label>
+        </section>
+        <section>
+          <h2>Marca visual</h2>
+          <label class="drop" data-kind="hero">
+            <span>Banner da capa</span>
+            <strong>Solte a imagem ou clique para escolher</strong>
+            <em>JPEG, PNG ou WebP. Publica sozinho no portal.</em>
+            <input id="heroFile" type="file" accept="image/png,image/jpeg,image/webp">
+          </label>
+          <div class="pair">
+            <label class="drop compact" data-kind="logo">
+              <span>Logotipo</span>
+              <strong>Enviar logo</strong>
+              <input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp">
+            </label>
+            <label class="drop compact" data-kind="favicon">
+              <span>Favicon</span>
+              <strong>Enviar ícone</strong>
+              <input id="faviconFile" type="file" accept="image/png,image/x-icon,image/webp">
+            </label>
+          </div>
+          <div class="swatches">
+            <label>Cor principal<input id="primaryColor" type="color"></label>
+            <label>Cor secundária<input id="secondaryColor" type="color"></label>
+            <label>Cor de destaque<input id="accentColor" type="color"></label>
+            <label>Tipografia
+              <select id="fontFamily">
+                <option>Inter</option>
+                <option>Arial</option>
+                <option>Roboto</option>
+                <option>Montserrat</option>
+                <option>Open Sans</option>
+                <option>Source Sans 3</option>
+              </select>
+            </label>
+          </div>
+        </section>
+        <section>
+          <h2>Contato no rodapé</h2>
+          <p class="help">Só entra no portal o que estiver preenchido. Nenhum telefone, e-mail ou site fica fixo.</p>
+          <label>E-mail<input id="contactEmail" type="email" placeholder="turismo@exemplo.gov.br"></label>
+          <label>Telefone<input id="contactPhone" placeholder="(14) 0000-0000"></label>
+          <label>Site oficial<input id="websiteUrl" type="url" placeholder="https://"></label>
+          <label>Instagram<input id="instagramUrl" type="url" placeholder="https://instagram.com/..."></label>
+          <label>Facebook<input id="facebookUrl" type="url" placeholder="https://facebook.com/..."></label>
+        </section>
+        <input id="logoUrl" type="hidden">
+        <input id="faviconUrl" type="hidden">
+        <input id="heroImageUrl" type="hidden">
+        <button type="submit">Publicar textos e cores</button>
+      </form>
+      <aside class="studio-preview" aria-label="Prévia do portal">
+        <p>Prévia ao vivo</p>
+        <div id="preview" class="phone">
+          <header>
+            <img id="previewLogo" alt="">
+            <div>
+              <small id="previewOrg"></small>
+              <b id="previewTitle"></b>
+            </div>
+          </header>
+          <div class="stage">
+            <img id="previewHero" alt="">
+            <div class="stage-copy">
+              <span id="previewKicker"></span>
+              <h2 id="previewHeadline"></h2>
+              <p id="previewLead"></p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+<script src="/semit-session.js?v=2"></script>
+<script>
+SemitSession.restoreSync()
+if (!SemitSession.readAccess() && !SemitSession.readRefresh()) location.replace('/dashboard.html')
+const fields = ['organizationName','councilName','portalTitle','shortName','tagline','heroLead','footerText','primaryColor','secondaryColor','accentColor','fontFamily','logoUrl','faviconUrl','heroImageUrl','contactEmail','contactPhone','websiteUrl','instagramUrl','facebookUrl']
+const notice = document.getElementById('notice')
+
+function note(text, error) {
+  notice.hidden = false
+  notice.textContent = text
+  notice.className = 'studio-notice' + (error ? ' is-error' : '')
+}
+
+async function req(url, options = {}) {
+  const headers = { ...(options.headers || {}) }
+  if (options.body instanceof FormData) delete headers['Content-Type']
+  const response = await SemitSession.fetchAuth(url, { ...options, headers })
+  const data = await response.json().catch(() => ({}))
+  if (response.status === 401) {
+    SemitSession.clear()
+    location.replace('/dashboard.html')
+  }
+  if (!response.ok) throw Error(data.error || 'Não foi possível concluir.')
+  return data
+}
+
+function valueOf(id) { return document.getElementById(id).value || '' }
+
+function paintPreview() {
+  const primary = valueOf('primaryColor') || '#3d6e85'
+  const title = valueOf('portalTitle') === 'COMTUR' ? 'Turismo Garça' : (valueOf('portalTitle') || 'Turismo Garça')
+  const kicker = valueOf('shortName') && valueOf('shortName') !== 'COMTUR' ? valueOf('shortName') : 'Garça · São Paulo'
+  const headline = valueOf('tagline') && !valueOf('tagline').startsWith('Reuniões, documentos') ? valueOf('tagline') : 'Garça para quem visita, com a voz da Prefeitura'
+  preview.style.setProperty('--brand', primary)
+  preview.style.setProperty('--brand-2', valueOf('secondaryColor') || '#2fa79d')
+  previewOrg.textContent = valueOf('organizationName') || 'Prefeitura Municipal de Garça'
+  previewTitle.textContent = title
+  previewKicker.textContent = kicker
+  previewHeadline.textContent = headline
+  previewLead.textContent = valueOf('heroLead') || 'Portal oficial de turismo do município: o que ver, onde ficar, o que comer e a transparência do Conselho Municipal de Turismo.'
+  previewLogo.hidden = !valueOf('logoUrl')
+  previewLogo.src = valueOf('logoUrl')
+  previewHero.hidden = !valueOf('heroImageUrl')
+  previewHero.src = valueOf('heroImageUrl')
+}
+
+function payload() {
+  const body = Object.fromEntries(fields.filter((key) => !['logoUrl','faviconUrl','heroImageUrl'].includes(key)).map((key) => [key, valueOf(key)]))
+  body.features = { meetings: true, documents: true, legislation: true, council: true, planning: true, accountability: true }
+  return body
+}
+
+function applyLoaded(data) {
+  const v = data.data || {}
+  fields.forEach((key) => { document.getElementById(key).value = v[key] || '' })
+  if (!v.shortName || v.shortName === 'COMTUR') document.getElementById('shortName').value = 'Garça · São Paulo'
+  if (!v.tagline || v.tagline.startsWith('Reuniões, documentos')) document.getElementById('tagline').value = 'Garça para quem visita, com a voz da Prefeitura'
+  if (!v.heroLead) document.getElementById('heroLead').value = 'Portal oficial de turismo do município: o que ver, onde ficar, o que comer e a transparência do Conselho Municipal de Turismo.'
+  version.textContent = 'Versão ' + v.version + ' no ar'
+  paintPreview()
+}
+
+async function publish(message) {
+  applyLoaded(await req('/api/comtur/admin/branding', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload()),
+  }))
+  note(message || 'Portal atualizado.')
+}
+
+async function uploadAndPublish(kind, file) {
+  if (!file) return
+  if (kind === 'hero') {
+    previewHero.hidden = false
+    previewHero.src = URL.createObjectURL(file)
+  }
+  note('Publicando ' + file.name + ' no portal…')
+  await SemitSession.refreshAccess()
+  const body = new FormData()
+  body.append('file', file)
+  const headers = SemitSession.authHeaders({ Accept: 'application/json' })
+  delete headers['Content-Type']
+  delete headers['content-type']
+  const response = await fetch('/api/comtur/admin/branding/asset/' + kind, { method: 'POST', headers, body })
+  const data = await response.json().catch(() => ({}))
+  if (response.status === 401) {
+    SemitSession.clear()
+    location.replace('/dashboard.html')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) throw new Error(data.error || data.message || 'Não foi possível publicar o arquivo.')
+  applyLoaded({ data: data.data })
+  note('Arquivo publicado. Abra o portal público e atualize a página.')
+}
+
+function bindDrop(kind, input) {
+  const box = input.closest('.drop')
+  async function send(file) {
+    try { await uploadAndPublish(kind, file) } catch (error) { note(error.message, true) }
+  }
+  input.addEventListener('change', () => send(input.files[0]))
+  ;['dragenter', 'dragover'].forEach((name) => box.addEventListener(name, (event) => { event.preventDefault(); box.classList.add('is-over') }))
+  ;['dragleave', 'drop'].forEach((name) => box.addEventListener(name, (event) => { event.preventDefault(); box.classList.remove('is-over') }))
+  box.addEventListener('drop', (event) => send(event.dataTransfer.files[0]))
+}
+
+bindDrop('hero', heroFile)
+bindDrop('logo', logoFile)
+bindDrop('favicon', faviconFile)
+;['organizationName','portalTitle','shortName','tagline','heroLead','primaryColor','secondaryColor','accentColor'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', paintPreview)
+})
+form.addEventListener('submit', async (event) => {
+  event.preventDefault()
+  try { await publish('Textos e cores publicados.') } catch (error) { note(error.message, true) }
+})
+req('/api/comtur/admin/branding').then(applyLoaded).catch((error) => note(error.message, true))
+</script>
+</body>
+</html>
