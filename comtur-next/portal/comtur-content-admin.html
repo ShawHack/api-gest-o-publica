@@ -5935,9 +5935,7 @@
     } else if (currentType === 'service') {
       $('serviceFields').style.display = 'block';
       $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'legislation') {
-        populateLegisAvailableRelatedSelect();
-      } else if (currentType === 'council_member') {
+    } else if (currentType === 'council_member') {
       $('councilMemberFields').style.display = 'block';
       $('sharedNonGastroActions').style.display = 'none';
     } else if (currentType === 'legislation') {
@@ -6334,81 +6332,6 @@
       $('gastroSummaryCount').textContent = '0 / 250';
     } else if (currentType !== 'attraction' && currentType !== 'event' && currentType !== 'lodging' && currentType !== 'route' && currentType !== 'shopping' && currentType !== 'service') {
       if ($('sharedFeatured')) $('sharedFeatured').checked = false;
-    }
-
-        if (currentType === 'legislation') {
-      const title = $('legisTitle').value.trim();
-      const docType = $('legisDocType').value;
-      const num = $('legisNumber').value.trim();
-      const year = parseInt($('legisYear').value, 10) || new Date().getFullYear();
-      const officialIdentifier = $('legisOfficialIdentifier').value.trim() || (num ? `${docType} nº ${num}/${year}` : title);
-      const responsibleBody = $('legisResponsibleBody').value.trim() || 'COMTUR';
-      const slug = slugify($('legisSlug').value) || slugify(officialIdentifier) || slugify(title);
-      const summary = $('legisSummary').value.trim();
-      const documentDate = $('legisDocumentDate').value || undefined;
-      const publicationDate = $('legisPublicationDate').value || undefined;
-      const effectiveFrom = $('legisEffectiveFrom').value || undefined;
-      const effectiveUntil = $('legisEffectiveUntil').value || undefined;
-      const legalStatus = $('legisLegalStatus').value;
-      const category = $('legisCategory').value;
-      const customTagsRaw = $('legisCustomTags').value.trim();
-      const customTags = customTagsRaw ? customTagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-      const structuredTags = getSelectedChips('legisTagsChips');
-      const allTags = Array.from(new Set([...structuredTags, ...customTags]));
-      const showOnPortal = $('legisShowOnPortal').checked;
-      const featured = $('legisFeatured').checked;
-      const publishedAt = $('legisPublishDate').value ? new Date($('legisPublishDate').value).toISOString() : undefined;
-
-      const media = [];
-      if (legisPdfFile && legisPdfFile.url) {
-        const pdfTitle = ($('legisPdfTitle') ? $('legisPdfTitle').value.trim() : '') || officialIdentifier || title;
-        media.push({
-          kind: 'document',
-          title: pdfTitle,
-          url: legisPdfFile.url,
-          mimeType: 'application/pdf',
-          size: legisPdfFile.size,
-          originalName: legisPdfFile.originalName,
-          isAccessible: true
-        });
-      }
-
-      return {
-        type: 'legislation',
-        title: title || officialIdentifier,
-        slug,
-        summary,
-        body: summary,
-        featured,
-        publishedAt,
-        status: statusToSave || 'draft',
-        metadata: {
-          title: title || officialIdentifier,
-          documentType: docType,
-          docType,
-          number: num,
-          year,
-          officialIdentifier,
-          responsibleBody,
-          documentDate,
-          publicationDate,
-          effectiveFrom,
-          effectiveUntil,
-          legalStatus,
-          category,
-          tags: allTags,
-          customTags,
-          structuredTags,
-          pdfFile: legisPdfFile ? {
-            ...legisPdfFile,
-            title: ($('legisPdfTitle') ? $('legisPdfTitle').value.trim() : '') || officialIdentifier
-          } : null,
-          relatedDocs: legisRelatedDocs,
-          showOnPortal,
-          featured
-        },
-        media
-      };
     }
 
     if (currentType === 'council_member') {
@@ -8320,6 +8243,81 @@
       };
     }
 
+    if (currentType === 'legislation') {
+      const title = $('legisTitle').value.trim();
+      const docType = $('legisDocType').value;
+      const num = $('legisNumber').value.trim();
+      const year = parseInt($('legisYear').value, 10) || new Date().getFullYear();
+      const officialIdentifier = $('legisOfficialIdentifier').value.trim() || (num ? `${docType} nº ${num}/${year}` : title);
+      const responsibleBody = $('legisResponsibleBody').value.trim() || 'COMTUR';
+      const slug = slugify($('legisSlug').value) || slugify(officialIdentifier) || slugify(title);
+      const summary = $('legisSummary').value.trim();
+      const documentDate = $('legisDocumentDate').value || undefined;
+      const publicationDate = $('legisPublicationDate').value || undefined;
+      const effectiveFrom = $('legisEffectiveFrom').value || undefined;
+      const effectiveUntil = $('legisEffectiveUntil').value || undefined;
+      const legalStatus = $('legisLegalStatus').value;
+      const category = $('legisCategory').value;
+      const customTagsRaw = $('legisCustomTags').value.trim();
+      const customTags = customTagsRaw ? customTagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const structuredTags = getSelectedChips('legisTagsChips');
+      const allTags = Array.from(new Set([...structuredTags, ...customTags]));
+      const showOnPortal = $('legisShowOnPortal').checked;
+      const featured = $('legisFeatured').checked;
+      const publishedAt = $('legisPublishDate').value ? new Date($('legisPublishDate').value).toISOString() : undefined;
+
+      const media = [];
+      if (legisPdfFile && legisPdfFile.url) {
+        const pdfTitle = ($('legisPdfTitle') ? $('legisPdfTitle').value.trim() : '') || officialIdentifier || title;
+        media.push({
+          kind: 'document',
+          title: pdfTitle,
+          url: legisPdfFile.url,
+          mimeType: 'application/pdf',
+          size: legisPdfFile.size,
+          originalName: legisPdfFile.originalName,
+          isAccessible: true
+        });
+      }
+
+      return {
+        type: 'legislation',
+        title: title || officialIdentifier,
+        slug,
+        summary,
+        body: summary,
+        featured,
+        publishedAt,
+        status: statusToSave || 'draft',
+        metadata: {
+          title: title || officialIdentifier,
+          documentType: docType,
+          docType,
+          number: num,
+          year,
+          officialIdentifier,
+          responsibleBody,
+          documentDate,
+          publicationDate,
+          effectiveFrom,
+          effectiveUntil,
+          legalStatus,
+          category,
+          tags: allTags,
+          customTags,
+          structuredTags,
+          pdfFile: legisPdfFile ? {
+            ...legisPdfFile,
+            title: ($('legisPdfTitle') ? $('legisPdfTitle').value.trim() : '') || officialIdentifier
+          } : null,
+          relatedDocs: legisRelatedDocs,
+          showOnPortal,
+          featured
+        },
+        media
+      };
+    }
+
     // Default / Standard
     const name = $('stdTitle').value.trim();
     const slug = slugify($('stdSlug').value) || slugify(name);
@@ -8378,6 +8376,7 @@
 
   // --- LOAD ALL ITEMS FROM API ---
   async function loadItems() {
+    const listEl = $('list');
     try {
       const send = (window.SemitSession && typeof SemitSession.fetchAuth === 'function')
         ? SemitSession.fetchAuth.bind(SemitSession)
@@ -8405,12 +8404,22 @@
       } else if (currentType === 'council_member') {
         populateCouncilRelatedMemberSelect(currentItem?.metadata?.relatedMemberId || '');
         populateCouncilLegislationSelect(currentItem?.metadata?.appointmentDocumentId || currentItem?.metadata?.legislationId || '');
+      } else if (currentType === 'legislation') {
+        populateLegisAvailableRelatedSelect();
       }
     } catch (err) {
       console.error('loadItems error:', err);
-      $('list').innerHTML = '<div class="comtur-empty" style="color:var(--comtur-danger)">Falha ao carregar dados da API.</div>';
+      if (listEl) {
+        listEl.innerHTML = `
+          <div class="comtur-empty" style="color:var(--comtur-danger); padding: 16px 12px; text-align: center;">
+            <div style="margin-bottom: 8px; font-weight: 600;">Não foi possível carregar os documentos.</div>
+            <button type="button" class="comtur-btn comtur-btn-secondary comtur-btn-sm" onclick="loadItems()">🔄 Tentar novamente</button>
+          </div>
+        `;
+      }
     }
   }
+  window.loadItems = loadItems;
 
   // --- INITIALIZATION ---
   function init() {
@@ -8761,10 +8770,18 @@
     });
 
     // Set initial category view
-    window.onContentTypeChange(initialType, false);
+    try {
+      window.onContentTypeChange(initialType, false);
+    } catch (err) {
+      console.error('Error initializing content type:', err);
+    }
 
     // Load items
-    loadItems();
+    try {
+      loadItems();
+    } catch (err) {
+      console.error('Error loading initial items:', err);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
