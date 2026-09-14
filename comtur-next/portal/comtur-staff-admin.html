@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Equipe — Gestão COMTUR</title>
+  <link rel="stylesheet" href="/comtur-admin.css?v=4">
+</head>
+<body class="studio-body">
+<div class="studio">
+  <aside class="studio-nav">
+    <p>Gestão COMTUR</p>
+    <a href="/comtur-admin.html">Visão geral</a>
+    <a href="/comtur-meetings-admin.html">Reuniões</a>
+    <a href="/comtur-content-admin.html">Conteúdos</a>
+    <a href="/comtur-branding-admin.html">Identidade visual</a>
+    <a class="is-active" href="/comtur-staff-admin.html">Equipe</a>
+    <a href="/turismo/" target="_blank" rel="noopener">Abrir portal</a>
+  </aside>
+  <main class="studio-main">
+    <header class="studio-top">
+      <div>
+        <h1>Equipe do portal</h1>
+        <p>A gestão usa a mesma conta municipal. Quem recebe o papel <strong>admin_comtur</strong> entra em /turismo/entrar e acessa esta administração. O cidadão permanece como usuário comum.</p>
+      </div>
+    </header>
+    <div id="notice" class="studio-notice" hidden></div>
+    <p id="hint" class="staff-hint"></p>
+    <section class="studio-form">
+      <section id="assign-box" hidden>
+        <h2>Localizar conta</h2>
+        <form id="search" class="staff-search">
+          <input id="q" type="search" minlength="3" placeholder="Nome, e-mail ou CPF" autocomplete="off" required>
+          <button type="submit">Buscar</button>
+        </form>
+        <div id="results"></div>
+      </section>
+      <section>
+        <h2>Gestores atuais</h2>
+        <div id="staff">Carregando…</div>
+      </section>
+    </section>
+  </main>
+</div>
+<script src="/semit-session.js?v=1"></script>
+<script src="/comtur-admin-nav.js?v=4"></script>
+<script>
+  SemitSession.restoreSync()
+  if (!SemitSession.readAccess() && !SemitSession.readRefresh()) location.replace('/dashboard.html')
+  const notice = document.getElementById('notice')
+  function message(text, error) {
+    notice.hidden = false
+    notice.textContent = text
+    notice.className = 'studio-notice' + (error ? ' is-error' : '')
+  }
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))
+  }
+  async function request(url, options = {}) {
+    const response = await SemitSession.fetchAuth(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    })
+    const data = await response.json().catch(() => ({}))
+    if (response.status === 401) {
+      SemitSession.clear()
+      location.replace('/dashboard.html')
+      throw new Error('Sessão expirada.')
+    }
+    if (!response.ok) throw new Error(data.error || data.message || 'Não foi possível concluir a operação.')
+    return data
+  }
+  function row(user, actionLabel, action) {
+    return `<div class="staff-row"><div><b>${escapeHtml(user.name)}</b><small>${escapeHtml(user.email)} · ${escapeHtml(user.role)}</small></div><div class="actions">${actionLabel ? `<button type="button" class="${action === 'revoke' ? 'secondary' : ''}" data-id="${escapeHtml(user._id)}" data-action="${action}">${actionLabel}</button>` : ''}</div></div>`
+  }
+  function bindActions(root) {
+    root.querySelectorAll('[data-action]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        try {
+          const data = await request('/api/comtur/admin/staff/' + button.dataset.id, {
+            method: 'PATCH',
+            body: JSON.stringify({ action: button.dataset.action }),
+          })
+          message(data.message)
+          await loadStaff()
+          document.getElementById('results').innerHTML = ''
+        } catch (error) {
+          message(error.message, true)
+        }
+      })
+    })
+  }
+  async function loadStaff() {
+    const data = await request('/api/comtur/admin/staff')
+    document.getElementById('hint').textContent = data.canAssign
+      ? 'Busque a conta já cadastrada na Prefeitura e conceda ou retire o acesso de gestão.'
+      : 'Você vê a equipe, mas só o administrador geral da API pode conceder ou retirar o papel admin_comtur.'
+    document.getElementById('assign-box').hidden = !data.canAssign
+    const box = document.getElementById('staff')
+    box.innerHTML = data.data.length
+      ? data.data.map((user) => row(user, data.canAssign ? 'Retirar gestão' : '', 'revoke')).join('')
+      : '<p class="muted">Nenhum gestor específico do COMTUR. O administrador geral continua com acesso.</p>'
+    bindActions(box)
+  }
+  document.getElementById('search').addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const q = document.getElementById('q').value.trim()
+    try {
+      const data = await request('/api/comtur/admin/staff?q=' + encodeURIComponent(q))
+      const box = document.getElementById('results')
+      box.innerHTML = data.data.length
+        ? data.data.map((user) => {
+            const isStaff = user.role === 'admin_comtur' || user.role === 'admin-comtur'
+            const isAdmin = user.role === 'admin'
+            if (isAdmin) return row(user, '', '')
+            return row(user, isStaff ? 'Retirar gestão' : 'Designar gestão', isStaff ? 'revoke' : 'grant')
+          }).join('')
+        : '<p class="muted">Nenhuma conta encontrada.</p>'
+      bindActions(box)
+    } catch (error) {
+      message(error.message, true)
+    }
+  })
+  loadStaff().catch((error) => message(error.message, true))
+</script>
+</body>
+</html>
