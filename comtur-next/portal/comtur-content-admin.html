@@ -3799,9 +3799,12 @@
 
           </div>
 
-          <!-- 10. STANDARD / DOCUMENT FORM (Legislation, Work Plan, etc.)       -->
+          <!-- 10. STANDARD / DOCUMENT FORM (Generic Fallback for work_plan, accountability, indicator, research, open_data, qr_point, integration, news) -->
           <!-- ================================================================= -->
           <div id="standardFields" class="comtur-category-fields" style="display:none">
+            <div id="standardNotice" class="comtur-hint" style="background:#f1f5f9; border:1px dashed #cbd5e1; padding:12px 16px; border-radius:8px; margin-bottom:16px; color:#475569; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:8px;">
+              <span>ℹ️</span> <span>Formulário especializado ainda não configurado para este tipo. Utilizando formulário padrão.</span>
+            </div>
             <div class="comtur-section">
               <div class="comtur-section-title"><span class="num">1</span> Dados da Publicação</div>
               <div class="comtur-grid-2">
@@ -3881,7 +3884,14 @@
     { id: 'shopping', label: 'Compras', icon: '🛍️', listTitle: 'COMÉRCIOS E LOJAS', searchPlaceholder: 'Buscar comércio...', newBtnLabel: '+ Novo comércio', formNewTitle: 'Novo comércio' },
     { id: 'service', label: 'Serviços', icon: '🛠️', listTitle: 'SERVIÇOS AO TURISTA', searchPlaceholder: 'Buscar serviço...', newBtnLabel: '+ Novo serviço', formNewTitle: 'Novo serviço' },
     { id: 'council_member', label: 'Membro do Conselho', icon: '👥', listTitle: 'MEMBROS DO CONSELHO', searchPlaceholder: 'Buscar conselheiro...', newBtnLabel: '+ Novo membro', formNewTitle: 'Novo membro do conselho' },
-    { id: 'legislation', label: 'Legislação', icon: '📜', listTitle: 'LEGISLAÇÃO', searchPlaceholder: 'Buscar documento legal...', newBtnLabel: '+ Novo documento', formNewTitle: 'Novo documento de legislação' }
+    { id: 'legislation', label: 'Legislação', icon: '📜', listTitle: 'LEGISLAÇÃO', searchPlaceholder: 'Buscar documento legal...', newBtnLabel: '+ Novo documento', formNewTitle: 'Novo documento de legislação' },
+    { id: 'work_plan', label: 'Plano de trabalho', icon: '📋', listTitle: 'PLANOS DE TRABALHO', searchPlaceholder: 'Buscar plano...', newBtnLabel: '+ Novo plano', formNewTitle: 'Novo plano de trabalho' },
+    { id: 'accountability', label: 'Prestação de contas', icon: '📊', listTitle: 'PRESTAÇÕES DE CONTAS', searchPlaceholder: 'Buscar prestação...', newBtnLabel: '+ Nova prestação', formNewTitle: 'Nova prestação de contas' },
+    { id: 'indicator', label: 'Indicador', icon: '📈', listTitle: 'INDICADORES', searchPlaceholder: 'Buscar indicador...', newBtnLabel: '+ Novo indicador', formNewTitle: 'Novo indicador' },
+    { id: 'research', label: 'Pesquisa', icon: '🔬', listTitle: 'PESQUISAS', searchPlaceholder: 'Buscar pesquisa...', newBtnLabel: '+ Nova pesquisa', formNewTitle: 'Nova pesquisa' },
+    { id: 'open_data', label: 'Dados abertos', icon: '📂', listTitle: 'DADOS ABERTOS', searchPlaceholder: 'Buscar conjunto de dados...', newBtnLabel: '+ Novos dados', formNewTitle: 'Novo conjunto de dados abertos' },
+    { id: 'qr_point', label: 'Ponto QR', icon: '📱', listTitle: 'PONTOS QR', searchPlaceholder: 'Buscar ponto QR...', newBtnLabel: '+ Novo ponto QR', formNewTitle: 'Novo ponto QR' },
+    { id: 'integration', label: 'Integração', icon: '🔌', listTitle: 'INTEGRAÇÕES', searchPlaceholder: 'Buscar integração...', newBtnLabel: '+ Nova integração', formNewTitle: 'Nova integração' }
   ];
 
   const TYPE_ALIASES = {
@@ -3894,7 +3904,14 @@
     'compras': 'shopping', 'artesanato': 'shopping', 'lojas': 'shopping', 'loja': 'shopping', 'comercio': 'shopping',
     'servicos': 'service', 'servico': 'service', 'services': 'service',
     'conselho': 'council_member', 'conselheiro': 'council_member', 'conselheiros': 'council_member', 'membros': 'council_member', 'membro': 'council_member', 'council_member': 'council_member', 'council_members': 'council_member',
-    'legislacao': 'legislation', 'legislation': 'legislation', 'documento': 'legislation', 'documentos': 'legislation', 'leis': 'legislation', 'lei': 'legislation'
+    'legislacao': 'legislation', 'legislation': 'legislation', 'documento': 'legislation', 'documentos': 'legislation', 'leis': 'legislation', 'lei': 'legislation',
+    'plano': 'work_plan', 'plano_trabalho': 'work_plan', 'plano-de-trabalho': 'work_plan', 'planos': 'work_plan', 'plan': 'work_plan', 'workplan': 'work_plan',
+    'prestacao': 'accountability', 'prestacao_contas': 'accountability', 'prestacao-de-contas': 'accountability', 'contas': 'accountability',
+    'indicadores': 'indicator', 'indicador': 'indicator', 'indicators': 'indicator',
+    'pesquisas': 'research', 'pesquisa': 'research',
+    'dados_abertos': 'open_data', 'dados-abertos': 'open_data', 'opendata': 'open_data',
+    'ponto_qr': 'qr_point', 'ponto-qr': 'qr_point', 'qr': 'qr_point', 'qr_code': 'qr_point',
+    'integracao': 'integration', 'integracoes': 'integration', 'integrations': 'integration'
   };
 
   // --- AMENITIES & FEATURES CONSTANTS ---
@@ -5219,39 +5236,25 @@
     // Toggle Form Containers
     document.querySelectorAll('.comtur-category-fields').forEach(el => { el.style.display = 'none'; });
 
-    if (currentType === 'event') {
-      $('eventFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'attraction') {
-      $('attractionFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'gastronomy') {
-      $('gastronomyFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'news') {
-      $('newsFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'block';
-    } else if (currentType === 'lodging') {
-      $('lodgingFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'route') {
-      $('routeFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'shopping') {
-      $('shoppingFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'service') {
-      $('serviceFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'council_member') {
-      $('councilMemberFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
-    } else if (currentType === 'legislation') {
-      $('legislationFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'none';
+    const specializedMap = {
+      'event': 'eventFields',
+      'attraction': 'attractionFields',
+      'gastronomy': 'gastronomyFields',
+      'lodging': 'lodgingFields',
+      'route': 'routeFields',
+      'shopping': 'shoppingFields',
+      'service': 'serviceFields',
+      'council_member': 'councilMemberFields',
+      'legislation': 'legislationFields'
+    };
+
+    const targetFieldId = specializedMap[currentType];
+    if (targetFieldId && $(targetFieldId)) {
+      $(targetFieldId).style.display = 'block';
+      if ($('sharedNonGastroActions')) $('sharedNonGastroActions').style.display = 'none';
     } else {
-      $('standardFields').style.display = 'block';
-      $('sharedNonGastroActions').style.display = 'block';
+      if ($('standardFields')) $('standardFields').style.display = 'block';
+      if ($('sharedNonGastroActions')) $('sharedNonGastroActions').style.display = 'block';
     }
 
     // Reset Form for new entry in this category
@@ -5289,6 +5292,18 @@
     if ($('btnArchiveService')) $('btnArchiveService').style.display = 'none';
     if ($('btnArchiveCouncil')) $('btnArchiveCouncil').style.display = 'none';
     if ($('btnArchiveLegis')) $('btnArchiveLegis').style.display = 'none';
+    if ($('btnArchiveShared')) $('btnArchiveShared').style.display = 'none';
+
+    // Standard / Generic Form Defaults
+    if ($('stdTitle')) $('stdTitle').value = '';
+    if ($('stdSlug')) {
+      $('stdSlug').value = '';
+      delete $('stdSlug').dataset.manual;
+    }
+    if ($('stdSummary')) $('stdSummary').value = '';
+    if ($('stdBody')) $('stdBody').value = '';
+    if ($('stdLocation')) $('stdLocation').value = '';
+    if ($('sharedFeatured')) $('sharedFeatured').checked = false;
 
     // Gastronomy Defaults
     if (currentType === 'gastronomy') {
@@ -5994,13 +6009,16 @@
 
     } else {
       // Standard / Default
-      $('stdTitle').value = item.title || '';
-      $('stdSlug').value = item.slug || '';
-      $('stdSlug').dataset.manual = 'true';
-      $('stdSummary').value = item.summary || '';
-      $('stdBody').value = item.body || '';
-      $('stdLocation').value = (typeof item.location === 'string' ? item.location : item.location?.street) || '';
-      $('sharedFeatured').checked = item.featured === true;
+      if ($('stdTitle')) $('stdTitle').value = item.title || '';
+      if ($('stdSlug')) {
+        $('stdSlug').value = item.slug || '';
+        $('stdSlug').dataset.manual = 'true';
+      }
+      if ($('stdSummary')) $('stdSummary').value = item.summary || '';
+      if ($('stdBody')) $('stdBody').value = item.body || '';
+      if ($('stdLocation')) $('stdLocation').value = (typeof item.location === 'string' ? item.location : item.location?.street) || '';
+      if ($('sharedFeatured')) $('sharedFeatured').checked = item.featured === true;
+      if ($('btnArchiveShared')) $('btnArchiveShared').style.display = item.status === 'archived' ? 'none' : 'inline-flex';
     }
 
     // Mark Sidebar Item as Active
