@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COMTUR — Conselho Municipal de Turismo de Garça</title>
+  <style>
+    :root { color-scheme: light; --blue:#075985; --teal:#0f766e; --ink:#172033; --muted:#61708a; --line:#d9e2ec; --soft:#f3f7fa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:var(--soft); }
+    a { color:inherit; }
+    .top { background:linear-gradient(125deg,var(--blue),var(--teal)); color:#fff; }
+    .wrap { width:min(1120px,calc(100% - 32px)); margin:auto; }
+    .top .wrap { padding:52px 0 46px; }
+    .nav { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:35px; }
+    .back,.admin-link { display:inline-flex; gap:8px; align-items:center; color:#fff; text-decoration:none; font-weight:650; }
+    .admin-link { border:1px solid rgba(255,255,255,.65); border-radius:10px; padding:9px 13px; }
+    .back:hover,.back:focus-visible,.admin-link:hover,.admin-link:focus-visible { text-decoration:underline; }
+    h1 { margin:0 0 12px; font-size:clamp(2rem,5vw,3.5rem); line-height:1.05; }
+    .lead { max-width:760px; margin:0; font-size:clamp(1rem,2vw,1.25rem); line-height:1.65; opacity:.94; }
+    main { padding:36px 0 64px; }
+    .toolbar { display:grid; grid-template-columns:1fr 150px 180px auto; gap:12px; padding:20px; background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 12px 35px rgba(23,32,51,.07); }
+    label { display:block; font-size:.82rem; font-weight:750; margin-bottom:6px; color:#42526b; }
+    input,select,button { width:100%; min-height:44px; border:1px solid #b9c7d6; border-radius:10px; padding:10px 12px; font:inherit; background:#fff; }
+    input:focus,select:focus,button:focus-visible,a:focus-visible { outline:3px solid #7dd3fc; outline-offset:2px; }
+    button { align-self:end; border:0; background:var(--blue); color:#fff; font-weight:750; cursor:pointer; }
+    button:hover { background:#0c4a6e; }
+    .status { margin:24px 0; color:var(--muted); }
+    .empty,.error { background:#fff; border:1px solid var(--line); border-radius:18px; padding:42px 28px; text-align:center; }
+    .empty-icon { font-size:2.5rem; }
+    .empty h2,.error h2 { margin:12px 0 8px; }
+    .empty p,.error p { margin:0 auto; max-width:620px; color:var(--muted); line-height:1.6; }
+    .meetings { display:grid; gap:16px; }
+    article { background:#fff; border:1px solid var(--line); border-left:5px solid var(--teal); border-radius:14px; padding:22px; }
+    article h2 { margin:4px 0 8px; font-size:1.25rem; }
+    .meta { color:var(--muted); font-size:.92rem; }
+    .summary { line-height:1.6; }
+    .docs { display:grid; gap:8px; margin-top:15px; }
+    .document-public { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#f8fafc; }
+    .document-public__name { font-weight:700; }
+    .document-public__actions { display:flex; gap:7px; flex-wrap:wrap; }
+    .document-public a { padding:7px 10px; border:1px solid #bfd0e2; border-radius:8px; background:#fff; color:var(--blue); font-weight:750; text-decoration:none; }
+    .document-public a:hover { border-color:var(--blue); }
+    @media(max-width:620px){.document-public{align-items:flex-start;flex-direction:column}}
+    .tourism { margin-top:42px }.tourism h2 { font-size:1.7rem }.content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.content-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}.content-card h3{margin:6px 0 8px}.kind{font-size:.78rem;font-weight:800;text-transform:uppercase;color:var(--teal)}
+    footer { padding:25px 0; border-top:1px solid var(--line); color:var(--muted); background:#fff; }
+    @media (max-width:760px) { .toolbar { grid-template-columns:1fr; } .top .wrap { padding-top:30px; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <nav class="nav" aria-label="Navegação do COMTUR"><a class="back" href="/dashboard.html">← Voltar ao painel</a><a class="admin-link" href="/comtur-admin.html">⚙ Área administrativa</a></nav>
+      <h1 id="brand-title">COMTUR</h1>
+      <p class="lead" id="brand-tagline">Reuniões, documentos e deliberações publicados pelo Conselho Municipal de Turismo de Garça.</p>
+    </div>
+  </header>
+  <main class="wrap" id="conteudo">
+    <form class="toolbar" id="filters" role="search">
+      <div><label for="q">Buscar</label><input id="q" name="q" maxlength="120" placeholder="Assunto, local ou documento"></div>
+      <div><label for="year">Ano</label><input id="year" name="year" type="number" min="2000" max="2100" placeholder="Todos"></div>
+      <div><label for="type">Tipo</label><select id="type" name="type"><option value="">Todos</option><option value="ordinaria">Ordinária</option><option value="extraordinaria">Extraordinária</option></select></div>
+      <button type="submit">Consultar</button>
+    </form>
+    <p class="status" id="status" role="status" aria-live="polite">Carregando publicações…</p>
+    <section id="results" class="meetings" aria-label="Reuniões publicadas"></section>
+    <section class="tourism" aria-labelledby="tourism-title"><h2 id="tourism-title">Turismo e governança</h2><div id="content-results" class="content-grid"><p class="status">Carregando conteúdos…</p></div></section>
+  </main>
+  <footer><div class="wrap" id="brand-footer">Prefeitura Municipal de Garça — Transparência e governança do turismo</div></footer>
+  <script>
+    const form = document.getElementById('filters');
+    const statusEl = document.getElementById('status');
+    const results = document.getElementById('results');
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const dateText = (value) => new Intl.DateTimeFormat('pt-BR', {dateStyle:'long',timeStyle:'short'}).format(new Date(value));
+    async function load() {
+      statusEl.textContent = 'Carregando publicações…'; results.innerHTML = '';
+      const params = new URLSearchParams(new FormData(form));
+      for (const [key,value] of [...params]) if (!String(value).trim()) params.delete(key);
+      params.set('limit','100');
+      try {
+        const response = await fetch('/api/comtur/meetings?' + params, {headers:{Accept:'application/json'}});
+        if (!response.ok) throw new Error('Não foi possível consultar as reuniões.');
+        const payload = await response.json(); const items = payload.data || [];
+        statusEl.textContent = items.length === 1 ? '1 reunião publicada' : `${items.length} reuniões publicadas`;
+        if (!items.length) {
+          results.innerHTML = '<div class="empty"><div class="empty-icon" aria-hidden="true">🏛️</div><h2>Publicações em preparação</h2><p>A estrutura do COMTUR já está disponível. As reuniões e os documentos oficiais aparecerão aqui após a homologação e publicação pelo Conselho.</p></div>';
+          return;
+        }
+        results.innerHTML = items.map(item => `<article><div class="meta">${escapeHtml(item.type === 'extraordinaria' ? 'Reunião extraordinária' : 'Reunião ordinária')} · ${escapeHtml(dateText(item.startsAt))}</div><h2>${escapeHtml(item.number)}ª reunião de ${escapeHtml(item.year)}</h2><div class="meta">${escapeHtml(item.location)}</div><p class="summary">${escapeHtml(item.summary)}</p>${item.documents?.length ? `<div class="docs">${item.documents.map(doc => `<div class="document-public"><span class="document-public__name">📄 ${escapeHtml(doc.title)}</span><span class="document-public__actions"><a href="${escapeHtml(doc.url)}" target="_blank" rel="noopener noreferrer">Visualizar</a><a href="${escapeHtml(doc.url)}" download>Download</a></span></div>`).join('')}</div>` : ''}</article>`).join('');
+      } catch (error) {
+        statusEl.textContent = 'Falha na consulta';
+        results.innerHTML = `<div class="error"><h2>Não foi possível carregar o COMTUR</h2><p>${escapeHtml(error.message)} Tente novamente em alguns instantes.</p></div>`;
+      }
+    }
+    async function loadBranding(){try{const r=await fetch('/api/comtur/branding',{headers:{Accept:'application/json'}});const b=(await r.json()).data||{};document.documentElement.style.setProperty('--blue',b.primaryColor);document.documentElement.style.setProperty('--teal',b.secondaryColor);document.body.style.fontFamily=`${b.fontFamily||'Inter'},system-ui,sans-serif`;document.getElementById('brand-title').textContent=b.portalTitle||'COMTUR';document.getElementById('brand-tagline').textContent=b.tagline||'';document.getElementById('brand-footer').textContent=b.footerText||b.organizationName||'';document.title=`${b.portalTitle||'COMTUR'} — ${b.organizationName||''}`;if(b.faviconUrl){const link=document.createElement('link');link.rel='icon';link.href=b.faviconUrl;document.head.appendChild(link)}if(b.heroImageUrl){document.querySelector('.top').style.background=`linear-gradient(125deg,${b.primaryColor}e6,${b.secondaryColor}e6),url("${b.heroImageUrl}") center/cover`}}catch(_){}}
+    const kindLabels={council_member:'Conselho',legislation:'Legislação',work_plan:'Plano de trabalho',accountability:'Prestação de contas',attraction:'Atrativo',event:'Evento',gastronomy:'Gastronomia',lodging:'Hospedagem',route:'Roteiro',news:'Notícia',indicator:'Indicador',research:'Pesquisa',open_data:'Dados abertos',qr_point:'Ponto QR',integration:'Integração'};
+    async function loadContent(){const box=document.getElementById('content-results');try{const r=await fetch('/api/comtur/content?limit=100',{headers:{Accept:'application/json'}});if(!r.ok)throw new Error();const p=await r.json(),items=p.data||[];box.innerHTML=items.length?items.map(i=>`<article class="content-card"><span class="kind">${escapeHtml(kindLabels[i.type]||i.type)}</span><h3>${escapeHtml(i.title)}</h3><p>${escapeHtml(i.summary||'')}</p>${i.location?`<div class="meta">${escapeHtml(i.location)}</div>`:''}${i.media?.length?`<div class="docs">${i.media.map(m=>`<a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.title||'Abrir')}</a>`).join('')}</div>`:''}</article>`).join(''):'<div class="empty"><h3>Conteúdos em preparação</h3><p>Atrativos, eventos, legislação e demais informações aparecerão após publicação oficial.</p></div>'}catch(_){box.innerHTML='<div class="error"><p>Não foi possível carregar os conteúdos turísticos.</p></div>'}}
+    form.addEventListener('submit', event => { event.preventDefault(); load(); });
+    loadBranding();load();loadContent();
+  </script>
+</body>
+</html>

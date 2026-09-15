@@ -244,6 +244,7 @@ const EducationRoutes = require('./routes/EducationRoutes');
 const CulturaRoutes = require('./routes/CulturaRoutes');
 const PnabRoutes = require('./routes/PnabRoutes');
 const CulturaLegacyApiRoutes = require('./routes/CulturaLegacyApiRoutes');
+const ComturRoutes = require('./routes/ComturRoutes');
 const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
 const { requireRole } = require('./helpers/authz');
 
@@ -314,6 +315,7 @@ app.use('/lgpd', LgpdRoutes);
 app.use('/education', EducationRoutes);
 app.use('/cultura', CulturaRoutes);
 app.use('/pnab', PnabRoutes);
+app.use('/comtur', ComturRoutes);
 app.use('/', CulturaLegacyApiRoutes);
 app.use('/', VaccinationRoutes);
 
@@ -343,6 +345,7 @@ apiRouter.use('/lgpd', LgpdRoutes);
 apiRouter.use('/education', EducationRoutes);
 apiRouter.use('/cultura', CulturaRoutes);
 apiRouter.use('/pnab', PnabRoutes);
+apiRouter.use('/comtur', ComturRoutes);
 apiRouter.use('/', CulturaLegacyApiRoutes);
 apiRouter.use('/', VaccinationRoutes);
 app.use('/api', apiRouter);
