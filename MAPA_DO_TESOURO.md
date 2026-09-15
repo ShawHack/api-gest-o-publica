@@ -7,6 +7,60 @@
 
 ## 1. Finalidade
 
+### Plano oficial — integração do Mapa Turístico ao Turismo Garça e Pontos QR (15/09/2026)
+
+**Objetivo:** tornar o catálogo do portal `/turismo/` a fonte oficial dos locais turísticos, incorporar a visualização cartográfica e vincular QR Codes aos locais, sem duplicar cadastros nem perder os 41 pontos do mapa legado.
+
+1. [x] Inventariar e exportar os 41 pontos, fotos e categorias do mapa legado; registrar contagens e inconsistências sem alterar dados.
+2. [x] Ampliar o conteúdo turístico com localização estruturada, coordenadas, origem/migração e configuração QR; manter compatibilidade com conteúdos COMTUR existentes.
+3. [x] Criar migração idempotente: simulação obrigatória, importação inicial como `draft`, chave de origem única e relatório de itens ignorados/conflitantes.
+4. [x] Criar página pública estável `/turismo/local/{slug}` e API pública por slug; QR nunca deve apontar para ObjectId ou URL administrativa.
+5. [x] Incorporar mapa ao portal Turismo Garça usando somente locais publicados com coordenadas válidas; filtros e lista acessível devem funcionar sem depender apenas do mapa visual.
+6. [ ] Substituir o formulário genérico “Ponto QR” por seção do local: habilitação, identificação da placa, situação, instalação, manutenção e geração PNG/PDF.
+7. [ ] Preservar `/mapaturistico/` e páginas antigas durante homologação; mapear redirecionamentos por ID para o slug novo e só ativá-los após revisão/publicação dos registros.
+8. [ ] Validar permissões centrais `admin`, `admin_comtur` e `admin-comtur`, testes, backup, rollback e publicação gradual; documentar evidências e pendências aqui.
+
+**Regras de segurança e continuidade:** nenhuma importação direta como `published`; não apagar nem editar a coleção `pontos_turisticos`; não substituir URLs antigas antes de existir correspondência validada; não gerar QR para rascunho; registrar auditoria das mutações; preservar uploads e base única de usuários.
+
+**Estado inicial verificado:** mapa legado funcional em `/mapaturistico/`, 41 pontos ativos e administração exclusiva de `admin`. Portal `/turismo/` funcional, mas catálogo público sem atrativos; banco COMTUR contém 2 conteúdos de governança. O mapa ainda é acessado por link externo no portal novo. O formulário `qr_point` é genérico e não deve ser usado como cadastro paralelo.
+
+**Execução em 15/09/2026:** inventário JSON e cópia dos arquivos foram guardados em `/home/semit/Documentos/deploy-backups/tourism-map-20260915/`. A simulação encontrou 41 pontos aptos, zero conflitos e zero avisos. A migração criou 41 registros exclusivamente como `draft`; uma segunda simulação encontrou zero criações e 41 itens já reconhecidos, comprovando idempotência. O legado permaneceu com 41 pontos e continua público.
+
+A API recebeu consulta cartográfica pública `GET /api/comtur/map/locations`, limitada a locais publicados com coordenadas válidas, resolução controlada do ID legado e administração do ciclo físico de QR vinculada ao próprio local. Foram implantadas a ficha estável `/turismo/local/{slug}` e a página `/turismo/mapa/`, com busca, categorias, marcadores e lista acessível. O botão “Ver mapa” do portal passou a usar a URL nova; durante a revisão, a página oferece acesso explícito ao legado. A API voltou `healthy`; enquanto os registros aguardam revisão, o endpoint público retorna lista vazia por desenho de segurança. Nenhum ponto foi publicado automaticamente e nenhum QR foi ativado.
+
+**Pendências para concluir:** revisar e publicar gradualmente os 41 locais; especializar o formulário administrativo e gerar PNG/PDF acessível; validar papéis administrativos com contas autorizadas; somente então ativar os redirecionamentos individuais do legado. O legado não deve ser removido durante a homologação.
+
+
+### Estado da migração de URLs SAMA — 04/09/2026
+
+**Atualização final, 13:22 BRT: migração publicada após autorização do responsável.** A configuração do host e a efetivamente montada no Nginx foram conferidas por SHA-256 idêntico (`dd86e627b533e331b3076b3f684f9bc7a51f8bdf6116db4290ef06b3431ef941`). Bastou recarga suave validada; não foi necessário substituir a configuração principal nem reiniciar containers. Os itens abaixo sobre bloqueio/reversão são o histórico da primeira tentativa, não o estado atual.
+
+- Endereços ativos: `/sama/`, `/sama/arvores`, `/sama/arvore/...`, `/sama/castracao`, `/sama/zoologico`, `/sama/denunciar`, `/sama/funcionalidade`, `/sama/vacinacao`. Adoção permanece em `/garcapet/`, `/garcapet/adotar` e rotas de acompanhamento. Conta e administração continuam compartilhadas nos endereços existentes.
+- Links antigos redirecionam com 302 e preservam parâmetros. Logo e Página Inicial voltam à área correspondente; adoção apresenta Voltar à Secretaria. Redirecionamentos temporários permitem rollback sem cache permanente de 301.
+- Evidências: navegador validou castração (campanha e acesso ao formulário), navegação interna para adoção e árvores e tela de login. HTTP 200 para zoológico, vacinação, health da API e teatro da Cultura; link antigo de castração retornou 302 para `/sama/castracao?origem=teste`. Login autenticado, envio de solicitações e fluxos administrativos não foram exercitados para não gravar dados de teste em produção.
+- Restauração: preservar o build legado, os arquivos JS versionados `*.sama-routes-20260904.js`, `routes.js`, `identity.js`, `identity.css`, `index.html` e `manifest.json`, além de `nginx/nginx.conf`. Cópia de referência desta entrega em `sama-identity/release-20260904/` no repositório de trabalho; testes e transformação reproduzível em `sama-identity/`.
+- Continuidade: consolidar essas adaptações no projeto React original quando o fonte for reconciliado. A camada de compatibilidade não altera APIs nem base de usuários.
+
+- Identidade visual SAMA/GarçaPet preservada em produção. URLs originais continuam ativas.
+- Migração preparada para `/sama/`, árvores/mudas, castração, zoológico, denúncias, funcionamento e vacinação; adoção permanece em `/garcapet/`. Login compartilhado preservado.
+- Testes automatizados de aliases React e conservação de query/hash aprovados; configuração Nginx passou em `nginx -t` isolado.
+- **Pendente de autorização operacional:** o Nginx montado somente leitura manteve a configuração antiga após atualização no host e recarga. O teste público de `/sama/castracao` retornou 404. Tentativa de trocar a inclusão na configuração principal foi bloqueada pela revisão automática por risco de afetar o proxy de todos os serviços. Não contornar esse bloqueio.
+- Reversão executada: `index.html`, `identity.js`, `manifest.json` e configuração do host restaurados do backup `/home/semit/Documentos/deploy-backups/sama-routes-20260904/`. `/garcapet/castracao` voltou a responder 200 e teve seu conteúdo validado no navegador, com a identidade SAMA e o formulário público preservados.
+- Próximo passo: obter autorização para intervenção controlada no Nginx, escolher janela/método com rollback, confirmar configuração efetiva no container e testar URLs públicas antes de republicar links canônicos. Não considerar a migração concluída.
+- Arquivos preparados e testes: `sama-identity/routes.js`, `prepare-routes.cjs`, `test-routes.cjs`; staging remoto `/tmp/sama-routes-20260904/`. O script de deploy exige revisão antes de reutilização, pois a recarga simples não resolveu a montagem ativa.
+
+### Plano SAMA / GarçaPet — identidade por seção (04/09/2026)
+
+- Objetivo: apresentar Secretaria do Meio Ambiente / SAMA nas páginas institucionais, ambientais e de conta; reservar GarçaPet ao catálogo, detalhes e acompanhamento de adoção. Serviços de animais (cadastro, castração, vacinação e denúncias) usam SAMA / Bem-estar animal.
+- Etapa 1: cabeçalho responsivo (nome completo no desktop, SAMA no celular), título da aba, identificação institucional no rodapé e nome do aplicativo instalado.
+- Etapa 2: título institucional na página `/garcapet/sama` e atalhos para árvores/mudas, bem-estar animal e GarçaPet / Quero adotar.
+- Etapa 3: testar rotas diretas, navegação interna, retorno e responsividade; publicar somente arquivos estáticos com backup. Não alterar API, autenticação, usuários, permissões, banco ou rotas.
+- Implementação: `sama-identity/identity.js` e `identity.css` são uma camada de apresentação sobre o pacote React legado já publicado. Integram os hooks de navegação existentes, com observador de DOM desconectado durante aplicação para evitar ciclos. Nenhuma requisição de escrita é adicionada.
+- Destino de produção: `/home/semit/Documentos/api-semit/backend/public/sama/`. Carregamento pelo `index.html`, com versão nos URLs. Preservar todos os scripts existentes e incluir esses arquivos em futuros rebuilds/restaurações.
+- Backup desta entrega: `/home/semit/Documentos/deploy-backups/sama-identity-20260904/`. Reversão: restaurar `index.html` e `manifest.json` desse diretório; os arquivos novos ficam inertes sem referência.
+- **Concluído:** URL institucional `/sama/` com redirecionamentos dos links antigos. **Manutenção futura:** integrar a camada diretamente ao projeto React original quando seu fonte/dependências forem reconciliados. Não substituir o build atual por fontes parciais recuperadas do source map.
+- Estado: publicado e validado; evidências e limites em `sama-identity/VALIDACAO.md`, instruções de restauração em `sama-identity/README.md`.
+
 Este documento existe para permitir que uma pessoa que nunca trabalhou no projeto consiga:
 
 - entender o que a plataforma entrega;
