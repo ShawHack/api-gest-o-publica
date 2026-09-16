@@ -6,6 +6,8 @@ node_modules/
 # Build artifacts & packages
 dist/
 */dist/
+dist_build/
+*/dist_build/
 build/
 */build/
 out/
