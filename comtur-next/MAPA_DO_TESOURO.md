@@ -7,6 +7,33 @@
 
 ## 1. Finalidade
 
+### COMTUR — NOTÍCIAS — FORMULÁRIO ESPECIALIZADO E UPLOAD DE CAPA/DESTAQUE (14/09/2026)
+
+- [x] Implementar formulário especializado para o tipo Notícia (`type=news`) no Content Manager (`comtur-content-admin.html`), removendo aviso de formulário não configurado e eliminando o formulário genérico.
+- [x] Estruturar o formulário em 4 seções com fluxo otimizado:
+  1. **Dados da Notícia:** Título da notícia (`#newsTitle` - placeholder: *Ex.: Garça recebe novo evento turístico neste fim de semana*), Slug auto-gerado (`#newsSlug` - ex: *garca-recebe-novo-evento-turistico*), Resumo / Chamada (`#newsSummary` - com contador dinâmico de 250 caracteres `#newsSummaryCount`) e Conteúdo completo (`#newsBody`).
+  2. **Imagem de Capa & Destaque (Obrigatória para Publicação):**
+     - Dropzone interativa com suporte a drag-and-drop e seleção de arquivos (`#newsCoverFileInput`, aceita JPG, PNG, WEBP até 10 MB).
+     - Preview visual imediato (`#newsCoverPreview`) com exibição da imagem (`#newsCoverImgDisplay`), nome do arquivo, tamanho formatado e botões `[ Trocar imagem ]` e `[ Remover ]` com confirmação.
+     - Metadados da imagem: Crédito / Autor da foto (`#newsPhotoCredit`), Legenda da imagem (`#newsPhotoCaption`) e Texto alternativo / Acessibilidade (`#newsPhotoAlt`).
+     - Integração com endpoint de upload do storage existente (`/api/comtur/admin/media/upload`).
+     - Validação de obrigatoriedade: salva como Rascunho (`draft`) sem imagem; bloqueia envio para Revisão (`review`) ou Publicação (`published`) exibindo `"Adicione uma imagem de capa antes de publicar a notícia."`.
+     - Imagem única reutilizada para capa da matéria, miniatura dos cards e destaques ("Em evidência") sem duplicar uploads.
+  3. **Informações da Publicação:** Data da publicação (`#newsPublishedAt`), Autor / Responsável (`#newsAuthor`), Categoria temática (`#newsCategory`: *Turismo, Eventos, COMTUR, Cultura, Gastronomia, Meio Ambiente, Desenvolvimento Turístico, Institucional, Outros*) e Local / referência (`#newsLocation`).
+  4. **Publicação:** Checkbox de destaque (`#newsFeatured` - "Exibir em evidência / Destaque"), botões de ação (`💾 Salvar Rascunho`, `🔍 Enviar para Revisão`, `🚀 Publicar Imediatamente`, `📦 Arquivar Notícia`) e badges de status.
+- [x] Especializar a coluna lateral (Sidebar List):
+  - Título: `NOTÍCIAS`
+  - Botão: `+ Nova notícia`
+  - Busca: `Buscar notícia...`
+  - Cards com miniatura/thumbnail da capa (`<img class="comtur-item-thumb">` ou ícone fallback `📰`), título, categoria, data formatada em pt-BR e status badge.
+  - Mensagens de lista vazia ajustadas ao gênero feminino: `"Nenhuma notícia cadastrada."` / `"Nenhuma notícia encontrada."` / `"Não foi possível carregar as notícias."`.
+- [x] Edição de Notícia:
+  - Carrega todos os campos e mantém a imagem existente (`newsCoverFile`) e preview sem apagá-la se o usuário não selecionar nova imagem.
+  - Remoção de imagem com confirmação antes de limpar o preview.
+- [x] Validação e Testes Automatizados:
+  - Testes unitários e de simulação DOM em `scratch/test-news-specialized.js` cobrindo ciclo completo de rascunho, bloqueio sem capa, publicação com capa, edição com retenção de imagem e renderização de miniaturas.
+  - Regressão de 100% de sucesso nos outros 16 tipos de conteúdo (`test-all-17-types.js`).
+
 ### COMTUR — PRESTAÇÃO DE CONTAS — REPOSITÓRIO DOCUMENTAL (14/09/2026)
 
 - [x] Transformar "Prestação de Contas" (`accountability`) em um Repositório Documental especializado no Content Manager (`comtur-content-admin.html`), eliminando completamente o formulário genérico de publicação editorial.

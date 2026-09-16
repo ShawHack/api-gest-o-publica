@@ -1,0 +1,11 @@
+.sama-mobile-brand{display:none}
+html:not([data-sama-identity="adoption"]) header [class*="Navbar_navbar_logo__"] h2{display:flex;flex-direction:column;gap:0;font-size:18px;line-height:1.2;white-space:nowrap}
+html:not([data-sama-identity="adoption"]) header [class*="Navbar_navbar_logo__"] h2 span{color:#446042!important;font-size:inherit!important}
+html:not([data-sama-identity="adoption"]) footer [class*="paw_background"]{display:none}
+.sama-footer-identity{position:relative;text-align:center;font-weight:700;padding:20px 16px;margin:0}
+#sama-service-shortcuts{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+#sama-service-shortcuts a{display:block;border:1px solid #446042;border-radius:12px;padding:14px 18px;color:#446042;background:#fff;font-weight:700;text-decoration:none}
+#sama-service-shortcuts a:hover{background:#edf4e9}
+#sama-service-shortcuts a:focus-visible{outline:3px solid #ee9956;outline-offset:3px}
+h1[class*="intro_main_title"]{font-size:clamp(1.8rem,3vw,2.6rem)!important;line-height:1.2!important}
+@media(max-width:767px){html:not([data-sama-identity="adoption"]) header [class*="Navbar_navbar_logo__"] h2{display:none}html:not([data-sama-identity="adoption"]) .sama-mobile-brand{display:inline;color:#446042;font-size:24px;font-weight:800}#sama-service-shortcuts{flex-direction:column}}

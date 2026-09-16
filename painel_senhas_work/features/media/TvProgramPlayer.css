@@ -1,0 +1,80 @@
+.tv-program-player,
+.tv-program-player__video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  border: 0;
+  position: relative;
+}
+
+.tv-program-player__video {
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+}
+
+.tv-program-player--status {
+  display: grid;
+  place-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.tv-program-player__loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  background: #05070c;
+  color: rgba(255, 255, 255, 0.82);
+  padding: 1rem;
+  z-index: 2;
+}
+
+.tv-program-player__loader p {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tv-program-player__loader span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 18rem;
+  justify-self: center;
+}
+
+.tv-program-player__progress {
+  width: min(16rem, 80%);
+  height: 0.55rem;
+  margin: 0.55rem auto 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  justify-self: center;
+}
+
+.tv-program-player__progress-bar {
+  height: 100%;
+  background: #3d8bff;
+  transition: width 0.25s ease;
+}
+
+.tv-program-player__logo {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  width: auto;
+  height: 2.4rem;
+  max-width: 38%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}

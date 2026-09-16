@@ -656,11 +656,153 @@ async function proxyTvPlayer(req, res, url) {
   headers['Cache-Control'] = 'no-store'
   res.writeHead(response.status, headers)
 
+  const contentType = String(response.headers.get('content-type') || '')
+  const isHtml =
+    contentType.includes('text/html') ||
+    /\.html?$/i.test(upstreamUrl.pathname) ||
+    relativePath === '' ||
+    relativePath.endsWith('/')
+
   if (req.method === 'HEAD' || !response.body) {
     res.end()
     return
   }
+
+  if (isHtml) {
+    const html = await response.text()
+    res.end(injectTvWarmup(html))
+    return
+  }
+
   Readable.fromWeb(response.body).pipe(res)
+}
+
+const TV_WARMUP_SCRIPT = `<script>
+(function () {
+  if (window.__painelTvWarmup) return;
+  window.__painelTvWarmup = true;
+  var presented = false;
+  function muteAll() {
+    document.querySelectorAll('video, audio').forEach(function (media) {
+      if (presented) return;
+      media.muted = true;
+      media.volume = 0;
+    });
+  }
+  function mediaProgress(media) {
+    var percent = 8;
+    var detail = 'Procurando o arquivo da programação';
+    var stage = 'player';
+    if (!media) return { percent: percent, detail: detail, stage: stage };
+    try {
+      if (media.duration && isFinite(media.duration) && media.buffered && media.buffered.length) {
+        var end = media.buffered.end(media.buffered.length - 1);
+        percent = Math.min(99, Math.round((end / media.duration) * 100));
+        detail = 'Download ' + percent + '% (' + Math.round(end) + 's de ' + Math.round(media.duration) + 's)';
+        stage = percent >= 70 ? 'buffering' : 'downloading';
+      } else {
+        var byState = [8, 22, 45, 72, 92];
+        percent = byState[media.readyState] || 8;
+        if (media.networkState === 2) {
+          stage = 'downloading';
+          detail = 'Baixando a programação (' + percent + '%)';
+        } else if (media.readyState >= 3) {
+          stage = 'buffering';
+          detail = 'Buffer pronto, decodificando o primeiro quadro';
+        } else if (media.readyState >= 1) {
+          stage = 'downloading';
+          detail = 'Recebendo dados da programação';
+        }
+      }
+    } catch (e) {}
+    return { percent: percent, detail: detail, stage: stage };
+  }
+  function notify(state, extra) {
+    extra = extra || {};
+    try {
+      window.parent.postMessage({
+        source: 'painel-tv',
+        state: state,
+        stage: extra.stage || state,
+        percent: extra.percent || 0,
+        detail: extra.detail || ''
+      }, '*');
+    } catch (e) {}
+  }
+  function waitFrame(media) {
+    return new Promise(function (resolve) {
+      var done = function () { resolve(); };
+      if (media.requestVideoFrameCallback) {
+        media.requestVideoFrameCallback(function () { done(); });
+        return;
+      }
+      if (media.readyState >= 2) { done(); return; }
+      media.addEventListener('loadeddata', done, { once: true });
+      media.addEventListener('error', done, { once: true });
+    });
+  }
+  window.addEventListener('message', function (event) {
+    if (!event.data || event.data.source !== 'painel-host') return;
+    if (event.data.state === 'present') presented = true;
+  });
+  var observer = new MutationObserver(muteAll);
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  muteAll();
+  notify('loading', { stage: 'connecting', percent: 4, detail: 'Abrindo o player da TV' });
+  var progressTimer = setInterval(function () {
+    muteAll();
+    var media = document.querySelector('video, audio');
+    var info = media
+      ? mediaProgress(media)
+      : { percent: 10, detail: 'Carregando o aplicativo da TV', stage: 'player' };
+    notify('progress', info);
+  }, 250);
+  async function gate() {
+    var deadline = Date.now() + 25000;
+    notify('progress', { stage: 'player', percent: 12, detail: 'Aguardando o primeiro item da programação' });
+    while (Date.now() < deadline) {
+      muteAll();
+      var media = document.querySelector('video, audio');
+      var image = document.querySelector('img');
+      if (media) {
+        notify('progress', mediaProgress(media));
+        if (media.readyState < 3) {
+          await new Promise(function (resolve) {
+            media.addEventListener('progress', function () { notify('progress', mediaProgress(media)); });
+            media.addEventListener('canplaythrough', resolve, { once: true });
+            media.addEventListener('error', resolve, { once: true });
+            setTimeout(resolve, 4000);
+          });
+        }
+        notify('progress', { stage: 'decoding', percent: 96, detail: 'Decodificando o primeiro quadro' });
+        await waitFrame(media);
+        break;
+      }
+      if (image && image.complete && image.naturalWidth) {
+        notify('progress', { stage: 'decoding', percent: 96, detail: 'Imagem da programação pronta' });
+        break;
+      }
+      await new Promise(function (resolve) { setTimeout(resolve, 200); });
+    }
+    await new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); });
+    clearInterval(progressTimer);
+    notify('ready', { stage: 'ready', percent: 100, detail: 'Programação pronta' });
+    var waitPresent = setInterval(function () {
+      if (presented) {
+        observer.disconnect();
+        clearInterval(waitPresent);
+      }
+    }, 250);
+  }
+  if (document.readyState === 'complete') gate();
+  else window.addEventListener('load', gate);
+})();
+</script>`
+
+function injectTvWarmup(html) {
+  if (html.includes('__painelTvWarmup')) return html
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${TV_WARMUP_SCRIPT}</body>`)
+  return html + TV_WARMUP_SCRIPT
 }
 
 const server = createServer(async (req, res) => {

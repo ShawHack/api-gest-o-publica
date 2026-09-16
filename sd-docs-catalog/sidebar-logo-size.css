@@ -1,0 +1,13 @@
+/* Logo do menu lateral — tamanho mais legível */
+.app-sidebar-brand {
+  height: 72px;
+  min-height: 72px;
+}
+.app-sidebar-logo-image {
+  height: var(--ui-logo-height, 48px);
+  max-width: 228px;
+}
+.app-sidebar-logo-image.compact {
+  height: 44px;
+  width: 44px;
+}

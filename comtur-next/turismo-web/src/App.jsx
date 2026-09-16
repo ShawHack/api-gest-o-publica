@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  accessFlags, applyTheme, CATEGORIES, categoryId, categoryLabel, contentLines, coverImage, href,
+  accessFlags, applyTheme, CATEGORIES, categoryId, categoryLabel, contentHref, contentLines, coverImage, href,
   isGovernanceContent, mediaAsDocuments, MEETING_DOC_LABELS, meetingHeadline, meetingTitle, meetingWhen, parsePath,
   portalFooter, portalHeadline, portalKicker, portalLead, portalName, fileNameFromUrl, footerContacts, governanceLabel,
   AMENITIES_CATALOG, GASTRO_SERVICES_CATALOG, PAYMENT_METHODS_CATALOG, PRICE_RANGE_LABELS, DAYS_OF_WEEK_MAP, cleanWhatsapp, galleryImages,
@@ -25,7 +25,10 @@ function PlaceCard({ item }) {
   const tempStatus = isEvent ? eventTemporalStatus(item.startsAt || item.metadata?.startsAt, item.endsAt || item.metadata?.endsAt, item.metadata?.allDay) : null
 
   return (
-    <a className="card" href={href(`p/${item.slug}`)} onClick={(event) => { event.preventDefault(); navigate(`p/${item.slug}`) }}>
+    <a className="card" href={contentHref(item)} onClick={(event) => {
+      if (item?.type === 'open_data' || item?.type === 'research' || item?.type === 'integration') return
+      event.preventDefault(); navigate(`p/${item.slug}`)
+    }}>
       {image ? <img src={image} alt="" /> : <div className="thumb" aria-hidden="true" />}
       <div className="card-body">
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
@@ -88,8 +91,9 @@ function FeaturedCarousel({ items, onOpen }) {
             >
               <a
                 className="featured-hero-card"
-                href={href(`p/${item.slug}`)}
+                href={contentHref(item)}
                 onClick={(event) => {
+                  if (item?.type === 'open_data' || item?.type === 'research' || item?.type === 'integration') return
                   event.preventDefault()
                   onOpen(`p/${item.slug}`)
                 }}
@@ -806,6 +810,284 @@ function AccountabilityRepositoryBlock({ items, onOpen }) {
             {hasActiveFilters ? 'Nenhum documento encontrado para os filtros informados.' : 'Nenhuma prestação de contas encontrada.'}
           </strong>
           <span>{hasActiveFilters ? 'Tente ajustar os critérios de pesquisa ou limpar os filtros.' : 'Novas prestações de contas serão publicadas em breve.'}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function getSystemMetricValue(metricKey, allContents) {
+  const items = Array.isArray(allContents) ? allContents : []
+  switch (metricKey) {
+    case 'attractions.total':
+      return items.filter((i) => i.type === 'attraction' && i.status === 'published').length
+    case 'lodging.total':
+      return items.filter((i) => i.type === 'lodging' && i.status === 'published').length
+    case 'lodging.units':
+      return items.filter((i) => i.type === 'lodging' && i.status === 'published').reduce((acc, i) => {
+        const val = parseInt(i.metadata?.totalUnits, 10)
+        if (!isNaN(val) && val > 0) return acc + val
+        if (Array.isArray(i.metadata?.rooms)) {
+          return acc + i.metadata.rooms.reduce((rAcc, r) => rAcc + (parseInt(r.unitsCount, 10) || 1), 0)
+        }
+        return acc
+      }, 0)
+    case 'lodging.beds':
+      return items.filter((i) => i.type === 'lodging' && i.status === 'published').reduce((acc, i) => {
+        const val = parseInt(i.metadata?.totalBeds, 10)
+        return acc + (!isNaN(val) && val > 0 ? val : 0)
+      }, 0)
+    case 'lodging.capacity':
+      return items.filter((i) => i.type === 'lodging' && i.status === 'published').reduce((acc, i) => {
+        const val = parseInt(i.metadata?.maxGuests, 10)
+        return acc + (!isNaN(val) && val > 0 ? val : 0)
+      }, 0)
+    case 'gastronomy.total':
+      return items.filter((i) => i.type === 'gastronomy' && i.status === 'published').length
+    case 'events.total':
+      return items.filter((i) => i.type === 'event' && i.status === 'published').length
+    case 'routes.total':
+      return items.filter((i) => i.type === 'route' && i.status === 'published').length
+    case 'shopping.total':
+      return items.filter((i) => i.type === 'shopping' && i.status === 'published').length
+    case 'services.total':
+      return items.filter((i) => i.type === 'service' && i.status === 'published').length
+    case 'council_members.total':
+      return items.filter((i) => i.type === 'council_member' && i.status === 'published').length
+    case 'legislation.total':
+      return items.filter((i) => i.type === 'legislation' && i.status === 'published').length
+    case 'work_plans.total':
+      return items.filter((i) => i.type === 'work_plan' && i.status === 'published').length
+    case 'accountability.total':
+      return items.filter((i) => i.type === 'accountability' && i.status === 'published').length
+    case 'documents.total':
+      return items.filter((i) => ['legislation', 'work_plan', 'accountability'].includes(i.type) && i.status === 'published').length
+    default:
+      return 0
+  }
+}
+
+function IndicatorCard({ item, allContents }) {
+  const meta = item?.metadata || {}
+  const isAuto = meta.sourceType === 'automatic' || (!meta.sourceType && !!meta.metricKey)
+  const category = meta.category || 'Geral'
+  const title = meta.publicTitle || item.title || 'Indicador'
+  const desc = meta.publicDesc || meta.description || item.summary || ''
+  const visType = meta.visualizationType || 'card'
+
+  let displayValue = '0'
+  let unit = meta.unit || ''
+  let measurements = Array.isArray(meta.measurements) ? meta.measurements : []
+
+  if (isAuto) {
+    const rawVal = getSystemMetricValue(meta.metricKey, allContents)
+    displayValue = typeof rawVal === 'number' ? rawVal.toLocaleString('pt-BR') : String(rawVal)
+    if (!unit) {
+      unit = meta.metricKey?.includes('lodging.beds') ? 'leitos'
+        : meta.metricKey?.includes('lodging.units') ? 'UHs'
+        : meta.metricKey?.includes('lodging.capacity') ? 'hóspedes'
+        : meta.metricKey?.includes('council_members') ? 'membros'
+        : meta.metricKey?.includes('documents') || meta.metricKey?.includes('legislation') || meta.metricKey?.includes('accountability') ? 'documentos'
+        : 'itens'
+    }
+  } else {
+    if (measurements.length > 0) {
+      const latest = measurements[measurements.length - 1]
+      displayValue = latest.value || '0'
+    } else {
+      displayValue = '-'
+    }
+  }
+
+  const latestMeas = measurements.length > 0 ? measurements[measurements.length - 1] : null
+
+  return (
+    <article
+      className="meeting-card indicator-card"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '22px 24px',
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '14px',
+        boxShadow: '0 2px 6px rgba(15,23,42,0.04)',
+        position: 'relative'
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <span style={{ fontSize: '0.78rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em', background: isAuto ? '#f0fdf4' : '#fffbeb', color: isAuto ? '#16a34a' : '#d97706', padding: '4px 10px', borderRadius: '6px', border: `1px solid ${isAuto ? '#bbf7d0' : '#fde68a'}` }}>
+            {category}
+          </span>
+          <span style={{ fontSize: '0.74rem', fontWeight: '700', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {isAuto ? '⚡ Tempo Real' : `📝 ${meta.periodicity || 'Periódico'}`}
+          </span>
+        </div>
+
+        <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', fontWeight: '800', color: '#0f2740', lineHeight: '1.3' }}>
+          {title}
+        </h3>
+        {desc ? <p style={{ margin: '0 0 16px', fontSize: '0.9rem', color: '#475569', lineHeight: '1.4' }}>{desc}</p> : null}
+
+        {/* Big Number KPI */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '14px 0' }}>
+          <span style={{ fontSize: '2.4rem', fontWeight: '900', color: '#0f766e', lineHeight: 1 }}>
+            {displayValue}
+          </span>
+          {unit ? <span style={{ fontSize: '0.92rem', fontWeight: '700', color: '#64748b' }}>{unit}</span> : null}
+        </div>
+
+        {/* History / Series breakdown if manual */}
+        {!isAuto && measurements.length > 1 && (visType === 'bar_chart' || visType === 'line_chart' || visType === 'history_table') && (
+          <div style={{ marginTop: '16px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>
+              Evolução Recente
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', height: '54px', paddingBottom: '4px' }}>
+              {measurements.slice(-5).map((m, idx) => (
+                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#0f766e' }}>{m.value}</div>
+                  <div style={{ width: '100%', height: '14px', background: '#0f766e', borderRadius: '3px', opacity: 0.25 + (idx * 0.18) }}></div>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{m.period}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: '18px', borderTop: '1px solid #f1f5f9', paddingTop: '12px', fontSize: '0.8rem', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <span>
+          Fonte: <strong>{isAuto ? 'Base de Dados COMTUR' : (meta.source || 'Não especificada')}</strong>
+        </span>
+        {latestMeas?.period ? (
+          <span style={{ color: '#0f766e', fontWeight: '700' }}>Ref.: {latestMeas.period}</span>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+function ObservatoryBlock({ indicators, allContents, onOpen }) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('Todas')
+
+  const categories = ['Todas', 'Hospedagem & Ocupação', 'Fluxo Turístico', 'Economia & Gastos', 'Atrativos & Equipamentos', 'Gastronomia & Comércio', 'Eventos', 'Gestão & Governança']
+
+  // Pre-calculated Top KPI summary metrics
+  const totalAttractions = getSystemMetricValue('attractions.total', allContents)
+  const totalLodgings = getSystemMetricValue('lodging.total', allContents)
+  const totalBeds = getSystemMetricValue('lodging.beds', allContents)
+  const totalGastro = getSystemMetricValue('gastronomy.total', allContents)
+  const totalEvents = getSystemMetricValue('events.total', allContents)
+
+  const filtered = (indicators || []).filter((item) => {
+    if (item.type !== 'indicator') return false
+    const meta = item.metadata || {}
+    if (meta.showObservatory === false) return false
+
+    const title = (meta.publicTitle || item.title || '').toLowerCase()
+    const desc = (meta.publicDesc || meta.description || item.summary || '').toLowerCase()
+    const q = searchQuery.toLowerCase().trim()
+
+    if (q && !title.includes(q) && !desc.includes(q) && !(meta.category || '').toLowerCase().includes(q)) {
+      return false
+    }
+
+    if (selectedCategory !== 'Todas' && (meta.category || 'Geral') !== selectedCategory) {
+      return false
+    }
+
+    return true
+  })
+
+  return (
+    <div className="observatory-section" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* Top Banner KPI Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+        <div style={{ padding: '18px 20px', background: 'linear-gradient(135deg, #0f766e 0%, #0d635c 100%)', color: '#fff', borderRadius: '14px', boxShadow: '0 4px 12px rgba(15,118,110,0.15)' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.04em' }}>Atrativos Turísticos</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', margin: '6px 0 2px' }}>{totalAttractions}</div>
+          <div style={{ fontSize: '0.78rem', opacity: 0.85 }}>locais mapeados e ativos</div>
+        </div>
+
+        <div style={{ padding: '18px 20px', background: 'linear-gradient(135deg, #0b2740 0%, #1e3a5f 100%)', color: '#fff', borderRadius: '14px', boxShadow: '0 4px 12px rgba(11,39,64,0.15)' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.04em' }}>Rede Hoteleira</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', margin: '6px 0 2px' }}>{totalLodgings}</div>
+          <div style={{ fontSize: '0.78rem', opacity: 0.85 }}>{totalBeds > 0 ? `${totalBeds} leitos cadastrados` : 'estabelecimentos ativos'}</div>
+        </div>
+
+        <div style={{ padding: '18px 20px', background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', color: '#fff', borderRadius: '14px', boxShadow: '0 4px 12px rgba(217,119,6,0.15)' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.04em' }}>Gastronomia</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', margin: '6px 0 2px' }}>{totalGastro}</div>
+          <div style={{ fontSize: '0.78rem', opacity: 0.85 }}>restaurantes e bares</div>
+        </div>
+
+        <div style={{ padding: '18px 20px', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', color: '#fff', borderRadius: '14px', boxShadow: '0 4px 12px rgba(37,99,235,0.15)' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.04em' }}>Eventos & Calendário</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: '900', margin: '6px 0 2px' }}>{totalEvents}</div>
+          <div style={{ fontSize: '0.78rem', opacity: 0.85 }}>eventos programados</div>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '20px 24px', boxShadow: '0 2px 6px rgba(15,23,42,0.04)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#0f2740', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>📈</span> INDICADORES DO TURISMO
+          </h2>
+          <div style={{ width: '100%', maxWidth: '320px' }}>
+            <input
+              type="text"
+              placeholder="Buscar indicador ou dado..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '100%', height: '40px', padding: '0 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+            />
+          </div>
+        </div>
+
+        {/* Category Tabs */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '8px',
+                fontSize: '0.84rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: 'none',
+                whiteSpace: 'nowrap',
+                background: selectedCategory === cat ? '#0f766e' : '#f1f5f9',
+                color: selectedCategory === cat ? '#fff' : '#475569'
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid of Indicators */}
+      {filtered.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          {filtered.map((item) => (
+            <IndicatorCard key={item.slug || item._id} item={item} allContents={allContents} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ padding: '40px 20px', textAlign: 'center', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: '12px', color: '#64748b' }}>
+          <div style={{ fontSize: '2.4rem', marginBottom: '8px' }}>📈</div>
+          <strong style={{ fontSize: '1.1rem', color: '#1e293b', display: 'block', marginBottom: '4px' }}>
+            {searchQuery || selectedCategory !== 'Todas' ? 'Nenhum indicador encontrado para estes filtros.' : 'Nenhum indicador cadastrado no momento.'}
+          </strong>
+          <span>Novos indicadores e métricas serão publicados pela gestão do turismo em breve.</span>
         </div>
       )}
     </div>
@@ -2008,6 +2290,7 @@ export default function App() {
   const [detail, setDetail] = useState(null)
   const [meetings, setMeetings] = useState([])
   const [governance, setGovernance] = useState([])
+  const [allContents, setAllContents] = useState([])
   const [query, setQuery] = useState(route.query || '')
   const [error, setError] = useState('')
   const [status, setStatus] = useState('Carregando…')
@@ -2074,12 +2357,14 @@ export default function App() {
           setDetail(await fetchContentBySlug(route.slug))
         } else if (route.view === 'comtur') {
           setStatus('Carregando o COMTUR…')
-          const [sessions, published] = await Promise.all([
+          const [sessions, published, allPub] = await Promise.all([
             fetchMeetings(),
             fetchContent({ limit: 100 }),
+            fetchContent({ limit: 500 }),
           ])
           setMeetings(sessions)
           setGovernance(published.filter(isGovernanceContent))
+          setAllContents(allPub)
         } else if (route.view === 'legislation') {
           setStatus('Carregando legislação…')
           const published = await fetchContent({ type: 'legislation', limit: 100 })
@@ -2088,6 +2373,14 @@ export default function App() {
           setStatus('Carregando prestações de contas…')
           const published = await fetchContent({ type: 'accountability', limit: 100 })
           setGovernance(published)
+        } else if (route.view === 'observatory') {
+          setStatus('Carregando Observatório do Turismo…')
+          const [published, allPub] = await Promise.all([
+            fetchContent({ type: 'indicator', limit: 100 }),
+            fetchContent({ limit: 500 }),
+          ])
+          setGovernance(published)
+          setAllContents(allPub)
         } else if (route.view === 'content') {
           setStatus('Carregando publicação…')
           setDetail(await fetchContentBySlug(route.slug))
@@ -2128,6 +2421,7 @@ export default function App() {
     : route.view === 'search' ? 'Busca'
     : route.view === 'legislation' ? 'Legislação e Atos Oficiais'
     : route.view === 'accountability' ? 'Prestação de Contas'
+    : route.view === 'observatory' ? 'Observatório do Turismo'
     : route.view === 'comtur' ? 'COMTUR'
     : route.view === 'meeting' ? (detail ? meetingHeadline(detail) : 'COMTUR')
     : route.view === 'content' && detail ? detail.title
@@ -2140,6 +2434,7 @@ export default function App() {
     : route.view === 'search' ? (route.query ? `Resultados para “${route.query}”.` : 'Digite um termo para consultar o catálogo publicado.')
     : route.view === 'legislation' ? 'Repositório de leis, decretos, resoluções e regimentos oficiais do turismo e do COMTUR.'
     : route.view === 'accountability' ? 'Repositório oficial de prestações de contas, demonstrativos e relatórios financeiros do COMTUR.'
+    : route.view === 'observatory' ? 'Painel de dados, indicadores estatísticos e inteligência do turismo de Garça.'
     : route.view === 'comtur' ? 'Membros, documentos e reuniões publicados pelo Conselho Municipal de Turismo de Garça.'
     : route.view === 'meeting' ? (detail ? [meetingWhen(detail), detail.location].filter(Boolean).join(' · ') : 'Carregando a reunião publicada.')
     : route.view === 'content' ? (detail?.summary || 'Publicação oficial do COMTUR.')
@@ -2369,8 +2664,36 @@ export default function App() {
           </section>
         )}
 
+        {route.view === 'observatory' && !error && !status && (
+          <section className="block">
+            <ObservatoryBlock
+              indicators={governance}
+              allContents={allContents}
+              onOpen={(slug) => navigate(`comtur/doc/${slug}`)}
+            />
+          </section>
+        )}
+
         {route.view === 'comtur' && !error && !status && (
           <>
+            {governance.filter((item) => item.type === 'indicator').length ? (
+              <section className="block">
+                <header className="block-head">
+                  <div>
+                    <h2>Observatório do Turismo & Indicadores</h2>
+                    <p>Indicadores estatísticos, capacidade instalada e inteligência do turismo.</p>
+                  </div>
+                  <a className="btn-action" href={href('observatorio')} onClick={(event) => go(event, 'observatorio')}>
+                    Ver observatório completo →
+                  </a>
+                </header>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  {governance.filter((item) => item.type === 'indicator').slice(0, 4).map((item) => (
+                    <IndicatorCard key={item.slug || item._id} item={item} allContents={allContents} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
             {governance.filter((item) => item.type === 'council_member').length ? (
               <section className="block">
                 <header className="block-head">
@@ -2422,7 +2745,7 @@ export default function App() {
                 </div>
               </section>
             ) : null}
-            {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability').length ? (
+            {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability' && item.type !== 'indicator').length ? (
               <section className="block">
                 <header className="block-head">
                   <div>
@@ -2431,7 +2754,7 @@ export default function App() {
                   </div>
                 </header>
                 <div className="map-list">
-                  {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability').map((item) => (
+                  {governance.filter((item) => item.type !== 'council_member' && item.type !== 'legislation' && item.type !== 'accountability' && item.type !== 'indicator').map((item) => (
                     <ContentCard key={item.slug} item={item} onOpen={(slug) => navigate(`comtur/doc/${slug}`)} />
                   ))}
                 </div>

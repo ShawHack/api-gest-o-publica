@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MediaItemConfig } from '../../types/config'
+import { isTvPlayerSrc, toSameOriginTvPlayerSrc } from '../../utils/tvPlayerUrl'
 import { SupportWidgets } from './SupportWidgets'
 import './MediaCarousel.css'
+
+const WARMUP_TIMEOUT_MS = 25000
 
 /** Se a URL não for arquivo de mídia, trata como página embutida (iframe). */
 export function resolveMediaKind(item: MediaItemConfig): 'image' | 'video' | 'link' {
@@ -12,7 +15,6 @@ export function resolveMediaKind(item: MediaItemConfig): 'image' | 'video' | 'li
   if (item.type === 'link') return 'link'
   if (isImageFile) return 'image'
   if (isVideoFile) return 'video'
-  // Cadastrou como image/video, mas a URL é uma página (ex.: /tv/?display=semit)
   if (item.type === 'image' || item.type === 'video') return 'link'
   return 'link'
 }
@@ -39,14 +41,20 @@ export function MediaCarousel({
 }) {
   const [index, setIndex] = useState(0)
   const [failed, setFailed] = useState(false)
+  const [tvReady, setTvReady] = useState(false)
+  const [tvLoad, setTvLoad] = useState({ stage: 'connecting', percent: 0, detail: 'Abrindo o player da TV' })
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   const safeIndex = items.length === 0 ? 0 : index % items.length
   const isPortrait = variant === 'portrait'
   const item = items[safeIndex]
   const kind = item ? resolveMediaKind(item) : 'link'
+  const isTv = Boolean(item?.src && isTvPlayerSrc(item.src))
+  const frameSrc = item && kind === 'link' ? toSameOriginTvPlayerSrc(item.src) : item?.src
 
   useEffect(() => {
     setFailed(false)
+    setTvReady(false)
+    setTvLoad({ stage: 'connecting', percent: 0, detail: 'Abrindo o player da TV' })
   }, [item?.id, item?.src])
 
   useEffect(() => {
@@ -61,11 +69,35 @@ export function MediaCarousel({
   useEffect(() => {
     if (kind !== 'link') return
 
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data
+      if (!data || typeof data !== 'object') return
+      if (data.source !== 'painel-tv') return
+      if (typeof data.percent === 'number' || data.detail || data.stage) {
+        setTvLoad({
+          stage: String(data.stage || 'loading'),
+          percent: Math.max(0, Math.min(100, Number(data.percent) || 0)),
+          detail: String(data.detail || 'Baixando a programação'),
+        })
+      }
+      if (data.state === 'ready') setTvReady(true)
+    }
+    window.addEventListener('message', onMessage)
+
+    const timeout = isTv
+      ? window.setTimeout(() => setTvReady(true), WARMUP_TIMEOUT_MS)
+      : undefined
+
     const updateEmbeddedAudio = () => {
       try {
         const mediaElements = frameRef.current?.contentDocument?.querySelectorAll('video, audio')
         mediaElements?.forEach((node) => {
           const media = node as HTMLMediaElement
+          if (isTv && !tvReady) {
+            media.muted = true
+            media.volume = 0
+            return
+          }
           if (paused) {
             if (media.dataset.panelCallMuted !== 'true') {
               media.dataset.panelCallMuted = 'true'
@@ -87,10 +119,18 @@ export function MediaCarousel({
       }
     }
 
+    if (isTv && tvReady) {
+      frameRef.current?.contentWindow?.postMessage({ source: 'painel-host', state: 'present' }, '*')
+    }
+
     updateEmbeddedAudio()
     const timer = window.setInterval(updateEmbeddedAudio, 250)
-    return () => window.clearInterval(timer)
-  }, [kind, item?.src, paused])
+    return () => {
+      window.removeEventListener('message', onMessage)
+      if (timeout) window.clearTimeout(timeout)
+      window.clearInterval(timer)
+    }
+  }, [kind, item?.src, paused, isTv, tvReady])
 
   if (!items.length) {
     if (!isPortrait && widgetsEnabled !== false) {
@@ -106,12 +146,15 @@ export function MediaCarousel({
     )
   }
 
+  const showTvWarmup = isTv && !failed && !tvReady
+
   return (
     <div
       className={[
         'media-carousel',
         isPortrait ? 'media-carousel--portrait' : '',
         paused ? 'media-carousel--paused' : '',
+        showTvWarmup ? 'media-carousel--warming' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -143,7 +186,7 @@ export function MediaCarousel({
           ref={frameRef}
           key={item.id}
           className="media-carousel__media media-carousel__frame"
-          src={item.src}
+          src={frameSrc}
           title={item.label || 'Programação'}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
@@ -159,8 +202,25 @@ export function MediaCarousel({
           onError={() => setFailed(true)}
         />
       )}
-      {paused && !failed ? <div className="media-carousel__priority">Chamada em exibição</div> : null}
-      {kind === 'link' && !failed ? (
+      {showTvWarmup ? (
+        <div className="media-carousel__warmup" role="status" aria-live="polite">
+          <p>Carregando a TV</p>
+          <span>{tvLoad.detail}</span>
+          <div
+            className="media-carousel__progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={tvLoad.percent}
+          >
+            <div className="media-carousel__progress-bar" style={{ width: `${tvLoad.percent}%` }} />
+          </div>
+          <strong className="media-carousel__percent">{tvLoad.percent}%</strong>
+        </div>
+      ) : null}
+      {paused && !failed && !showTvWarmup ? (
+        <div className="media-carousel__priority">Chamada em exibição</div>
+      ) : null}
+      {kind === 'link' && !failed && !showTvWarmup ? (
         <div className="media-carousel__badge">{item.label || 'Programação'}</div>
       ) : null}
     </div>

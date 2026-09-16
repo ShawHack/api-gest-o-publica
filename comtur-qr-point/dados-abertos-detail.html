@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dados abertos — Turismo Garça</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;color:#10213f;background:#f4f7fb}
+    header,main{max-width:980px;margin:auto;padding:22px}
+    header{display:flex;justify-content:space-between;gap:12px}
+    a{color:#075d57}.card{background:#fff;border-radius:18px;padding:clamp(18px,4vw,40px);box-shadow:0 14px 40px #10213f14}
+    h1{line-height:1.15;margin:0 0 10px}.meta{color:#52627a}.section{margin-top:28px}
+    .section h2{margin:0 0 10px;font-size:1.15rem}
+    .file{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid #d1fae5;background:#ecfdf5;border-radius:14px;padding:14px 16px}
+    .file strong{display:block}.btn{display:inline-flex;gap:8px;align-items:center;padding:12px 16px;border-radius:10px;background:#0f766e;color:#fff;font-weight:700;text-decoration:none}
+    .error{padding:30px;border-left:5px solid #d44848;background:#fff}
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px;margin:14px 0}
+    .kv dt{color:#64748b;font-weight:600}.kv dd{margin:0}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/turismo/dados-abertos/">← Dados abertos</a>
+    <a href="/turismo/">Turismo Garça</a>
+  </header>
+  <main><article id="content" class="card" aria-live="polite">Carregando…</article></main>
+  <script>
+  (() => {
+    const box = document.getElementById('content');
+    const parts = location.pathname.split('/').filter(Boolean);
+    const slug = decodeURIComponent(parts[parts.length - 1] || '');
+    if (!slug || slug === 'dados-abertos') {
+      box.className = 'error';
+      box.textContent = 'Conjunto de dados não informado.';
+      return;
+    }
+    const add = (tag, text, cls) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      e.textContent = text;
+      box.append(e);
+      return e;
+    };
+    fetch(`/api/comtur/content/${encodeURIComponent(slug)}`)
+      .then((r) => { if (!r.ok) throw Error(r.status); return r.json(); })
+      .then(({ data: p }) => {
+        if (!p || p.type !== 'open_data' || p.status !== 'published') throw Error('not-public');
+        box.textContent = '';
+        document.title = `${p.title} — Dados abertos`;
+        const meta = p.metadata || {};
+        add('h1', p.title);
+        if (meta.description || p.summary) add('p', meta.description || p.summary, 'meta');
+
+        const dl = document.createElement('dl');
+        dl.className = 'kv';
+        const rows = [
+          ['Categoria', meta.category],
+          ['Órgão responsável', meta.responsibleBody || p.location],
+          ['Fonte', meta.source || meta.dataSource],
+          ['Última atualização', meta.lastUpdated ? new Date(meta.lastUpdated).toLocaleDateString('pt-BR') : ''],
+          ['Periodicidade', meta.periodicity],
+          ['Licença', meta.license],
+        ];
+        rows.forEach(([k, v]) => {
+          if (!v) return;
+          const dt = document.createElement('dt'); dt.textContent = k;
+          const dd = document.createElement('dd'); dd.textContent = v;
+          dl.append(dt, dd);
+        });
+        box.append(dl);
+
+        const file = (p.media || []).find((m) => m.kind === 'document') || meta.dataFile;
+        if (file?.url) {
+          const s = document.createElement('section'); s.className = 'section';
+          s.innerHTML = '<h2>Arquivos disponíveis</h2>';
+          const wrap = document.createElement('div'); wrap.className = 'file';
+          const fmt = meta.format || (file.name || file.originalName || file.url || '').split('.').pop()?.toUpperCase() || 'ARQUIVO';
+          const name = file.originalName || file.name || file.title || 'arquivo';
+          wrap.innerHTML = `<div><strong>${fmt}</strong><span>${name}</span></div>`;
+          const a = document.createElement('a');
+          a.className = 'btn';
+          a.href = file.url;
+          a.download = name;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'Baixar';
+          wrap.append(a);
+          s.append(wrap);
+          box.append(s);
+        }
+
+        const aboutBits = [
+          ['Sobre os dados', meta.description || p.summary],
+          ['Descrição do recurso', meta.resourceDescription],
+          ['Campos/colunas', meta.columns],
+          ['Metodologia', meta.methodology || p.body],
+          ['Observações metodológicas', meta.methodNotes],
+          ['Observações sobre atualização', meta.updateNotes],
+        ];
+        aboutBits.forEach(([title, val], idx) => {
+          if (!val) return;
+          if (idx === 0 && (meta.description || p.summary) && box.querySelector('p.meta')) return;
+          const s = document.createElement('section'); s.className = 'section';
+          const h = document.createElement('h2'); h.textContent = title; s.append(h);
+          const pEl = document.createElement('p'); pEl.textContent = val; s.append(pEl);
+          box.append(s);
+        });
+      })
+      .catch(() => {
+        box.className = 'error';
+        box.textContent = 'Este conjunto ainda não está publicado ou não foi encontrado.';
+      });
+  })();
+  </script>
+</body>
+</html>

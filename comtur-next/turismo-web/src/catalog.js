@@ -65,6 +65,8 @@ export function parsePath(pathname, search = '') {
   if (parts[0] === 'legislacao') return { view: 'legislation', query: params.get('q') || '' }
   if ((parts[0] === 'prestacao-contas' || parts[0] === 'prestacao_contas' || parts[0] === 'prestacao' || parts[0] === 'prestacoes-contas') && parts[1]) return { view: 'content', slug: parts[1] }
   if (parts[0] === 'prestacao-contas' || parts[0] === 'prestacao_contas' || parts[0] === 'prestacao' || parts[0] === 'prestacoes-contas' || parts[0] === 'accountability') return { view: 'accountability', query: params.get('q') || '' }
+  if ((parts[0] === 'observatorio' || parts[0] === 'observatorio-turismo' || parts[0] === 'indicadores' || parts[0] === 'indicador') && parts[1]) return { view: 'content', slug: parts[1] }
+  if (parts[0] === 'observatorio' || parts[0] === 'observatorio-turismo' || parts[0] === 'indicadores' || parts[0] === 'indicador') return { view: 'observatory', query: params.get('q') || '' }
   if (parts[0] === 'comtur' && parts[1] === 'doc' && parts[2]) return { view: 'content', slug: parts[2] }
   if (parts[0] === 'comtur' && parts[1]) return { view: 'meeting', slug: parts[1] }
   if (parts[0] === 'comtur') return { view: 'comtur' }
@@ -79,6 +81,16 @@ export function parsePath(pathname, search = '') {
 export function href(path = '') {
   const clean = String(path).replace(/^\//, '')
   return clean ? `${BASE}/${clean}` : `${BASE}/`
+}
+
+/** Public URL for a published content item (specialized modules have own pages). */
+export function contentHref(item) {
+  const slug = item?.slug ? String(item.slug) : ''
+  if (!slug) return href('')
+  if (item?.type === 'open_data') return href(`dados-abertos/${slug}`)
+  if (item?.type === 'research') return href(`pesquisas/${slug}`)
+  if (item?.type === 'integration') return href(`integracoes/${slug}`)
+  return href(`p/${slug}`)
 }
 
 export const AMENITIES_CATALOG = {

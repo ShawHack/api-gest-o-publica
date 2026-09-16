@@ -79,3 +79,55 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+.media-carousel--warming .media-carousel__media {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.media-carousel__warmup {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  background: #05070c;
+  color: rgba(255, 255, 255, 0.82);
+  padding: 1rem;
+  z-index: 2;
+}
+
+.media-carousel__warmup p {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.media-carousel__warmup span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.media-carousel__progress {
+  width: min(16rem, 80%);
+  height: 0.55rem;
+  margin: 0.55rem auto 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.media-carousel__progress-bar {
+  height: 100%;
+  background: #3d8bff;
+  transition: width 0.25s ease;
+}
+
+.media-carousel__percent {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+}

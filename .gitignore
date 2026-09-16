@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+*/node_modules/
+*/*/node_modules/
+
+# Build artifacts & packages
+dist/
+*/dist/
+build/
+*/build/
+out/
+*/out/
+
+# Large binary installers (served via server download directory)
+*.apk
+*.exe
+*.tar.gz
+*.zip
+downloads/
+*/downloads/
+
+# Logs & temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.system_generated/
+
+# OS files
+.DS_Store
+Thumbs.db

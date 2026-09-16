@@ -176,6 +176,102 @@ export function AdminPanelsPage() {
           </tbody>
         </table>
       </section>
+
+      <section className="admin-table-wrap" style={{ marginTop: '2rem' }}>
+        <h2>📱 Aplicativos e Instaladores Oficiais (TV Box & Desktop)</h2>
+        <p className="admin-hint" style={{ marginBottom: '1.2rem' }}>
+          Para evitar falhas de conexão, interrupções de vídeo ou telas pretas no navegador em computadores fracos e TVs, utilize os aplicativos oficiais com cache local antecipado:
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          <a
+            href="/downloads/Painel%20TV%20Garça%20Setup%201.0.0.exe"
+            download
+            className="admin-download-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+              backgroundColor: 'rgba(11,95,255,0.08)',
+              border: '1px solid rgba(11,95,255,0.3)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <strong style={{ fontSize: '1.1rem', color: '#38bdf8' }}>🖥️ Windows (Instalador .exe)</strong>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '6px 0 12px' }}>Instalador completo oficial com atalho na Área de Trabalho e inicialização no boot</span>
+            <span style={{ marginTop: 'auto', textAlign: 'center', backgroundColor: '#0b5fff', color: '#fff', padding: '8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.9rem' }}>
+              Baixar Instalador (153 MB)
+            </span>
+          </a>
+
+          <a
+            href="/downloads/Painel%20TV%20Garça%201.0.0.exe"
+            download
+            className="admin-download-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <strong style={{ fontSize: '1.1rem', color: '#ffffff' }}>💼 Windows (Portátil .exe)</strong>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '6px 0 12px' }}>Execução direta de pendrive sem necessidade de instalação prévia</span>
+            <span style={{ marginTop: 'auto', textAlign: 'center', backgroundColor: '#1e293b', color: '#cbd5e1', padding: '8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.9rem' }}>
+              Baixar Portátil (79 MB)
+            </span>
+          </a>
+
+          <a
+            href="/downloads/painel-senhas-desktop-1.0.0.tar.gz"
+            download
+            className="admin-download-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <strong style={{ fontSize: '1.1rem', color: '#ffffff' }}>🐧 Linux (Pacote .tar.gz)</strong>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '6px 0 12px' }}>Compatível com Ubuntu, Debian, Mint e Fedora com script de instalação</span>
+            <span style={{ marginTop: 'auto', textAlign: 'center', backgroundColor: '#1e293b', color: '#cbd5e1', padding: '8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.9rem' }}>
+              Baixar Linux (103 MB)
+            </span>
+          </a>
+
+          <a
+            href="/downloads/semit_painel_tvbox.apk"
+            download
+            className="admin-download-card"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+              backgroundColor: 'rgba(16,185,129,0.08)',
+              border: '1px solid rgba(16,185,129,0.3)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <strong style={{ fontSize: '1.1rem', color: '#34d399' }}>📱 Android / TV Box (APK)</strong>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '6px 0 12px' }}>Aplicativo nativo Android com ExoPlayer e cache para Smart TVs e TV Box</span>
+            <span style={{ marginTop: 'auto', textAlign: 'center', backgroundColor: 'rgba(16,185,129,0.2)', border: '1px solid #10b981', color: '#34d399', padding: '8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.9rem' }}>
+              Baixar APK TV Box
+            </span>
+          </a>
+        </div>
+      </section>
     </div>
   )
 }

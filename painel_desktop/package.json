@@ -1,0 +1,61 @@
+{
+  "name": "painel-senhas-desktop",
+  "version": "1.0.0",
+  "description": "Painel de Senhas e TV Corporativa SEMIT Garça - Cliente Desktop Oficial",
+  "homepage": "https://api.garca.sp.gov.br",
+  "author": {
+    "name": "SEMIT - Prefeitura Municipal de Garça",
+    "email": "semit@garca.sp.gov.br"
+  },
+  "main": "main.js",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux tar.gz zip",
+    "build:all": "electron-builder -wl"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.4.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "br.gov.sp.garca.paineldesktop",
+    "productName": "Painel TV Garça",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Painel TV Garça"
+    },
+    "linux": {
+      "maintainer": "semit@garca.sp.gov.br",
+      "target": [
+        "deb",
+        "tar.gz",
+        "zip"
+      ],
+      "category": "Utility",
+      "synopsis": "Painel de Senhas e TV Corporativa SEMIT Garça",
+      "description": "Cliente desktop para painel de chamadas de senhas e transmissão de TV corporativa."
+    }
+  }
+}

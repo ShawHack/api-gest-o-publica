@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Senhas e TV — Garça</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="panel-layout layout-with-tv">
+    <!-- CABEÇALHO -->
+    <header class="panel-header">
+      <div class="header-brand">
+        <img src="logo.png" alt="Prefeitura Municipal de Garça" class="header-logo" onerror="this.style.display='none'">
+        <div>
+          <h1 id="headerPanelTitle" class="header-title">PAINEL DE ATENDIMENTO</h1>
+          <span id="headerPanelSubtitle" class="header-subtitle">Secretaria Municipal de Informática e Tecnologia — SEMIT</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <div id="connectionBadge" class="badge badge-online">
+          <span class="badge-dot"></span>
+          <span id="connectionText">ONLINE</span>
+        </div>
+        <div id="clockDisplay" class="clock-display">00:00:00</div>
+      </div>
+    </header>
+
+    <!-- CORPO PRINCIPAL -->
+    <main class="panel-body">
+      <!-- COLUNA DA TV CORPORATIVA (9:16) -->
+      <section id="tvColumn" class="tv-column">
+        <div class="tv-frame">
+          <video id="tvVideoPlayer" class="tv-media active" muted playsinline></video>
+          <img id="tvImagePlayer" class="tv-media" alt="Programação">
+          <div id="tvWatermark" class="tv-watermark">
+            <img src="logo.png" alt="SEMIT TV" class="tv-watermark-img" onerror="this.style.display='none'">
+            <span class="tv-watermark-text">SEMIT TV</span>
+          </div>
+          <div id="tvEmptyState" class="tv-empty-state" style="display: none;">
+            <div class="empty-icon">📺</div>
+            <p>Sincronizando mídia...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTEÚDO DAS SENHAS -->
+      <section class="tickets-section">
+        <!-- CHAMADA ATUAL EM DESTAQUE -->
+        <div id="cardCurrentCall" class="card-current-call">
+          <div id="currentServiceBadge" class="service-badge">ATENDIMENTO</div>
+          <div id="currentTicket" class="current-ticket">---</div>
+          <div id="currentLocal" class="current-local">Guichê 01</div>
+          <div id="currentCitizen" class="current-citizen">Aguardando chamada...</div>
+        </div>
+
+        <!-- LINHA INFERIOR: HISTÓRICO EM LISTA VERTICAL + WIDGET DE CLIMA -->
+        <div class="bottom-widgets-row">
+          <!-- HISTÓRICO DAS ÚLTIMAS SENHAS (LISTA VERTICAL) -->
+          <aside class="history-card">
+            <h2 class="history-title">Últimas Chamadas</h2>
+            <div id="historyList" class="history-list">
+              <div class="history-empty">Nenhuma chamada anterior</div>
+            </div>
+          </aside>
+
+          <!-- WIDGET DE CLIMA E TEMPO -->
+          <aside class="weather-card">
+            <h2 class="weather-title">Previsão do Tempo</h2>
+            <div class="weather-content">
+              <div id="weatherTemp" class="weather-temp">--°</div>
+              <div class="weather-meta">
+                <strong id="weatherCity">Garça - SP</strong>
+                <span id="weatherCondition">Carregando previsão...</span>
+                <span id="weatherDetails" class="weather-details">Umidade --% · Vento -- km/h</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- LETREIRO DE NOTÍCIAS RSS EM TEMPO REAL -->
+    <div id="newsTickerBar" class="news-ticker-bar">
+      <div class="ticker-badge">NOTÍCIAS</div>
+      <div class="ticker-track">
+        <div id="tickerContent" class="ticker-content">
+          <span>Carregando notícias da Prefeitura Municipal de Garça e Região...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RODAPÉ INFORMATIVO -->
+    <footer class="panel-footer">
+      <div class="footer-left">
+        <span id="footerInfo">Painel Integrado SEMIT • Pressione <strong>F2</strong> para Configurações</span>
+      </div>
+      <div class="footer-right">
+        <button id="btnSettings" class="btn-footer" title="Configurações (F2)">⚙️ Configurações (F2)</button>
+        <button id="btnFullscreen" class="btn-footer" title="Tela Cheia (F11)">⛶ Tela Cheia</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL DE CONFIGURAÇÕES AVANÇADAS (F2) -->
+  <div id="settingsModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>⚙️ Configurações do Painel Desktop</h2>
+        <button id="btnCloseModal" class="btn-close">×</button>
+      </div>
+
+      <!-- ABAS DE NAVEGAÇÃO -->
+      <div class="modal-tabs">
+        <button type="button" class="tab-btn active" data-tab="tab-display">🖥️ Painel & Display TV</button>
+        <button type="button" class="tab-btn" data-tab="tab-novosga">🔐 Integração NovoSGA & OAuth</button>
+        <button type="button" class="tab-btn" data-tab="tab-audio">🔊 Áudio & Sistema</button>
+      </div>
+
+      <form id="settingsForm" class="modal-body">
+        <!-- ABA 1: PAINEL & DISPLAY TV -->
+        <div id="tab-display" class="tab-content active">
+          <div class="form-group">
+            <label for="inputServerUrl">URL da API / Servidor Central</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="url" id="inputServerUrl" required placeholder="https://api.garca.sp.gov.br" style="flex: 1;">
+              <button type="button" id="btnFetchServerData" class="btn-secondary" title="Buscar painéis e displays disponíveis no servidor">🔄 Carregar Dados</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="selectPanelSlug">Painel Cadastrado (Slug)</label>
+              <select id="selectPanelSlug">
+                <option value="semit">Semit (semit)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inputPanelSlugManual">Slug Manual</label>
+              <input type="text" id="inputPanelSlugManual" placeholder="semit">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="selectTvDisplay">Display da TV Corporativa (Xibo)</label>
+              <select id="selectTvDisplay">
+                <option value="semit">SEMIT TV - SEMIT (Vertical 9:16)</option>
+                <option value="default">Garça Feed - Principal (Vertical 9:16)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inputDisplayIdManual">ID / Chave do Display Manual</label>
+              <input type="text" id="inputDisplayIdManual" placeholder="semit">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputWeatherCity">Cidade para Previsão do Tempo</label>
+              <input type="text" id="inputWeatherCity" placeholder="Garça">
+            </div>
+            <div class="form-group">
+              <label for="inputRssFeedUrl">URL do Feed RSS (Letreiro de Notícias)</label>
+              <input type="url" id="inputRssFeedUrl" placeholder="https://www.garca.sp.gov.br/portal/noticias/feed">
+            </div>
+          </div>
+
+          <div class="form-group check-group">
+            <label>
+              <input type="checkbox" id="checkTvEnabled">
+              Exibir Coluna Lateral de TV / Vídeos (Layout 9:16)
+            </label>
+          </div>
+        </div>
+
+        <!-- ABA 2: INTEGRAÇÃO NOVOSGA & OAUTH -->
+        <div id="tab-novosga" class="tab-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputNovosgaUrl">URL do NovoSGA</label>
+              <input type="url" id="inputNovosgaUrl" placeholder="http://10.15.25.31">
+            </div>
+            <div class="form-group">
+              <label for="inputMercureUrl">URL do Mercure Hub</label>
+              <input type="url" id="inputMercureUrl" placeholder="http://10.15.25.31:3000/.well-known/mercure">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputClientId">Client ID (OAuth 2.0)</label>
+              <input type="text" id="inputClientId" placeholder="projetolapide@gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="inputClientSecret">Client Secret (OAuth 2.0)</label>
+              <input type="password" id="inputClientSecret" placeholder="••••••••••••">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputUsername">Usuário NovoSGA</label>
+              <input type="text" id="inputUsername" placeholder="admin">
+            </div>
+            <div class="form-group">
+              <label for="inputPassword">Senha NovoSGA</label>
+              <input type="password" id="inputPassword" placeholder="••••••••">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputNovosgaUnit">ID da Unidade NovoSGA</label>
+              <input type="text" id="inputNovosgaUnit" placeholder="6">
+            </div>
+            <div class="form-group">
+              <label for="inputNovosgaServices">IDs dos Serviços (Separados por vírgula)</label>
+              <input type="text" id="inputNovosgaServices" placeholder="82,83,84">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 3: ÁUDIO & SISTEMA -->
+        <div id="tab-audio" class="tab-content">
+          <div class="form-group check-group">
+            <label>
+              <input type="checkbox" id="checkVoiceEnabled" checked>
+              Habilitar Síntese de Voz (pt-BR) com Alerta Sonoro
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="selectVoice">Voz do Sintetizador (Instalada no Sistema)</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="selectVoice" style="flex: 1;">
+                <option value="">Carregando vozes disponíveis...</option>
+              </select>
+              <button type="button" id="btnTestVoice" class="btn-secondary">🔊 Testar Voz</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="rangeSpeechRate">Velocidade da Voz: <span id="valSpeechRate">0.95x</span></label>
+              <input type="range" id="rangeSpeechRate" min="0.5" max="1.5" step="0.05" value="0.95">
+            </div>
+            <div class="form-group">
+              <label for="rangeTvVolume">Volume da TV: <span id="valTvVolume">100%</span></label>
+              <input type="range" id="rangeTvVolume" min="0" max="1" step="0.05" value="1.0">
+            </div>
+          </div>
+
+          <div class="form-group check-group">
+            <label>
+              <input type="checkbox" id="checkKiosk">
+              Modo Quiosque (Tela cheia permanente no boot)
+            </label>
+          </div>
+
+          <div style="margin-top: 15px;">
+            <button type="button" id="btnForceSync" class="btn-secondary" style="width: 100%;">🔄 Forçar Sincronização e Download de Mídias em Disco</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="btnCancelSettings" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar e Aplicar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

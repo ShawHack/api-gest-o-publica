@@ -114,7 +114,7 @@ export default function AuthScreens({ mode, branding, onNavigate }) {
             {branding.logoUrl ? <img src={branding.logoUrl} alt="" /> : null}
             <small>{branding.organizationName || 'Prefeitura Municipal de Garça'}</small>
             <strong>{title}</strong>
-            <p>Uma conta municipal. O mesmo acesso da Cultura, da Agenda e dos demais serviços da Prefeitura.</p>
+            <p>Com uma única conta, você acessa os serviços da Prefeitura de forma simples e prática.</p>
           </div>
         </aside>
         <section className="auth-form">

@@ -1,0 +1,44 @@
+/* Catálogo de serviços — duplicados / exclusão / abas */
+.admin-status-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--border, #dbe3f2);
+  border-radius: 999px;
+  background: #f8fafc;
+}
+.admin-status-toggle button {
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #64748b;
+  cursor: pointer;
+}
+.admin-status-toggle button.is-active {
+  background: #1e3a8a;
+  color: #fff;
+}
+.charter-row-duplicate td {
+  background: #fffbeb;
+}
+.charter-duplicate-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fde68a;
+  vertical-align: middle;
+}
+.compact-admin-actions button.action-delete {
+  color: #b91c1c;
+}
+.compact-admin-actions button.action-delete:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #991b1b;
+}

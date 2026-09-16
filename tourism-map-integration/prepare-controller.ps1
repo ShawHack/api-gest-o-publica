@@ -1,0 +1,11 @@
+$controllerPath = Join-Path $PSScriptRoot 'remote\ComturContentController.js'
+$controller = Get-Content -LiteralPath $controllerPath -Raw
+$methods = "static async listMap(req,res){try{const types=['attraction','gastronomy','lodging','route','shopping','service'];const data=await Content.find({status:'published',type:{`$in:types},'geo.lat':{`$type:'number'},'geo.lng':{`$type:'number'}}).select('type slug title summary location geo contact media metadata featured qr').sort({featured:-1,title:1}).lean();res.json({data,total:data.length})}catch(e){res.status(500).json({error:'Erro ao consultar mapa turístico'})}}static async getLegacyMapTarget(req,res){const id=String(req.params.id||'');const data=await Content.findOne({status:'published','migration.source':'mapaturistico','migration.sourceId':id}).select('slug title').lean();return data?res.json({data:{slug:data.slug,title:data.title,url:``/turismo/local/`${data.slug}``}}):res.status(404).json({error:'Ponto ainda não publicado no novo portal'})}"
+$controller = $controller.Replace('module.exports=class C{', "module.exports=class C{$methods")
+Set-Content -LiteralPath $controllerPath -Value $controller -NoNewline -Encoding utf8
+
+$routesPath = Join-Path $PSScriptRoot 'remote\ComturRoutes.js'
+$routes = Get-Content -LiteralPath $routesPath -Raw
+$routes = $routes.Replace("router.get('/content', ComturContentController.listPublic)`r`nrouter.get('/map/locations', ComturContentController.listMap)`r`nrouter.get('/map/legacy/:id', ComturContentController.getLegacyMapTarget)", "router.get('/content', ComturContentController.listPublic)`r`nrouter.get('/map/locations', ComturContentController.listMap)`r`nrouter.get('/map/legacy/:id', ComturContentController.getLegacyMapTarget)")
+$routes = $routes.Replace("router.get('/content', ComturContentController.listPublic)``r``nrouter.get('/map/locations', ComturContentController.listMap)``r``nrouter.get('/map/legacy/:id', ComturContentController.getLegacyMapTarget)", "router.get('/content', ComturContentController.listPublic)`r`nrouter.get('/map/locations', ComturContentController.listMap)`r`nrouter.get('/map/legacy/:id', ComturContentController.getLegacyMapTarget)")
+Set-Content -LiteralPath $routesPath -Value $routes -NoNewline -Encoding utf8

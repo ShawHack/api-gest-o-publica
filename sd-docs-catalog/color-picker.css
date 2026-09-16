@@ -1,0 +1,32 @@
+/* Seletor visual de cores (aquarela) */
+.sd-color-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sd-color-field > input:not([type="color"]) {
+  flex: 1;
+  min-width: 0;
+}
+.sd-color-swatch {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+.sd-color-swatch::-webkit-color-swatch-wrapper {
+  padding: 3px;
+}
+.sd-color-swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 7px;
+}
+.sd-color-swatch::-moz-color-swatch {
+  border: none;
+  border-radius: 7px;
+}

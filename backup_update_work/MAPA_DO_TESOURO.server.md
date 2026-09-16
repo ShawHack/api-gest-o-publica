@@ -371,6 +371,18 @@ Diagnóstico observado em 26/08/2026:
 
 Esses dois problemas são independentes: corrigir o healthcheck não autoriza o display no Xibo.
 
+### 12.1 Clientes de Exibição e Painéis (TV Box e Desktop)
+
+Para garantir estabilidade em telas de atendimento sem falhas de buffer de vídeo ou telas pretas em computadores com recursos limitados (PCs fracos), a arquitetura adota clientes com download antecipado (*disk pre-cache*) de mídia:
+
+| Plataforma | Projeto / Diretório | Tecnologia | Estratégia de Mídia / Vídeo |
+|---|---|---|---|
+| **Android / TV Box** | `semit_painel_native` | Android Nativo (Java / ExoPlayer) | Download completo 100% para storage local antes do play; NovoSGA SSE; Audio Ducking |
+| **Desktop (Windows / Linux)** | `painel_desktop` | Electron / Node / WebView | Background Worker de download para disco (`%APPDATA%` / `~/.local/share`); reprodução contínua offline; Audio Ducking; Kiosk mode |
+| **Web Browser** | `painel_senhas_work` | React / Vite / TypeScript | Layout responsivo clássico e 9:16; suporte a blob pre-caching |
+
+**Diretriz de Operação Contínua:** Mídias de programação corporativa não devem depender de streaming contínuo da rede em computadores de baixo desempenho; o arquivo deve ser baixado integralmente para disco/cache local antes da reprodução, garantindo execução fluida e imune a oscilações de rede.
+
 ## 13. Monitoramento e saúde
 
 Endpoints principais:
