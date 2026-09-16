@@ -121,7 +121,7 @@ class MediaSyncManager {
   loadLocalCacheFiles() {
     try {
       const files = fs.readdirSync(this.storageDir)
-      const valid = files.filter(f => !f.endsWith('.tmp') && fs.statSync(path.join(this.storageDir, f)).size > 1024)
+      const valid = files.filter(f => !f.endsWith('.tmp') && !f.toLowerCase().endsWith('.png') && fs.statSync(path.join(this.storageDir, f)).size > 1024)
       return valid.map((filename) => {
         const ext = path.extname(filename)
         return {
