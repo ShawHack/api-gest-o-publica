@@ -67,6 +67,9 @@ class MediaSyncManager {
 
         for (const item of items) {
           if (!item.url) continue
+          if (item.url.includes('29.png') || item.url.toLowerCase().includes('logo') || item.url.toLowerCase().includes('watermark')) {
+            continue
+          }
           const rawUrl = item.url.startsWith('http') ? item.url : `${this.serverUrl}/tv/${item.url.replace(/^\//, '')}`
           const ext = path.extname(item.url.split('?')[0]) || '.mp4'
           const filename = `${this.getHash(rawUrl)}${ext}`
