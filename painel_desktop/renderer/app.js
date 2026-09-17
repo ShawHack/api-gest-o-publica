@@ -21,14 +21,17 @@ let appConfig = {
   speechVolume: 1.0,
   tvVolume: 1.0,
   kiosk: true,
+  lowResourceMode: false,
 }
 
 let loadedPanels = []
 let loadedDisplays = []
 let availableVoices = []
 let playlist = []
+let pendingPlaylist = null
 let currentMediaIndex = 0
 let mediaTimer = null
+let lastVolumeSyncAt = 0
 let lastAnnouncedId = null
 let eventSource = null
 let mercureSource = null
@@ -98,6 +101,7 @@ const valSpeechRate = document.getElementById('valSpeechRate')
 const rangeTvVolume = document.getElementById('rangeTvVolume')
 const valTvVolume = document.getElementById('valTvVolume')
 const checkKiosk = document.getElementById('checkKiosk')
+const checkLowResourceMode = document.getElementById('checkLowResourceMode')
 
 // 1. RELÓGIO EM TEMPO REAL
 function updateClock() {
@@ -130,6 +134,9 @@ tvVideoPlayer.addEventListener('loadedmetadata', applyTvVolume)
 tvVideoPlayer.addEventListener('canplay', applyTvVolume)
 tvVideoPlayer.addEventListener('play', applyTvVolume)
 tvVideoPlayer.addEventListener('timeupdate', () => {
+  const now = Date.now()
+  if (now - lastVolumeSyncAt < 1200) return
+  lastVolumeSyncAt = now
   if (isSpeaking) {
     if (tvVideoPlayer.volume !== 0 || !tvVideoPlayer.muted) {
       tvVideoPlayer.volume = 0
@@ -145,6 +152,13 @@ tvVideoPlayer.addEventListener('timeupdate', () => {
 })
 
 // 3. SISTEMA DE REPRODUÇÃO DE MÍDIA LOCAL (100% OFFLINE DISK CACHE)
+function applyPerformanceProfile() {
+  const low = Boolean(appConfig.lowResourceMode)
+  document.documentElement.classList.toggle('performance-low', low)
+  // O arquivo está no disco local: metadados bastam e evitam uma segunda cópia grande na memória.
+  tvVideoPlayer.preload = low ? 'metadata' : 'auto'
+}
+
 function applyTvLayout(enabled) {
   if (enabled) {
     appContainer.classList.remove('layout-no-tv')
@@ -165,16 +179,21 @@ function applyTvLayout(enabled) {
 function updatePlaylist(newPlaylist) {
   if (!Array.isArray(newPlaylist)) return
   console.log(`[Player] Playlist atualizada com ${newPlaylist.length} mídias locais:`, newPlaylist)
-  playlist = newPlaylist
-  if (playlist.length === 0) {
+  if (newPlaylist.length === 0) {
     tvEmptyState.style.display = 'flex'
     tvVideoPlayer.style.display = 'none'
     tvImagePlayer.style.display = 'none'
     return
   }
   tvEmptyState.style.display = 'none'
+  // Uma sincronização não pode cortar a mídia que já está visível.
+  if (tvVideoPlayer.currentSrc || tvImagePlayer.src) {
+    pendingPlaylist = newPlaylist
+    return
+  }
+  playlist = newPlaylist
+  currentMediaIndex = 0
   if (!tvVideoPlayer.src && !tvImagePlayer.src) {
-    currentMediaIndex = 0
     playCurrentMedia()
   }
 }
@@ -223,8 +242,14 @@ function playCurrentMedia() {
 }
 
 function advanceNextMedia() {
+  if (pendingPlaylist) {
+    playlist = pendingPlaylist
+    pendingPlaylist = null
+    currentMediaIndex = 0
+  } else if (playlist.length > 0) {
+    currentMediaIndex = (currentMediaIndex + 1) % playlist.length
+  }
   if (playlist.length === 0) return
-  currentMediaIndex = (currentMediaIndex + 1) % playlist.length
   playCurrentMedia()
 }
 
@@ -952,6 +977,7 @@ function openSettings() {
 
   checkVoiceEnabled.checked = appConfig.voiceEnabled !== false
   checkKiosk.checked = appConfig.kiosk
+  checkLowResourceMode.checked = Boolean(appConfig.lowResourceMode)
   rangeSpeechRate.value = appConfig.speechRate
   valSpeechRate.textContent = `${appConfig.speechRate}x`
   rangeTvVolume.value = appConfig.tvVolume
@@ -1058,6 +1084,7 @@ settingsForm.addEventListener('submit', async (e) => {
   appConfig.voiceEnabled = checkVoiceEnabled.checked
   appConfig.selectedVoiceURI = selectVoice.value
   appConfig.kiosk = checkKiosk.checked
+  appConfig.lowResourceMode = checkLowResourceMode.checked
   appConfig.speechRate = parseFloat(rangeSpeechRate.value)
   appConfig.tvVolume = parseFloat(rangeTvVolume.value)
 
@@ -1069,6 +1096,7 @@ settingsForm.addEventListener('submit', async (e) => {
 
   headerPanelTitle.textContent = `PAINEL DE ATENDIMENTO — ${appConfig.panelSlug.toUpperCase()}`
   applyTvLayout(appConfig.tvLayoutEnabled)
+  applyPerformanceProfile()
   fetchWeather()
   fetchNewsTicker()
   connectRealtime()
@@ -1125,6 +1153,7 @@ async function init() {
 
   applyTvVolume()
   applyTvLayout(appConfig.tvLayoutEnabled)
+  applyPerformanceProfile()
   fetchWeather()
   fetchNewsTicker()
   weatherTimer = setInterval(fetchWeather, 10 * 60 * 1000)

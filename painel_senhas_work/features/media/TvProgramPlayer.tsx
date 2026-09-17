@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { clampVolume } from '../../utils/tvEmbed'
+import { downloadAndCache, getCachedBlobUrl, type CacheProgress } from './tvMediaCache'
 import './TvProgramPlayer.css'
 
 type PlaylistItem = {
@@ -105,21 +106,34 @@ async function keepPlayableVideos(items: PlaylistItem[], base: string): Promise<
   return playable
 }
 
-const blobCache = new Map<string, string>()
-
-async function prefetchMediaBlob(url: string): Promise<string> {
-  if (!url || url.startsWith('blob:')) return url
-  const cached = blobCache.get(url)
-  if (cached) return cached
-  try {
-    const res = await fetch(url, { cache: 'force-cache' })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const blob = await res.blob()
-    const blobUrl = URL.createObjectURL(blob)
-    blobCache.set(url, blobUrl)
-    return blobUrl
-  } catch {
-    return url // Fallback seguro para URL direta
+async function prepareLocalPlaylist(
+  items: PlaylistItem[],
+  base: string,
+  onProgress: (progress: CacheProgress) => void,
+): Promise<void> {
+  for (let i = 0; i < items.length; i += 1) {
+    const url = resolveMediaUrl(items[i].url || '', base)
+    const label = items[i].title || `vídeo ${i + 1}`
+    const update = (loaded: number, total: number) => {
+      const currentPart = total > 0 ? loaded / total : 0
+      onProgress({
+        current: i + 1,
+        total: items.length,
+        fileLabel: label,
+        bytesLoaded: loaded,
+        bytesTotal: total,
+        percent: Math.min(99, Math.round(((i + currentPart) / items.length) * 100)),
+        detail: `Baixando vídeo ${i + 1} de ${items.length}: ${label}`,
+      })
+    }
+    const cached = await getCachedBlobUrl(url)
+    if (cached) {
+      onProgress({ current: i + 1, total: items.length, fileLabel: label, bytesLoaded: 1, bytesTotal: 1, percent: Math.round(((i + 1) / items.length) * 100), detail: `Vídeo ${i + 1} de ${items.length} já está pronto` })
+      continue
+    }
+    update(0, 0)
+    const localUrl = await downloadAndCache(url, update)
+    if (!localUrl) throw new Error(`Não foi possível baixar ${label}`)
   }
 }
 
@@ -142,9 +156,12 @@ export function TvProgramPlayer({
   const [opened, setOpened] = useState(false)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [effectiveSrc, setEffectiveSrc] = useState('')
+  const [progress, setProgress] = useState<CacheProgress | null>(null)
   const displayId = parseTvDisplayId(src)
   const base = tvApiBase()
   const playlistKeyRef = useRef('')
+  const pendingPlaylistRef = useRef<PlaylistItem[] | null>(null)
+  const pendingOverlayRef = useRef('')
 
   const current = playlist[index]
   const playUrl = current?.url ? resolveMediaUrl(current.url, base) : ''
@@ -155,6 +172,14 @@ export function TvProgramPlayer({
   }
 
   function goNext() {
+    const pending = pendingPlaylistRef.current
+    if (pending?.length) {
+      pendingPlaylistRef.current = null
+      setPlaylist(pending)
+      setOverlayUrl(pendingOverlayRef.current)
+      setIndex(0)
+      return
+    }
     if (playlist.length <= 1) {
       const el = videoRef.current
       if (el) {
@@ -183,7 +208,7 @@ export function TvProgramPlayer({
         const overlay = raw.find((item) => playlistItemKind(item) === 'overlay')
         const videos = raw.filter((item) => playlistItemKind(item) === 'video')
         const items = await keepPlayableVideos(videos, base)
-        setOverlayUrl(overlay?.url ? resolveMediaUrl(overlay.url, base) : '')
+        const nextOverlay = overlay?.url ? resolveMediaUrl(overlay.url, base) : ''
         const nextKey = playlistKey(items)
         if (!items.length) {
           setPlaylist([])
@@ -192,16 +217,20 @@ export function TvProgramPlayer({
           return
         }
         if (isRefresh && nextKey === playlistKeyRef.current) return
+        setStatus('loading')
+        await prepareLocalPlaylist(items, base, setProgress)
+        if (cancelled) return
         playlistKeyRef.current = nextKey
-        setPlaylist(items)
-
-        // Prefetch antecipado de todos os vídeos da playlist em background para Blob Cache
-        items.forEach((item) => {
-          if (item.url) void prefetchMediaBlob(resolveMediaUrl(item.url, base))
-        })
-
-        if (!isRefresh) setIndex(0)
-        else setIndex((i) => (items.length ? i % items.length : 0))
+        setProgress(null)
+        if (!isRefresh) {
+          setPlaylist(items)
+          setOverlayUrl(nextOverlay)
+          setIndex(0)
+        } else {
+          // Nunca interrompe o vídeo exibido: aplica a nova grade apenas na próxima troca.
+          pendingPlaylistRef.current = items
+          pendingOverlayRef.current = nextOverlay
+        }
       } catch {
         if (cancelled || isRefresh) return
         setStatus('error')
@@ -226,9 +255,15 @@ export function TvProgramPlayer({
       return
     }
 
-    // Prefetch e resolução para blob local se disponível
-    void prefetchMediaBlob(playUrl).then((resolved) => {
-      if (!cancelled) setEffectiveSrc(resolved)
+    // A fonte só é liberada depois do download completo para o cache local.
+    void getCachedBlobUrl(playUrl).then((resolved) => {
+      if (!cancelled) {
+        if (resolved) setEffectiveSrc(resolved)
+        else {
+          setStatus('error')
+          onError?.()
+        }
+      }
     })
 
     return () => {
@@ -289,13 +324,10 @@ export function TvProgramPlayer({
     if (!el || !playUrl) return
     const onEnded = () => goNext()
     el.addEventListener('ended', onEnded)
-    const seconds = Math.max(8, Number(current?.duration) || 20)
-    const fallback = window.setTimeout(() => goNext(), seconds * 1000)
     return () => {
       el.removeEventListener('ended', onEnded)
-      window.clearTimeout(fallback)
     }
-  }, [playUrl, current?.duration, playlist.length])
+  }, [playUrl, playlist.length])
 
   const showLoader = !opened && status !== 'error'
 
@@ -330,10 +362,17 @@ export function TvProgramPlayer({
         <div className="tv-program-player__loader" role="status" aria-live="polite">
           <p>Carregando a TV</p>
           <span>
-            {playlist.length
+            {progress
+              ? `${progress.detail} (${progress.percent}%)`
+              : playlist.length
               ? `Abrindo vídeo ${index + 1} de ${playlist.length}`
               : 'Consultando a programação'}
           </span>
+          {progress ? (
+            <div className="tv-program-player__progress" aria-hidden="true">
+              <div className="tv-program-player__progress-bar" style={{ width: `${progress.percent}%` }} />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

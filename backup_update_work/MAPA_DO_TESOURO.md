@@ -368,6 +368,58 @@ Para garantir estabilidade em telas de atendimento sem falhas de buffer de víde
 
 **Diretriz de Operação Contínua:** Mídias de programação corporativa não devem depender de streaming contínuo da rede em computadores de baixo desempenho; o arquivo deve ser baixado integralmente para disco/cache local antes da reprodução, garantindo execução fluida e imune a oscilações de rede.
 
+### 12.2 Plano — execução íntegra da TV integrada aos painéis
+
+Situação identificada em 17/09/2026: os painéis web incorporam a TV por `/tv-player/`, que atua como proxy para `https://api.garca.sp.gov.br/tv/`. O player anterior podia iniciar pela URL remota enquanto o download ainda estava em curso e possuía avanço por temporizador. Em redes ou dispositivos mais lentos isso fazia um vídeo ser abandonado antes do encerramento.
+
+Implementação adotada:
+
+1. baixar e validar no cache local todos os itens da grade antes de liberar a reprodução;
+2. exibir progresso de sincronização e manter a tela de espera até a primeira mídia estar pronta;
+3. avançar vídeos exclusivamente pelo evento de término (`ended`), sem prazo fixo configurado;
+4. tratar atualização de programação como pendente e aplicá-la somente entre uma mídia e outra;
+5. manter o proxy same-origin do painel, para que o cache e a comunicação de prontidão continuem funcionando;
+6. preservar cópia dos arquivos do player antes de qualquer publicação e validar em um contêiner candidato antes da troca.
+
+Critérios de aceite:
+
+- nenhum vídeo da grade é iniciado por streaming parcial;
+- o vídeo atual chega ao fim antes da troca;
+- uma alteração da grade não corta a mídia em execução;
+- o painel continua disponível caso a sincronização de uma nova grade falhe;
+- o healthcheck do player consulta `127.0.0.1`, evitando falso estado `unhealthy` por IPv6.
+
+Evidências e reversão:
+
+- backup dos arquivos anteriores: `/home/semit/Documentos/deploy-backups/tv-player-complete-media-20260917`;
+- candidato validado na porta local `3051` antes da publicação;
+- reversão: restaurar os arquivos desse diretório para `/app/public` do contêiner `tv-semit`, sem reiniciar a API principal.
+
+### 12.3 Entrega — cliente instalável de TV e Senhas 1.1.0
+
+Em 17/09/2026, o cliente Electron para Windows e Linux recebeu o mesmo princípio de execução íntegra aplicado ao painel web, com foco adicional em computadores antigos.
+
+Alterações entregues:
+
+1. downloads passam a ser validados pelo tamanho esperado e só recebem o marcador de concluído após gravação integral;
+2. arquivos incompletos não são reutilizados; a sincronização os baixa novamente de forma segura;
+3. atualizações de grade ficam pendentes até o término da mídia atual;
+4. o perfil opcional **"Otimizar para computador antigo"** reduz pré-carregamento, efeitos visuais e operações não essenciais durante a reprodução;
+5. foram gerados os instaladores Windows e Linux, versão `1.1.0`.
+
+Publicação no painel de controle:
+
+- `https://api.garca.sp.gov.br/tv/admin.html` oferece `painel-tv-garca-windows-1.1.0.exe` e `painel-tv-garca-linux-1.1.0.deb`;
+- os dois arquivos foram conferidos por resposta HTTP 200 e tamanho publicado;
+- backup da página anterior: `/home/semit/Documentos/deploy-backups/tv-admin-desktop-release-20260917/admin.html`.
+
+Critérios de aceite:
+
+- a TV não alterna durante a execução de um vídeo;
+- a mídia só é exibida após download completo;
+- o modo de baixo recurso pode ser ativado sem trocar a programação nem as credenciais do display;
+- Windows e Linux baixam a versão atual diretamente pelo painel de controle.
+
 ## 13. Monitoramento e saúde
 
 Endpoints principais:

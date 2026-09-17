@@ -7,10 +7,10 @@ INSTALL_DIR="/opt/painel-tv-garca"
 BIN_SOURCE="$(dirname "$0")/dist/linux-unpacked"
 
 if [ ! -d "$BIN_SOURCE" ]; then
-  if [ -f "$(dirname "$0")/dist/painel-senhas-desktop-1.0.0.tar.gz" ]; then
+  if [ -f "$(dirname "$0")/dist/painel-senhas-desktop-1.1.0.tar.gz" ]; then
     echo "Extraindo tar.gz..."
     mkdir -p /tmp/painel-extract
-    tar -xzf "$(dirname "$0")/dist/painel-senhas-desktop-1.0.0.tar.gz" -C /tmp/painel-extract
+    tar -xzf "$(dirname "$0")/dist/painel-senhas-desktop-1.1.0.tar.gz" -C /tmp/painel-extract
     BIN_SOURCE="/tmp/painel-extract"
   else
     echo "Erro: Binários do Linux não encontrados em dist/"

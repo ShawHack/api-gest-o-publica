@@ -177,6 +177,29 @@ body {
   z-index: 1;
 }
 
+/* Perfil econômico: reduz repinturas, animações e composição da GPU. */
+.performance-low *,
+.performance-low *::before,
+.performance-low *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.performance-low .panel-layout {
+  background: var(--bg);
+}
+
+.performance-low .tv-frame,
+.performance-low .card-current-call {
+  box-shadow: none;
+}
+
+.performance-low .tv-watermark {
+  backdrop-filter: none;
+}
+
 .tv-watermark {
   position: absolute;
   top: 14px;

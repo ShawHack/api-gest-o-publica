@@ -7,6 +7,11 @@ Aplicativo oficial instalável para execução do Painel de Senhas e TV Corporat
 2. **Funcionamento Offline:** Se a internet oscilar, a programação de vídeos continua rodando sem interrupções.
 3. **Audio Ducking Automático:** Abaixa o volume da TV corporativa para 5% durante a fala de uma nova senha e restaura o volume automaticamente após o anúncio.
 4. **Modo Kiosk (Tela Cheia Nativa):** Abre em tela cheia e esconde o cursor do mouse em inatividade.
+5. **Modo TV / PC antigo:** reduz animações, sombras, transparências e pré-carga em memória; a reprodução continua usando somente arquivos já concluídos no disco.
+
+## Mídia recomendada para equipamentos antigos
+
+Publique preferencialmente vídeo MP4 com H.264/AAC, até 1280×720. Evite HEVC/H.265, 4K e bitrates excessivos, pois a decodificação dessas mídias pode exceder a capacidade de computadores antigos mesmo com o cliente otimizado.
 
 ---
 
@@ -26,13 +31,13 @@ npm start
 ```bash
 npm run build:win
 ```
-*O instalador gerado ficará em `dist/Painel TV Garça Setup 1.0.0.exe` e na versão `.exe` portátil.*
+*O instalador gerado ficará em `dist/Painel TV Garça Setup 1.1.0.exe` e na versão `.exe` portátil.*
 
 ### Para Linux (.deb e .AppImage):
 ```bash
 npm run build:linux
 ```
-*Os pacotes gerados ficarão em `dist/painel-senhas-desktop_1.0.0_amd64.deb` e `dist/Painel TV Garça-1.0.0.AppImage`.*
+*Os pacotes gerados incluem `.deb`, `.tar.gz` e `.zip` na pasta `dist/`.*
 
 ---
 

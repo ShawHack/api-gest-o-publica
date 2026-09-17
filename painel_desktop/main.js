@@ -42,6 +42,7 @@ function loadConfig() {
     speechVolume: 1.0,
     tvVolume: 1.0,
     kiosk: true,
+    lowResourceMode: false,
   }
   try {
     if (fs.existsSync(configPath)) {

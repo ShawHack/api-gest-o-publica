@@ -75,9 +75,12 @@ class MediaSyncManager {
           const filename = `${this.getHash(rawUrl)}${ext}`
           const targetPath = path.join(this.storageDir, filename)
           activeFileNames.add(filename)
+          activeFileNames.add(`${filename}.complete`)
 
-          // Baixar se não existir ou estiver corrompido/incompleto
-          const exists = fs.existsSync(targetPath) && fs.statSync(targetPath).size > 1024
+          // Arquivo só é reaproveitado quando recebeu marcador após download integral.
+          const exists = fs.existsSync(targetPath) &&
+            fs.existsSync(`${targetPath}.complete`) &&
+            fs.statSync(targetPath).size > 1024
           if (!exists) {
             console.log(`[MediaSync] Baixando mídia para cache local: ${rawUrl} -> ${filename}`)
             const downloaded = await this._downloadFile(rawUrl, targetPath)
@@ -121,7 +124,13 @@ class MediaSyncManager {
   loadLocalCacheFiles() {
     try {
       const files = fs.readdirSync(this.storageDir)
-      const valid = files.filter(f => !f.endsWith('.tmp') && !f.toLowerCase().endsWith('.png') && fs.statSync(path.join(this.storageDir, f)).size > 1024)
+      const valid = files.filter(f =>
+        !f.endsWith('.tmp') &&
+        !f.endsWith('.complete') &&
+        !f.toLowerCase().endsWith('.png') &&
+        fs.existsSync(path.join(this.storageDir, `${f}.complete`)) &&
+        fs.statSync(path.join(this.storageDir, f)).size > 1024,
+      )
       return valid.map((filename) => {
         const ext = path.extname(filename)
         return {
@@ -181,11 +190,22 @@ class MediaSyncManager {
     return new Promise((resolve) => {
       const tempPath = `${destPath}.tmp`
       const client = url.startsWith('https') ? https : http
+      let settled = false
+
+      const finish = (ok) => {
+        if (settled) return
+        settled = true
+        resolve(ok)
+      }
+
+      const discardTemp = () => {
+        try { fs.unlinkSync(tempPath) } catch {}
+      }
 
       const makeRequest = (currentUrl, redirects = 0) => {
         if (redirects > 5) {
           console.error('[MediaSync] Muitos redirecionamentos para:', url)
-          return resolve(false)
+          return finish(false)
         }
 
         const req = client.get(currentUrl, { timeout: 30000 }, (res) => {
@@ -198,43 +218,67 @@ class MediaSyncManager {
 
           if (res.statusCode !== 200) {
             console.error(`[MediaSync] Falha HTTP ao baixar: ${res.statusCode} para ${currentUrl}`)
-            return resolve(false)
+            return finish(false)
           }
 
           const fileStream = fs.createWriteStream(tempPath)
+          const expectedBytes = Number(res.headers['content-length'] || 0)
+          let receivedBytes = 0
+          let responseFailed = false
+
+          res.on('data', (chunk) => {
+            receivedBytes += chunk.length
+          })
+          res.on('aborted', () => {
+            responseFailed = true
+            fileStream.destroy()
+          })
+          res.on('error', () => {
+            responseFailed = true
+            fileStream.destroy()
+          })
           res.pipe(fileStream)
 
           fileStream.on('finish', () => {
             fileStream.close(() => {
               try {
                 // Renomeia o arquivo temporário para o destino definitivo após 100% de download
+                if (responseFailed || (expectedBytes > 0 && receivedBytes !== expectedBytes)) {
+                  console.error(`[MediaSync] Download incompleto: ${path.basename(destPath)} (${receivedBytes}/${expectedBytes || '?' } bytes)`)
+                  discardTemp()
+                  return finish(false)
+                }
+                // Substitui um arquivo legado sem marcador somente depois de concluir o novo.
+                try { fs.unlinkSync(destPath) } catch {}
                 fs.renameSync(tempPath, destPath)
+                fs.writeFileSync(`${destPath}.complete`, JSON.stringify({ bytes: receivedBytes, completedAt: Date.now() }))
                 console.log(`[MediaSync] Download 100% concluído: ${path.basename(destPath)}`)
-                resolve(true)
+                finish(true)
               } catch (err) {
                 console.error('[MediaSync] Erro ao renomear arquivo baixado:', err)
-                resolve(false)
+                discardTemp()
+                finish(false)
               }
             })
           })
 
           fileStream.on('error', (err) => {
             console.error('[MediaSync] Erro na gravação do arquivo:', err)
-            try { fs.unlinkSync(tempPath) } catch {}
-            resolve(false)
+            discardTemp()
+            finish(false)
           })
         })
 
         req.on('error', (err) => {
           console.error('[MediaSync] Erro na requisição de download:', err)
-          try { fs.unlinkSync(tempPath) } catch {}
-          resolve(false)
+          discardTemp()
+          finish(false)
         })
 
         req.on('timeout', () => {
           req.destroy()
-          try { fs.unlinkSync(tempPath) } catch {}
-          resolve(false)
+          discardTemp()
+          finish(false)
         })
       }
 
