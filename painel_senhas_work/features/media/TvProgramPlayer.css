@@ -9,7 +9,7 @@
 }
 
 .tv-program-player__video {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   background: #000;
 }

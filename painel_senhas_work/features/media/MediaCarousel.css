@@ -20,7 +20,8 @@
 .media-carousel__media {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #000;
   display: block;
 }
 
@@ -51,8 +52,9 @@
 }
 
 .media-carousel--portrait .media-carousel__media {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: #000;
 }
 
 .media-carousel--portrait.media-carousel--empty {
