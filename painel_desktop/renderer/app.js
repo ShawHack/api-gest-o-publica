@@ -43,7 +43,6 @@ const clockDisplay = document.getElementById('clockDisplay')
 const connectionBadge = document.getElementById('connectionBadge')
 const connectionText = document.getElementById('connectionText')
 const headerPanelTitle = document.getElementById('headerPanelTitle')
-const headerPanelSubtitle = document.getElementById('headerPanelSubtitle')
 
 const tvColumn = document.getElementById('tvColumn')
 const tvVideoPlayer = document.getElementById('tvVideoPlayer')
@@ -967,12 +966,32 @@ function closeSettings() {
   settingsModal.style.display = 'none'
 }
 
+function setFullscreenState(isFull) {
+  if (!appContainer) return
+  if (isFull) {
+    appContainer.classList.add('is-fullscreen')
+  } else {
+    appContainer.classList.remove('is-fullscreen')
+  }
+}
+
 btnSettings.addEventListener('click', openSettings)
 btnCloseModal.addEventListener('click', closeSettings)
 btnCancelSettings.addEventListener('click', closeSettings)
 
-btnFullscreen.addEventListener('click', () => {
-  if (window.desktopApi) window.desktopApi.toggleFullscreen()
+btnFullscreen.addEventListener('click', async () => {
+  if (window.desktopApi) {
+    const isFull = await window.desktopApi.toggleFullscreen()
+    setFullscreenState(isFull)
+  } else if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => setFullscreenState(true)).catch(() => {})
+  } else {
+    document.exitFullscreen().then(() => setFullscreenState(false)).catch(() => {})
+  }
+})
+
+document.addEventListener('fullscreenchange', () => {
+  setFullscreenState(Boolean(document.fullscreenElement))
 })
 
 btnForceSync.addEventListener('click', async () => {
@@ -1059,7 +1078,20 @@ settingsForm.addEventListener('submit', async (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.key === 'F2') {
     e.preventDefault()
-    openSettings()
+    if (settingsModal.style.display === 'flex') {
+      closeSettings()
+    } else {
+      openSettings()
+    }
+  } else if (e.key === 'F11') {
+    e.preventDefault()
+    if (window.desktopApi) {
+      window.desktopApi.toggleFullscreen().then(setFullscreenState)
+    } else if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setFullscreenState(true)).catch(() => {})
+    } else {
+      document.exitFullscreen().then(() => setFullscreenState(false)).catch(() => {})
+    }
   } else if (e.key === 'Escape' && settingsModal.style.display === 'flex') {
     closeSettings()
   }
@@ -1077,6 +1109,14 @@ async function init() {
     window.desktopApi.onPlaylistUpdated((newP) => {
       updatePlaylist(newP)
     })
+
+    if (window.desktopApi.onFullscreenChange) {
+      window.desktopApi.onFullscreenChange(setFullscreenState)
+    }
+
+    if (appConfig.kiosk) {
+      setFullscreenState(true)
+    }
   }
 
   if (appConfig.panelSlug) {

@@ -544,6 +544,15 @@ body {
   color: #ffffff;
 }
 
+/* MODO TELA CHEIA (FULLSCREEN) */
+.panel-layout.is-fullscreen {
+  padding: 1rem 1.4rem 0.8rem;
+}
+
+.panel-layout.is-fullscreen .panel-footer {
+  display: none !important;
+}
+
 /* MODAL DE CONFIGURAÇÃO */
 .modal-backdrop {
   position: fixed;

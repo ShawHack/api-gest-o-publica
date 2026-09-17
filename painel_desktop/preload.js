@@ -11,4 +11,9 @@ contextBridge.exposeInMainWorld('desktopApi', {
     ipcRenderer.on('playlist-updated', subscription)
     return () => ipcRenderer.removeListener('playlist-updated', subscription)
   },
+  onFullscreenChange: (callback) => {
+    const subscription = (_event, isFull) => callback(isFull)
+    ipcRenderer.on('fullscreen-change', subscription)
+    return () => ipcRenderer.removeListener('fullscreen-change', subscription)
+  },
 })

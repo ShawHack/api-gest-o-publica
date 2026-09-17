@@ -24,7 +24,7 @@
     "appId": "br.gov.sp.garca.paineldesktop",
     "productName": "Painel TV Garça",
     "directories": {
-      "output": "dist_build"
+      "output": "dist_out"
     },
     "win": {
       "target": [
