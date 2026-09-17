@@ -24,13 +24,20 @@
     "appId": "br.gov.sp.garca.paineldesktop",
     "productName": "Painel TV Garça",
     "directories": {
-      "output": "dist_out"
+      "output": "dist"
     },
+    "files": [
+      "main.js",
+      "preload.js",
+      "media-sync.js",
+      "renderer/**/*",
+      "package.json"
+    ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": ["x64"]
         },
         {
           "target": "portable",
@@ -49,7 +56,6 @@
     "linux": {
       "maintainer": "semit@garca.sp.gov.br",
       "target": [
-        "deb",
         "tar.gz",
         "zip"
       ],
