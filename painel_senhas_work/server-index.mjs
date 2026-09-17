@@ -631,19 +631,23 @@ async function proxyTvPlayer(req, res, url) {
 
   const relativePath = url.pathname.slice('/tv-player/'.length)
   const upstreamUrl = new URL(relativePath + url.search, TV_PLAYER_UPSTREAM)
+
+  const forwardHeaders = {
+    Accept: req.headers.accept || '*/*',
+    'Accept-Language': req.headers['accept-language'] || 'pt-BR',
+  }
+  if (req.headers.range) forwardHeaders.range = req.headers.range
+  if (req.headers['if-range']) forwardHeaders['if-range'] = req.headers['if-range']
+
   const response = await fetch(upstreamUrl, {
     method: req.method,
-    headers: {
-      Accept: req.headers.accept || '*/*',
-      'Accept-Language': req.headers['accept-language'] || 'pt-BR',
-    },
+    headers: forwardHeaders,
     redirect: 'follow',
   })
 
   const blockedHeaders = new Set([
     'connection',
     'content-encoding',
-    'content-length',
     'content-security-policy',
     'keep-alive',
     'transfer-encoding',
