@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Metadados Oficiais Semit TV -->
+    <title>Painel de Controle & Estúdio - SEMIT TV</title>
+    <meta name="title" content="Painel de Controle & Estúdio - SEMIT TV">
+    <meta name="description" content="Painel de Controle, Gestão de Players e Monitor de Programação - SEMIT TV">
+    
+    <!-- Open Graph / Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://api.garca.sp.gov.br/tv/admin.html">
+    <meta property="og:title" content="Painel de Controle & Estúdio - SEMIT TV">
+    <meta property="og:description" content="Painel de Gestão de Players e Monitor de Sincronização - SEMIT TV">
+    <meta property="og:site_name" content="SEMIT TV">
+
+    <link rel="stylesheet" href="css/design-system.css?v=20260824_01">
+    <link rel="stylesheet" href="css/admin.css?v=20260824_01">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Header Principal -->
+        <header class="admin-header">
+            <div class="admin-title-wrap">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #06b6d4); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div>
+                        <h1 style="margin: 0; font-size: 1.7rem; font-weight: 800; color: #fff; letter-spacing: -0.02em;">Painel de Controle & Estúdio SEMIT TV</h1>
+                        <p style="margin: 2px 0 0 0; color: var(--text-muted); font-size: 0.88rem;">Gestão de Players, Sincronização em Tempo Real com Xibo CMS (10.15.25.29) e Canais</p>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-nav-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <a id="link-download-apk" href="semit-tv-player.apk" download="semit-tv-player.apk" class="btn btn-secondary" style="border-color: #10b981; color: #34d399; background: rgba(16, 185, 129, 0.15); display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Baixar Aplicativo Android (APK) para Smart TV, TV Box e Totens">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    📲 Baixar APK (TV Box / Android)
+                </a>
+                <a id="link-top-senhas" href="https://api.garca.sp.gov.br/painel-senhas/admin" target="_blank" class="btn btn-secondary" style="border-color: #10b981; color: #34d399; background: rgba(16, 185, 129, 0.15); display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Abrir Painel de Chamada de Senhas (NovoSGA)">
+                    🎟️ Painel de Senhas
+                </a>
+                <a id="link-top-xibo" href="https://api.garca.sp.gov.br:8080/login" target="_blank" class="btn btn-secondary" style="border-color: #3b82f6; color: #60a5fa; background: rgba(59, 130, 246, 0.15); display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Abrir Painel Oficial do Xibo CMS (https://api.garca.sp.gov.br:8080)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    🚀 Abrir Painel Xibo CMS
+                </a>
+                <a id="link-open-main-player" href="./" target="_blank" class="btn btn-primary" style="text-decoration: none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Abrir SEMIT TV Player (Fullscreen)
+                </a>
+            </div>
+        </header>
+
+        <!-- SEÇÃO 1: CENTRAL DE PLAYERS / TELAS CRIADAS -->
+        <section class="glass-panel admin-section" style="border: 1px solid rgba(59, 130, 246, 0.4); background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95)); padding: 22px 24px;">
+            <div class="section-title" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.4rem;">🖥️</span>
+                    <div>
+                        <span style="font-size: 1.15rem; font-weight: 700; color: #fff;">Central de Displays & Players Cadastrados</span>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Visualize todos os players ativos, links diretos de reprodução e status de sincronização individual</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="button" class="btn btn-secondary" id="btn-refresh-displays-table" style="padding: 7px 12px; font-size: 0.82rem;" title="Recarregar Lista">
+                        🔄 Atualizar Lista
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btn-open-new-display-modal" style="padding: 7px 16px; font-size: 0.85rem; font-weight: 700; background: linear-gradient(135deg, #2563eb, #06b6d4);">
+                        + Novo Player / Display
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards Rápidos de Seleção de Display -->
+            <div id="displays-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 16px;">
+                <!-- Preenchido dinamicamente via JS -->
+            </div>
+
+            <!-- Tabela / Detalhes de Displays -->
+            <div class="displays-table-wrapper" style="margin-top: 16px; overflow-x: auto;">
+                <table class="displays-table" id="displays-table">
+                    <thead>
+                        <tr>
+                            <th>Display / Nome da TV</th>
+                            <th>ID & Chave Xibo (Hardware Key)</th>
+                            <th>Orientação & Formato</th>
+                            <th>Status no Xibo CMS</th>
+                            <th>Programação Ativa</th>
+                            <th>Última Sincronização</th>
+                            <th style="text-align: right;">Ações do Player</th>
+                        </tr>
+                    </thead>
+                    <tbody id="displays-table-body">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                                ⏳ Carregando lista de players cadastrados...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: MONITOR EM TEMPO REAL DA PROGRAMAÇÃO & SINCRONIZAÇÃO DO XIBO -->
+        <section class="glass-panel admin-section" style="border: 1px solid rgba(16, 185, 129, 0.35); background: linear-gradient(135deg, rgba(6, 78, 59, 0.25), rgba(15, 23, 42, 0.95)); padding: 22px 24px;">
+            <div class="section-title" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.4rem;">🔄</span>
+                    <div>
+                        <span style="font-size: 1.15rem; font-weight: 700; color: #fff;">Monitor de Sincronização da Programação (Tempo Real)</span>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+                            Monitorando o player: <strong id="monitor-target-display-name" style="color: #34d399; font-size: 0.95rem;">SEMIT</strong>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <!-- Abas de Alternância Rápida de Displays -->
+                    <div id="monitor-display-tabs" style="display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 8px;">
+                        <!-- Injetado dinamicamente -->
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btn-force-sync-now" style="background: linear-gradient(135deg, #059669, #10b981); padding: 8px 18px; font-weight: 700;">
+                        🔄 Forçar Sincronização Agora
+                    </button>
+                </div>
+            </div>
+
+            <!-- Painel de Status Dinâmico -->
+            <div class="sync-dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px;">
+                <div class="sync-stat-card">
+                    <div class="sync-stat-label">STATUS DA PROGRAMAÇÃO</div>
+                    <div class="sync-stat-value" id="sync-status-indicator">
+                        <span class="badge badge-emerald"><span class="pulse-dot"></span> Sincronizado & Ativo</span>
+                    </div>
+                </div>
+                <div class="sync-stat-card">
+                    <div class="sync-stat-label">ÚLTIMA SINCRONIZAÇÃO</div>
+                    <div class="sync-stat-value" id="sync-last-time" style="color: #60a5fa;">Verificando...</div>
+                </div>
+                <div class="sync-stat-card">
+                    <div class="sync-stat-label">MÍDIAS XIBO EM CACHE LOCAL</div>
+                    <div class="sync-stat-value" id="sync-media-count" style="color: #34d399;">0 arquivos</div>
+                </div>
+                <div class="sync-stat-card">
+                    <div class="sync-stat-label">COMUNICAÇÃO COM CMS</div>
+                    <div class="sync-stat-value" id="xibo-cms-ping-status">
+                        <span class="badge badge-emerald">Online (10.15.25.29)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de Progresso de Download Ativo -->
+            <div id="sync-progress-box" style="margin-top: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 14px 18px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="sync-progress-filename" style="font-size: 0.85rem; color: #60a5fa; font-weight: 600;">Baixando layout e mídias...</span>
+                    <span id="sync-progress-percentage" style="font-size: 0.85rem; font-weight: 800; color: #fff;">0%</span>
+                </div>
+                <div class="progress-track" style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                    <div id="sync-progress-bar-fill" class="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Galeria / Lista de Mídias do Xibo em Cache -->
+            <div style="margin-top: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 0.95rem; font-weight: 700; color: #fff;">📁 Arquivos de Mídia em Execução na TV (Cache Local):</span>
+                    <span style="font-size: 0.78rem; color: var(--text-muted);" id="media-cache-summary">Carregando mídias...</span>
+                </div>
+                <div id="cached-media-grid" class="cached-media-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                    <!-- Renderizado dinamicamente via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid Principal de Configurações do Display Selecionado -->
+        <div class="admin-grid" style="margin-top: 4px;">
+            <!-- Coluna de Configurações -->
+            <div class="admin-left-col">
+                <!-- Seletor de Display / TV em Edição -->
+                <div class="glass-panel admin-section" style="border: 1px solid rgba(59, 130, 246, 0.4); background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85));">
+                    <div class="section-title" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.25rem;">📺</span>
+                            <span style="font-size: 1.05rem; font-weight: 700; color: #fff;">Display em Edição / Configuração:</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <select id="activeDisplaySelect" class="form-control" style="width: auto; min-width: 240px; font-weight: 700; color: var(--accent-cyan); background: #0f172a; border-color: #3b82f6;">
+                                <option value="default">📺 Protótipo 01 (Principal / Default)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.35); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            🔗 <strong>Link Direto desta TV:</strong> <span id="display-direct-url" style="color: #60a5fa; font-family: monospace; font-weight: 600;">https://api.garca.sp.gov.br/tv/</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn btn-secondary" id="btn-copy-display-url" style="padding: 4px 10px; font-size: 0.75rem;">
+                                📋 Copiar Link
+                            </button>
+                            <a id="link-open-display-url" href="./" target="_blank" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;">
+                                ↗️ Abrir Player
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuração de Conexão com Servidor SEMIT TV (Xibo CMS) -->
+                <div class="glass-panel admin-section" style="margin-top: 24px;">
+                    <div class="section-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        <span>Parâmetros de Integração Xibo CMS (10.15.25.29)</span>
+                    </div>
+
+                    <!-- Campos Diretos de Conexão -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+                        <div class="form-group">
+                            <label for="cmsUrl" style="color: #60a5fa; font-weight: 700;">URL do Servidor SEMIT TV</label>
+                            <input type="text" id="cmsUrl" class="form-control" value="http://10.15.25.29" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="serverKey" style="color: #60a5fa; font-weight: 700;">🔑 Chave do Servidor (CMS Key)</label>
+                            <input type="text" id="serverKey" class="form-control" placeholder="Cole a Chave do Servidor aqui..." value="semit" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="displayName">Nome deste Display (TV)</label>
+                            <input type="text" id="displayName" class="form-control" value="Protótipo 01">
+                        </div>
+                        <div class="form-group">
+                            <label for="hardwareKey">Chave de Hardware (ID único Xibo)</label>
+                            <input type="text" id="hardwareKey" class="form-control" readonly style="opacity: 0.75; font-family: monospace;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" id="btn-save-top-config">
+                            💾 Salvar Parâmetros
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-register-xibo">
+                            ⚡ Registrar no Xibo CMS
+                        </button>
+                        <a id="btn-open-xibo-direct" href="https://api.garca.sp.gov.br:8080/login" target="_blank" class="btn btn-secondary" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            🌐 Abrir Login Xibo CMS
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Gerenciador de Grade de Slides Locais / Manuais -->
+                <div class="glass-panel admin-section" style="margin-top: 24px;">
+                    <div class="section-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Grade de Slides Manuais & Comunicados Extras</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Adicione comunicados ou avisos institucionais manuais que rodam em paralelo ou caso não haja vídeos no Xibo.
+                    </p>
+
+                    <!-- Lista de Itens Atuais -->
+                    <div id="playlist-items-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Renderizado dinamicamente via JS -->
+                    </div>
+
+                    <!-- Formulário de Novo Slide -->
+                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px dashed var(--border-glass); border-radius: var(--radius-sm); padding: 16px; margin-top: 10px;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 12px;">+ Adicionar Novo Slide Manual</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label for="newSlideTitle">Título Principal</label>
+                                <input type="text" id="newSlideTitle" class="form-control" placeholder="Ex: Campanha de Vacinação">
+                            </div>
+                            <div class="form-group">
+                                <label for="newSlideSubtitle">Subtítulo / Categoria</label>
+                                <input type="text" id="newSlideSubtitle" class="form-control" placeholder="Ex: Secretaria de Saúde">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="newSlideBody">Texto do Comunicado / Mensagem</label>
+                            <textarea id="newSlideBody" class="form-control" rows="2" placeholder="Digite a mensagem completa que será exibida no telão..."></textarea>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px;">
+                            <div class="form-group">
+                                <label for="newSlideTag">Tag de Destaque</label>
+                                <input type="text" id="newSlideTag" class="form-control" placeholder="AVISO, SAÚDE, RH" value="INFORMATIVO">
+                            </div>
+                            <div class="form-group">
+                                <label for="newSlideTheme">Tema de Cor de Fundo</label>
+                                <select id="newSlideTheme" class="form-control">
+                                    <option value="gradient-blue">Azul Corporativo</option>
+                                    <option value="gradient-purple">Roxo Moderno</option>
+                                    <option value="gradient-emerald">Verde Institucional</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newSlideDuration">Duração (segundos)</label>
+                                <input type="number" id="newSlideDuration" class="form-control" value="12" min="5" max="120">
+                            </div>
+                        </div>
+                        <div style="margin-top: 14px;">
+                            <button type="button" class="btn btn-primary" id="btn-add-slide">
+                                + Incluir na Grade da TV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modo de Exibição, Orientação e Resolução -->
+                <div class="glass-panel admin-section" style="margin-top: 24px;">
+                    <div class="section-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <span>Orientação da Tela & Formato de Exibição</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Configure o formato físico do display: TV Horizontal (16:9), Totem Vertical (9:16) ou Modo Tela Cheia.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                        <div class="form-group">
+                            <label for="orientationSelect" style="color: #60a5fa; font-weight: 700;">📐 Orientação do Display</label>
+                            <select id="orientationSelect" class="form-control" style="font-weight: 600;">
+                                <option value="landscape">📺 Horizontal 16:9 (Smart TVs e Monitores)</option>
+                                <option value="portrait">📱 Vertical 9:16 (Totens e Painéis Verticais)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="layoutSelect" style="color: #60a5fa; font-weight: 700;">🎨 Estilo de Layout</label>
+                            <select id="layoutSelect" class="form-control" style="font-weight: 600;">
+                                <option value="3-zone-corporate">Multi-Zona Corporativo (Vídeo + Clima + Ticker)</option>
+                                <option value="fullscreen-media">Tela Cheia Pura (Vídeo / Imagem 100%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px;">
+                        <div class="form-group">
+                            <label for="resolutionSelect">🖥️ Resolução Alvo</label>
+                            <select id="resolutionSelect" class="form-control">
+                                <option value="auto">Auto (Responsivo 100%)</option>
+                                <option value="1080p">Full HD (1920 x 1080)</option>
+                                <option value="4k">4K Ultra HD (3840 x 2160)</option>
+                                <option value="720p">HD (1280 x 720)</option>
+                                <option value="totem1080">Totem Vertical (1080 x 1920)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn btn-primary" id="btn-apply-layout-mode" style="width: 100%;">
+                                🎯 Aplicar Formato na TV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurações de Widgets (Clima e Feed de Notícias) -->
+                <div class="glass-panel admin-section" style="margin-top: 24px;">
+                    <div class="section-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        <span>Widgets de Apoio (Clima & Notícias)</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                        <div class="form-group">
+                            <label for="weatherCity" style="color: #60a5fa; font-weight: 700;">🌤️ Cidade para Previsão do Tempo</label>
+                            <input type="text" id="weatherCity" class="form-control" value="Garça">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newsFeedUrl" style="color: #60a5fa; font-weight: 700;">📰 URL do Feed RSS (Letreiro / Ticker)</label>
+                            <input type="text" id="newsFeedUrl" class="form-control" value="https://g1.globo.com/rss/g1/">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <button type="button" class="btn btn-primary" id="btn-save-bottom-config" style="padding: 10px 24px; font-weight: 700;">
+                            💾 Salvar Todas as Configurações
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna da Direita: Preview e Alerta de Emergência -->
+            <div class="admin-right-col">
+                <!-- Preview em Tempo Real -->
+                <div class="glass-panel admin-section">
+                    <div class="section-title" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span style="font-size: 1rem;">Preview da Tela</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button type="button" class="btn btn-secondary" id="btn-preview-pause" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 600;" title="Pausar / Retomar Preview">⏸️ Pausar</button>
+                            <button type="button" class="btn btn-secondary" id="btn-preview-refresh" style="padding: 4px 8px; font-size: 0.75rem;" title="Recarregar Preview">🔄</button>
+                            <button type="button" class="btn btn-secondary" id="btn-preview-16-9" style="padding: 4px 8px; font-size: 0.75rem;">16:9</button>
+                            <button type="button" class="btn btn-secondary" id="btn-preview-9-16" style="padding: 4px 8px; font-size: 0.75rem;">9:16</button>
+                        </div>
+                    </div>
+                    <div class="preview-frame" id="preview-frame-container" style="display: flex; justify-content: center; align-items: center; background: #050811;">
+                        <iframe id="preview-iframe" src="./" title="Preview do Player"></iframe>
+                    </div>
+                </div>
+
+                <!-- Teste de Alerta de Emergência -->
+                <div class="glass-panel admin-section" style="margin-top: 24px;">
+                    <div class="section-title" style="color: #f87171;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span>Transmissão de Emergência</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Ao acionar, todas as telas de TV exibirão imediatamente a mensagem de alerta com alarme visual em tela cheia.
+                    </p>
+                    <div class="form-group">
+                        <label for="emergencyMessage">Mensagem de Alerta</label>
+                        <textarea id="emergencyMessage" class="form-control" rows="3">Atenção: Exercício de evacuação preventiva do edifício em andamento.</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                        <button type="button" class="btn btn-danger" id="btn-trigger-alert">
+                            🚨 Disparar Alerta
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-clear-alert">
+                            Desativar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CADASTRAR NOVO PLAYER / DISPLAY -->
+    <div id="new-display-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.3rem;">📺</span>
+                    <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #fff;">Cadastrar Novo Player / Display</h3>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-new-display-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="margin-top: 14px;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                    Crie uma nova tela ou totem corporativo. O sistema gerará automaticamente o identificador único para o Xibo CMS.
+                </p>
+                <div class="form-group">
+                    <label for="modalDisplayName" style="color: #60a5fa; font-weight: 700;">Nome do Display (Ex: Recepção, Gabinete, UPA)</label>
+                    <input type="text" id="modalDisplayName" class="form-control" placeholder="Ex: Totem Entrada Principal" required>
+                </div>
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="modalDisplayId">Identificador na URL (Slug)</label>
+                    <input type="text" id="modalDisplayId" class="form-control" placeholder="Ex: totem_entrada" style="font-family: monospace;">
+                    <small style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Será acessível via: <code>https://api.garca.sp.gov.br/tv/?display=seu_id</code></small>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                    <div class="form-group">
+                        <label for="modalOrientation">Orientação Física</label>
+                        <select id="modalOrientation" class="form-control">
+                            <option value="landscape">📺 Horizontal (16:9)</option>
+                            <option value="portrait">📱 Vertical / Totem (9:16)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalLayout">Estilo Inicial</label>
+                        <select id="modalLayout" class="form-control">
+                            <option value="3-zone-corporate">Multi-Zona Corporativo</option>
+                            <option value="fullscreen-media">Tela Cheia Pura</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" id="btn-cancel-new-display">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-submit-new-display" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">
+                    🚀 Criar e Ativar Player
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js?v=20260824_01"></script>
+</body>
+</html>
