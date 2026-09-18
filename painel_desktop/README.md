@@ -31,13 +31,15 @@ npm start
 ```bash
 npm run build:win
 ```
-*O instalador gerado ficará em `dist/Painel TV Garça Setup 1.1.0.exe` e na versão `.exe` portátil.*
+*O instalador gerado ficará em `dist/Painel TV Garça Setup 1.1.1.exe` e na versão `.exe` portátil.*
 
 ### Para Linux (.deb e .AppImage):
 ```bash
 npm run build:linux
 ```
 *Os pacotes gerados incluem `.deb`, `.tar.gz` e `.zip` na pasta `dist/`.*
+
+Após instalar o `.deb`, abra pelo menu **Painel TV Garça** ou execute `painel-tv-garca` no terminal. Na primeira abertura, o aplicativo cria também um atalho na Área de Trabalho do usuário.
 
 ---
 

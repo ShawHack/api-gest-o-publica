@@ -7,200 +7,28 @@
 
 ## 1. Finalidade
 
-### COMTUR — NOTÍCIAS — FORMULÁRIO ESPECIALIZADO E UPLOAD DE CAPA/DESTAQUE (14/09/2026)
+### Plano oficial — integração do Mapa Turístico ao Turismo Garça e Pontos QR (15/09/2026)
 
-- [x] Implementar formulário especializado para o tipo Notícia (`type=news`) no Content Manager (`comtur-content-admin.html`), removendo aviso de formulário não configurado e eliminando o formulário genérico.
-- [x] Estruturar o formulário em 4 seções com fluxo otimizado:
-  1. **Dados da Notícia:** Título da notícia (`#newsTitle` - placeholder: *Ex.: Garça recebe novo evento turístico neste fim de semana*), Slug auto-gerado (`#newsSlug` - ex: *garca-recebe-novo-evento-turistico*), Resumo / Chamada (`#newsSummary` - com contador dinâmico de 250 caracteres `#newsSummaryCount`) e Conteúdo completo (`#newsBody`).
-  2. **Imagem de Capa & Destaque (Obrigatória para Publicação):**
-     - Dropzone interativa com suporte a drag-and-drop e seleção de arquivos (`#newsCoverFileInput`, aceita JPG, PNG, WEBP até 10 MB).
-     - Preview visual imediato (`#newsCoverPreview`) com exibição da imagem (`#newsCoverImgDisplay`), nome do arquivo, tamanho formatado e botões `[ Trocar imagem ]` e `[ Remover ]` com confirmação.
-     - Metadados da imagem: Crédito / Autor da foto (`#newsPhotoCredit`), Legenda da imagem (`#newsPhotoCaption`) e Texto alternativo / Acessibilidade (`#newsPhotoAlt`).
-     - Integração com endpoint de upload do storage existente (`/api/comtur/admin/media/upload`).
-     - Validação de obrigatoriedade: salva como Rascunho (`draft`) sem imagem; bloqueia envio para Revisão (`review`) ou Publicação (`published`) exibindo `"Adicione uma imagem de capa antes de publicar a notícia."`.
-     - Imagem única reutilizada para capa da matéria, miniatura dos cards e destaques ("Em evidência") sem duplicar uploads.
-  3. **Informações da Publicação:** Data da publicação (`#newsPublishedAt`), Autor / Responsável (`#newsAuthor`), Categoria temática (`#newsCategory`: *Turismo, Eventos, COMTUR, Cultura, Gastronomia, Meio Ambiente, Desenvolvimento Turístico, Institucional, Outros*) e Local / referência (`#newsLocation`).
-  4. **Publicação:** Checkbox de destaque (`#newsFeatured` - "Exibir em evidência / Destaque"), botões de ação (`💾 Salvar Rascunho`, `🔍 Enviar para Revisão`, `🚀 Publicar Imediatamente`, `📦 Arquivar Notícia`) e badges de status.
-- [x] Especializar a coluna lateral (Sidebar List):
-  - Título: `NOTÍCIAS`
-  - Botão: `+ Nova notícia`
-  - Busca: `Buscar notícia...`
-  - Cards com miniatura/thumbnail da capa (`<img class="comtur-item-thumb">` ou ícone fallback `📰`), título, categoria, data formatada em pt-BR e status badge.
-  - Mensagens de lista vazia ajustadas ao gênero feminino: `"Nenhuma notícia cadastrada."` / `"Nenhuma notícia encontrada."` / `"Não foi possível carregar as notícias."`.
-- [x] Edição de Notícia:
-  - Carrega todos os campos e mantém a imagem existente (`newsCoverFile`) e preview sem apagá-la se o usuário não selecionar nova imagem.
-  - Remoção de imagem com confirmação antes de limpar o preview.
-- [x] Validação e Testes Automatizados:
-  - Testes unitários e de simulação DOM em `scratch/test-news-specialized.js` cobrindo ciclo completo de rascunho, bloqueio sem capa, publicação com capa, edição com retenção de imagem e renderização de miniaturas.
-  - Regressão de 100% de sucesso nos outros 16 tipos de conteúdo (`test-all-17-types.js`).
+**Objetivo:** tornar o catálogo do portal `/turismo/` a fonte oficial dos locais turísticos, incorporar a visualização cartográfica e vincular QR Codes aos locais, sem duplicar cadastros nem perder os 41 pontos do mapa legado.
 
-### COMTUR — PRESTAÇÃO DE CONTAS — REPOSITÓRIO DOCUMENTAL (14/09/2026)
+1. [x] Inventariar e exportar os 41 pontos, fotos e categorias do mapa legado; registrar contagens e inconsistências sem alterar dados.
+2. [x] Ampliar o conteúdo turístico com localização estruturada, coordenadas, origem/migração e configuração QR; manter compatibilidade com conteúdos COMTUR existentes.
+3. [x] Criar migração idempotente: simulação obrigatória, importação inicial como `draft`, chave de origem única e relatório de itens ignorados/conflitantes.
+4. [x] Criar página pública estável `/turismo/local/{slug}` e API pública por slug; QR nunca deve apontar para ObjectId ou URL administrativa.
+5. [x] Incorporar mapa ao portal Turismo Garça usando somente locais publicados com coordenadas válidas; filtros e lista acessível devem funcionar sem depender apenas do mapa visual.
+6. [ ] Substituir o formulário genérico “Ponto QR” por seção do local: habilitação, identificação da placa, situação, instalação, manutenção e geração PNG/PDF.
+7. [ ] Preservar `/mapaturistico/` e páginas antigas durante homologação; mapear redirecionamentos por ID para o slug novo e só ativá-los após revisão/publicação dos registros.
+8. [ ] Validar permissões centrais `admin`, `admin_comtur` e `admin-comtur`, testes, backup, rollback e publicação gradual; documentar evidências e pendências aqui.
 
-- [x] Transformar "Prestação de Contas" (`accountability`) em um Repositório Documental especializado no Content Manager (`comtur-content-admin.html`), eliminando completamente o formulário genérico de publicação editorial.
-- [x] Implementar 5 seções estruturadas no formulário especializado:
-  1. **Identificação da Prestação de Contas:** Título do documento (`#accTitle` - ex: *Prestação de Contas — 1º Quadrimestre de 2026*), Tipo do documento (`#accDocType`: *Prestação de Contas, Relatório Financeiro, Relatório de Execução, Demonstrativo, Balancete, Relatório de Atividades, Parecer, Outro*), Exercício / Ano (`#accYear` - min 1990, max 2100), Resumo / Observação opcional (`#accSummary`) e slug auto-gerado (`#accSlug`).
-  2. **Período de Referência:** Tipo de período (`#accPeriodType`: *Quadrimestral, Mensal, Bimestral, Trimestral, Semestral, Anual, Período personalizado*), Identificação/Referência dinâmica do período (`#accPeriodRefGroup` / `#accPeriodRef`: *1º Quadrimestre, 2º Quadrimestre, 3º Quadrimestre*, etc.) e campos de Data inicial (`#accStartDate`) / Data final (`#accEndDate`) para período personalizado.
-  3. **Data do Documento:** Data do documento / publicação oficial (`#accDocumentDate`) com date picker padrão.
-  4. **Arquivo da Prestação de Contas (PDF Principal):** Upload exclusivo de arquivo PDF com validação no frontend (.pdf, application/pdf, não vazio, máx. 20 MB), card de preview visual com ícone 📄, nome do arquivo, tamanho formatado (ex: `PDF | 22,07 MB`), botões de ação Visualizar 👁️, Substituir 🔄 e Remover 🗑️, integrado ao endpoint de upload (`/api/comtur/admin/media/upload`) sem base64.
-  5. **Publicação:** Data de publicação (`#accPublishDate`), workflow de publicação (Salvar Rascunho, Enviar para Revisão, Publicar e Arquivar) e status badges.
-- [x] Especializar a coluna lateral (Sidebar List):
-  - Título: `PRESTAÇÕES DE CONTAS`
-  - Botão: `+ Nova prestação`
-  - Busca: `Buscar prestação...`
-  - Cards dedicados com ícone 📊, Título do documento, Exercício / Tipo de documento / Período de referência, badge de status (`Rascunho`, `Publicado`, etc.) e indicador `PDF ANEXO` / `SEM PDF`.
-- [x] Portal Público de Turismo (`/turismo/prestacao-contas` e `/turismo/comtur`):
-  - Criar `AccountabilityCard` com ícone de PDF, título oficial, data de publicação, período de referência, tamanho formatado do arquivo e botões diretos de `[ VISUALIZAR ]` e `[ BAIXAR ]`.
-  - Criar `AccountabilityRepositoryBlock` com área `BUSCAR DOCUMENTOS`, filtros por Nome, Tipo de documento, Período, alternância Ano vs Intervalo de datas (Data inicial / Data final) e botão `BUSCAR`.
-  - Contador dinâmico de resultados (`X arquivos encontrados`).
-  - Ordenação decrescente: documentos mais recentes primeiro por exercício e data.
-  - Tratamento de estados vazios ("Nenhuma prestação de contas encontrada." e "Nenhum documento encontrado para os filtros informados.") e erro de API.
-- [x] Preservar integralmente todas as demais categorias sem regressão.
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`, `/public/turismo/`).
+**Regras de segurança e continuidade:** nenhuma importação direta como `published`; não apagar nem editar a coleção `pontos_turisticos`; não substituir URLs antigas antes de existir correspondência validada; não gerar QR para rascunho; registrar auditoria das mutações; preservar uploads e base única de usuários.
 
-### COMTUR — LEGISLAÇÃO — REPOSITÓRIO DOCUMENTAL ESPECIALIZADO (14/09/2026)
+**Estado inicial verificado:** mapa legado funcional em `/mapaturistico/`, 41 pontos ativos e administração exclusiva de `admin`. Portal `/turismo/` funcional, mas catálogo público sem atrativos; banco COMTUR contém 2 conteúdos de governança. O mapa ainda é acessado por link externo no portal novo. O formulário `qr_point` é genérico e não deve ser usado como cadastro paralelo.
 
-- [x] Transformar "Legislação" (`legislation`) em um Repositório Documental estruturado no Content Manager (`comtur-content-admin.html`), eliminando a semântica genérica de publicação editorial de notícias/artigos.
-- [x] Reconstruir o cadastro com 6 seções especializadas:
-  1. **Dados do Documento:** Título oficial do documento (`#legisTitle`), Tipo de documento (`#legisDocType`: *Lei, Lei Complementar, Decreto, Portaria, Resolução, Regimento Interno, Deliberação, Instrução Normativa, Ato, Edital, Outro*), Número da norma (`#legisNumber`), Ano (`#legisYear`), Número completo / identificação oficial (`#legisOfficialIdentifier`), Órgão responsável (`#legisResponsibleBody`), Slug auto-gerado (`#legisSlug`) e Ementa / Resumo oficial (`#legisSummary`).
-  2. **Datas do Documento:** Data do documento (`#legisDocumentDate`), Data de publicação oficial (`#legisPublicationDate`), Data de início da vigência (`#legisEffectiveFrom`), Data de término da vigência (`#legisEffectiveUntil`) e Situação jurídica da norma (`#legisLegalStatus`: *Vigente, Alterado, Revogado, Suspenso, Sem informação*).
-  3. **Arquivo PDF (Essencial):** Upload exclusivo de PDF com validação no frontend (extensão `.pdf`, MIME `application/pdf`, tamanho máximo 20 MB, não vazio), card de visualização de anexo com nome original, tamanho formatado (ex: `2,4 MB`), data de envio, título para download, botões Visualizar PDF 👁️, Substituir 🔄 e Remover 🗑️ (sem base64 no banco, integrado ao storage de mídia).
-  4. **Classificação e Assuntos:** Categoria temática (`#legisCategory`: *COMTUR, Fundo Municipal de Turismo, Turismo, Eventos, Planejamento, Regionalização, Administração, Orçamento, Outro*), chips estruturados de tags (`#legisTagsChips`: *Conselho, FUMTUR, Plano Municipal, Mapa do Turismo, Cadastur, Governança, Legislação Turística, Fundo Municipal, Normativa, Eleições, Regimento*) e tags adicionais (`#legisCustomTags`).
-  5. **Documentos Relacionados:** Gestão relacional por ID com outras normas cadastradas (`#legisRelatedDocsList`, `#legisRelationTypeSelect`, `#legisRelatedDocSelect`: *Altera, Alterado por, Revoga, Revogado por, Regulamenta, Regulamentado por, Regimento relacionado, Plano relacionado, Correlato*).
-  6. **Publicação:** Data de publicação, flags "Exibir no Portal Público de Legislação" (`#legisShowOnPortal`), "Documento em destaque no repositório" (`#legisFeatured`) e botões de ação (Salvar Rascunho, Enviar para Revisão, Publicar Documento e Arquivar).
-- [x] Especializar a coluna lateral (Sidebar List):
-  - Título: `LEGISLAÇÃO`
-  - Botão: `+ Novo documento`
-  - Busca: `Buscar documento legal...`
-  - Cards dedicados com Tag de Tipo de documento, Número completo/ano em destaque (ex: `LEI Nº 5.432/2026`), Ementa, Data do documento formatada em pt-BR, Status badge e Indicador de PDF anexado (`📄 PDF | 2,4 MB`).
-- [x] Preparar Repositório Público de Legislação no portal (`/turismo/legislacao` e `/turismo/comtur`):
-  - Busca por nome/termo (`q`).
-  - Filtro por Tipo de documento (Todos, Lei, Decreto, etc.).
-  - Filtro por período com toggle Ano vs Intervalo de datas.
-  - Filtro por Categoria temática.
-  - Cards estruturados com ícone PDF, número/ano, ementa, data, tipo, tamanho do arquivo e botões diretos de Visualizar e Baixar PDF.
-  - Tratamento de estado vazio ("Nenhum documento encontrado para os filtros informados.") e erro de API.
-- [x] Atualizar helper de filtros da API pública (`publicContentFilter` em `comtur-content.js`) para suportar `year`, `docType`, `category`, `startDate`, `endDate`, `q`/`search`.
-- [x] Preservar integralmente todas as demais categorias sem qualquer alteração indesejada ou quebra de APIs.
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`, `/helpers/comtur-content.js`, `/public/turismo/`).
+**Execução em 15/09/2026:** inventário JSON e cópia dos arquivos foram guardados em `/home/semit/Documentos/deploy-backups/tourism-map-20260915/`. A simulação encontrou 41 pontos aptos, zero conflitos e zero avisos. A migração criou 41 registros exclusivamente como `draft`; uma segunda simulação encontrou zero criações e 41 itens já reconhecidos, comprovando idempotência. O legado permaneceu com 41 pontos e continua público.
 
-**Resultado:** Concluído e publicado em 14/09/2026. A categoria Legislação foi integralmente transformada em um repositório documental especializado e transparente.
+A API recebeu consulta cartográfica pública `GET /api/comtur/map/locations`, limitada a locais publicados com coordenadas válidas, resolução controlada do ID legado e administração do ciclo físico de QR vinculada ao próprio local. Foram implantadas a ficha estável `/turismo/local/{slug}` e a página `/turismo/mapa/`, com busca, categorias, marcadores e lista acessível. O botão “Ver mapa” do portal passou a usar a URL nova; durante a revisão, a página oferece acesso explícito ao legado. A API voltou `healthy`; enquanto os registros aguardam revisão, o endpoint público retorna lista vazia por desenho de segurança. Nenhum ponto foi publicado automaticamente e nenhum QR foi ativado.
 
-### COMTUR — MEMBROS DO CONSELHO — CADASTRO ESPECIALIZADO (14/09/2026)
-
-- [x] Transformar "Membro do Conselho" (`council_member`) em uma entidade própria e estruturada no Content Manager (`comtur-content-admin.html`), eliminando a semântica errada de formulário genérico de documento/notícia/artigo.
-- [x] Reconstruir o cadastro com 8 seções estruturadas e especializadas:
-  1. **Identificação do Conselheiro:** Layout em split `[FOTO/AVATAR] [DADOS DO MEMBRO]` com avatar circular ~120x120px, fallback com ícone padrão `👤`, preview imediato após upload (JPG, PNG, WEBP), substituição e remoção com restauração do ícone padrão. Campos: Nome completo (`#councilName`), Nome para exibição pública (`#councilDisplayName`), Cargo/Função no COMTUR com opções estruturadas (`Presidente`, `Vice-Presidente`, `Secretário(a)`, `Conselheiro(a)`, `Outro`), Tipo de representação (`Titular`, `Suplente`), Slug auto-gerado a partir do nome e Texto alternativo de acessibilidade para a foto com default automático `Foto de {nome}`.
-  2. **Representação Institucional:** Entidade / Órgão representado (`#councilOrganization`), Segmento representado com opções padronizadas do COMTUR (`Poder Público`, `Meios de Hospedagem`, `Gastronomia`, `Comércio`, `Agências / Operadoras`, `Guias de Turismo`, `Cultura`, `Meio Ambiente`, `Turismo Rural`, `Eventos`, `Educação`, `Associação / Sociedade Civil`, `Outro`) e Cargo na entidade representada (`#councilOrganizationRole`).
-  3. **Mandato:** Data de início do mandato (`#councilTermStart`), Data de término do mandato (`#councilTermEnd`), Situação institucional (`Em exercício`, `Mandato encerrado`, `Afastado`, `Substituído`), flag "Membro atual da composição ativa do COMTUR" (`#councilIsCurrent`) e relacionamento dinâmico por ID com suplente/titular relacionado (`#councilRelatedMemberSelect`).
-  4. **Informações do Membro:** Mini biografia / Apresentação institucional (`#councilBio`), Formação / Área de atuação (`#councilProfessionalArea`) e Experiência relacionada ao turismo (`#councilTourismExperience`).
-  5. **Contato Institucional:** E-mail institucional público (`#councilPublicEmail`), Telefone institucional público (`#councilPublicPhone`) e flag de controle de privacidade "Exibir dados de contato no Portal Público" (`#councilShowPublicContact`).
-  6. **Exibição no Portal:** Ordem de exibição (`#councilDisplayOrder`), flag "Exibir no Portal Público de Turismo" (`#councilShowOnPortal`) e flag "Destacar na composição do Conselho" (`#councilFeaturedTop`).
-  7. **Nomeação / Designação Oficial:** Ato de nomeação / Decreto (`#councilAppointmentAct`), Data do ato oficial (`#councilAppointmentDate`), Link direto para documento (URL) e relacionamento por ID com documentos cadastrados na categoria LEGISLAÇÃO (`#councilLegislationSelect`).
-  8. **Publicação:** Data de publicação (`#councilPublishDate`), workflow editorial (Salvar Rascunho, Enviar para Revisão, Publicar Imediatamente e Arquivar) e status badges.
-- [x] Especializar a coluna lateral (Sidebar List):
-  - Título: `MEMBROS DO CONSELHO`
-  - Botão: `+ Novo membro`
-  - Busca: `Buscar conselheiro...`
-  - Cards dedicados com mini avatar circular (ou fallback `👤`), Nome do conselheiro em destaque, Cargo/Função no COMTUR + Tipo (Titular/Suplente), Entidade/Órgão e badge de status institucional (`EM EXERCÍCIO`, etc.).
-- [x] Preservar integralmente todas as outras categorias (`event`, `attraction`, `gastronomy`, `news`, `lodging`, `route`, `shopping`, `service`, `legislation`, `work_plan`, `accountability`) sem qualquer alteração indesejada ou quebra de APIs.
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e validar simulação DOM e persistência.
-
-**Resultado:** Concluído e publicado em 14/09/2026. A categoria Membros do Conselho foi totalmente transformada em entidade representativa especializada de governança turística.
-
-### COMTUR — Formulário Administrativo Editorial Especializado para "Notícias" (14/09/2026)
-
-- [x] Inspecionar padrão visual e arquitetural dos formulários especializados existentes (`comtur-content-admin.html`), incluindo seções numeradas, grids de 2 colunas, seleção de tags, relacionamentos com entidades por ID, galeria de imagens e SEO recolhível.
-- [x] Implementar formulário editorial completo para a categoria `Notícias` (`news`) com 10 seções estruturadas:
-  1. Informações da Notícia (título, subtítulo/linha fina, slug auto-gerado, categoria editorial com 13 opções, data de publicação, resumo/chamada, conteúdo completo formatado).
-  2. Publicação e Destaques (checkbox "Fixar como manchete principal" e "Destacar em evidência na home").
-  3. Autoria e Fonte (autor/redator, órgão responsável: Prefeitura, Turismo, COMTUR, Cultura, Secom; fonte da informação e créditos).
-  4. Local e Atrativo Relacionado (ponto de referência em texto e seletor dinâmico vinculado por ID de Atrativo Turístico cadastrado).
-  5. Conteúdos e Eventos Relacionados (seletor dinâmico vinculado por ID de Evento oficial e relacionamento multi-entidades com Roteiros, Gastronomia, Hospedagens, Compras, Serviços).
-  6. Imagem de Capa e Mídia Principal (galeria com upload múltiplo, capa, texto alternativo/acessibilidade da capa, crédito/fotógrafo e legenda).
-  7. Documentos e Links Complementares (gerenciador dinâmico de anexos para programações em PDF, editais, regulamentos, folders e links externos).
-  8. Tags Editoriais (chips estruturados de tags sugeridas: Cerejeiras, Turismo rural, Eventos, Gastronomia, Família, Natureza, Cultura, COMTUR, Ecoturismo, Notícias, Infraestrutura, Artesanato; e campo de tags personalizadas adicionais).
-  9. SEO e Compartilhamento (área recolhível com título SEO, meta description e mensagem de compartilhamento com fallback inteligente automático).
-  10. Pré-visualização da Notícia (modal com prévia visual realista do layout público da notícia antes da publicação).
-- [x] Implementar testes unitários automatizados para o tipo `news` em `comtur-content.test.js`.
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e sem reinício de serviços.
-- [x] Validar 100% dos 42 elementos HTML e JS em script de verificação no servidor remoto.
-
-**Resultado:** Concluído e publicado em 14/09/2026. O formulário especializado de Notícias transforma o cadastro em uma redação editorial moderna conectada a todo o ecossistema turístico.
-
-### COMTUR — SERVIÇOS — FORMULÁRIO ESPECIALIZADO (14/09/2026)
-
-- [x] Reconstruir integralmente o formulário administrativo especializado para a categoria `Serviços ao Turista` (`service`) no Content Manager (`comtur-content-admin.html`), seguindo rigorosamente o design system unificado e as diretrizes do COMTUR.
-- [x] Implementar 14 seções estruturadas com componentes padronizados:
-  1. **Dados do Serviço:** Nome do serviço, Categoria centralizada com 25 opções (Informações Turísticas, Agência de Turismo, Guia de Turismo, Transporte, Rodoviária, Táxi, Transporte por aplicativo, Locadora de Veículos, Bicicletas / Mobilidade, Posto de Combustível, Saúde, Hospital, Pronto Atendimento, Farmácia, Segurança, Polícia, Bombeiros, Banco, Caixa Eletrônico, Correios, Estacionamento, Banheiro Público, Internet / Wi-Fi, Assistência Automotiva, Outros), Identificador na URL (slug), Resumo do serviço (com contador 250 caracteres), Descrição completa / Informações complementares e flags checkbox (Em evidência no portal, Serviço oficial / público, Atendimento 24 horas, Atendimento ao turista, Serviço de emergência).
-  2. **Localização e Endereço:** Flag "Serviço sem atendimento presencial", Logradouro, Número, Complemento, Bairro / Região, CEP, Cidade / UF (Ipojuca / PE), Ponto de referência, Latitude e Longitude GPS.
-  3. **Contato e Atendimento:** Telefone principal, Telefone secundário, WhatsApp, E-mail, Site oficial, Canal principal de atendimento (Telefone, WhatsApp, Presencial, Site, Aplicativo, E-mail), Instagram e Facebook.
-  4. **Telefones Importantes e Emergência:** Telefone de emergência / discagem rápida (sem hardcoding), Telefone de plantão, flags "Atendimento de emergência" e "Plantão 24 horas".
-  5. **Horário de Funcionamento:** Atendimento 24 horas (toggle sincronizado com fonte única de verdade) + Tabela semanal Segunda a Domingo + Feriados com 1º turno, 2º turno e toggle "Fechado", além de Observações sobre horários.
-  6. **Serviços e Facilidades:** Checkbox-cards visíveis e interativos (Atendimento telefônico, Atendimento por WhatsApp, Atendimento presencial, Atendimento online, Atendimento 24 horas, Atendimento em português, Atendimento em outros idiomas, Estacionamento, Estacionamento PCD, Wi-Fi gratuito, Banheiro, Banheiro acessível, Ar-condicionado, Área de espera, Aceita cartão, Aceita Pix, Cão-guia permitido, Acesso para ônibus / vans) e campo "Outras facilidades / serviços".
-  7. **Informações Específicas por Categoria (Condicional):** Seção inteligente que adapta sub-seções conforme a categoria selecionada sem vazamento visual:
-     - *7.1 Informações Turísticas / CAT:* Mapas turísticos, Folhetos, Informações sobre atrativos, eventos, hospedagem, gastronomia, Orientação de roteiros, Atendimento a grupos e excursões.
-     - *7.2 Guia / Agência de Turismo:* Passeios guiados, City tour, Turismo rural, Turismo cultural, Ecoturismo, Turismo de aventura, Grupos, Excursões, Transporte incluso, Necessita reserva, Número Cadastur, Idiomas atendidos, Área de atuação, Link de reserva.
-     - *7.3 Transporte:* Táxi, Transporte coletivo, Transporte turístico, Transfer, Locação de automóveis, Locação de bicicletas, Transporte acessível, Atendimento 24h, Reserva antecipada, Área atendida, Link de agendamento, Observações sobre tarifas.
-     - *7.4 Saúde:* Atendimento de urgência, Atendimento de emergência, Plantão 24h, Farmácia, Ambulância, Atendimento médico, Atendimento pediátrico, Atendimento acessível, Tipo de atendimento, Orientações ao visitante.
-     - *7.5 Segurança e Emergência:* Emergência 24h, Atendimento presencial, Atendimento telefônico, Apoio ao turista, Telefone de emergência direto, Telefone da unidade, Área/abrangência.
-     - *7.6 Banco / Caixa Eletrônico:* Caixa eletrônico, Saque, Depósito, Atendimento presencial, Caixa 24h, Acessível, Instituição / Rede de atendimento.
-     - *7.7 Posto de Combustível:* Gasolina, Etanol, Diesel, GNV, Loja de conveniência, Calibrador, Banheiro, Atendimento 24h, Recarga de veículo elétrico.
-  8. **Acessibilidade:** Checkbox-cards PCD (Entrada acessível, Acesso para cadeira de rodas, Rampa de acesso, Vaga PCD, Banheiro acessível, Elevador acessível, Piso tátil, Sinalização tátil, Sinalização em Braille, Recursos visuais, Recursos auditivos, Cão-guia permitido, Atendimento prioritário) e Observações sobre acessibilidade.
-  9. **Idiomas de Atendimento:** Checkbox-cards (Português, Inglês, Espanhol, Libras, Outros) e campo Outros idiomas.
-  10. **Conteúdos Relacionados:** Multi-seleção de relacionamentos por ID com Atrativos, Eventos, Roteiros, Hospedagens, Gastronomia e Comércios próximos.
-  11. **Imagens e Mídia:** Galeria de fotos (fachada, unidade, logotipo, estrutura) com foto de capa, textos alternativos, legendas, créditos e Vídeo institucional/apresentação (YouTube / Vimeo).
-  12. **Documentos e Links Úteis:** Gerenciador dinâmico de links e documentos anexos (Tabela de horários, Mapas de linhas, Guias, Formulários, Aplicativo oficial) com título, tipo, URL/arquivo e descrição.
-  13. **SEO e Compartilhamento:** Título SEO, Meta description e Texto para compartilhamento com auto-preenchimento inteligente a partir do nome e resumo.
-  14. **Publicação:** Data de publicação, destaque em evidência principal e botões de ação editorial (Salvar Rascunho, Enviar para Revisão, Publicar Imediatamente e Arquivar).
-- [x] Implementar fonte única de verdade para atendimento 24 horas (`syncService24h`), sincronizando `is24h` entre Selos, Horários e Facilidades.
-- [x] Garantir preservação estrita de IDs existentes, slugs, registros antigos, compatibilidade retroativa com APIs e não-regressão em outras categorias (`gastronomy`, `attraction`, `event`, `lodging`, `route`, `shopping`, `news`).
-- [x] Executar e aprovar testes unitários e de simulação (`test-service-pure.js`).
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e sem reinício de serviços.
-
-**Resultado:** Concluído e publicado em 14/09/2026. O formulário especializado de Serviços ao Turista agora possui modelagem estruturada, campos condicionais por categoria sem poluição visual e sincronismo total de estado.
-
-### COMTUR — COMPRAS — FORMULÁRIO ESPECIALIZADO (14/09/2026)
-
-- [x] Inspecionar padrão visual e arquitetural dos formulários especializados existentes (`comtur-content-admin.html`), incluindo seções numeradas, cards, grids de 2 colunas, horários semanais com toggle 24h, contato ampliado, chips de seleção, produtos locais, acessibilidade, facilidades para turistas, relacionamentos com entidades por ID e upload de galeria.
-- [x] Reconstruir formulário administrativo especializado completo para a categoria `Compras` (`shopping`) com 13 seções estruturadas:
-  1. **Dados do Comércio:** Nome do estabelecimento, Categoria com 17 opções (Artesanato, Souvenirs, Moda, Calçados, Presentes, Produtos locais, Produtos rurais, Alimentos e bebidas, Cafeteria / Doces, Livraria, Decoração, Conveniência, Centro comercial, Feira, Galeria, Mercado, Outro), Slug URL, Resumo do comércio (com contador 250 caracteres), Apresentação completa e flags checkbox (Em evidência, Comércio turístico, Produtos locais, Produtos artesanais, Atendimento a turistas).
-  2. **Localização e Endereço:** Logradouro, Número, Complemento, Bairro / Região, CEP, Cidade / UF (Ipojuca / PE), Ponto de referência, Latitude e Longitude GPS.
-  3. **Contato e Redes:** Telefone, WhatsApp, E-mail, Site oficial, Instagram, Facebook, Link para catálogo online e Link para loja virtual.
-  4. **Horário de Funcionamento:** Atendimento 24 horas (toggle) + Tabela semanal Segunda a Domingo + Feriados com 1º turno, 2º turno e toggle "Fechado".
-  5. **Informações e Serviços:** Checkbox-cards de serviços (Retirada na loja, Entrega/Delivery, Venda online, Catálogo online, Reserva de produtos, Encomendas, Embalagem para presente, Atendimento por WhatsApp, Atendimento em outros idiomas, Wi-Fi gratuito, Estacionamento, Estacionamento gratuito, Ar-condicionado, Banheiro, Banheiro acessível, Área de espera, Pet Friendly, Acesso para ônibus/vans) e campo Outros serviços oferecidos.
-  6. **Produtos e Especialidades:** Principais produtos comercializados, Especialidades / diferenciais, Marcas locais comercializadas, Produtos típicos da região, Checkbox-cards de segmentos (Artesanato local, Souvenirs, Produtos rurais, Café, Doces, Alimentos regionais, Moda, Presentes, Produtos sustentáveis, Produtos autorais) e Outros produtos / segmentos.
-  7. **Formas de Pagamento:** Checkbox-cards (Pix, Cartão de Crédito, Cartão de Débito, Dinheiro, Vale / Voucher, Transferência bancária, Pagamento online), Parcelamento disponível e Observações sobre pagamento.
-  8. **Acessibilidade:** Checkbox-cards PCD (Entrada acessível, Acesso para cadeira de rodas, Rampa de acesso, Vaga PCD, Banheiro acessível, Piso tátil, Sinalização tátil, Cão-guia permitido, Atendimento prioritário) e Observações sobre acessibilidade.
-  9. **Facilidades para Turistas:** Checkbox-cards (Atendimento turístico, Informações sobre a cidade, Aceita grupos, Atendimento para excursões, Produtos com identidade local, Embalagem para viagem, Envio para outras cidades, Atendimento em inglês, Atendimento em espanhol) e Observações para turistas.
-  10. **Conteúdos Relacionados:** Multi-seleção com relacionamentos de Atrativos, Eventos, Roteiros, Hospedagens, Gastronomia e Serviços próximos por ID.
-  11. **Imagens e Mídia:** Galeria de fotos (fachada, loja, produtos, artesanato) com foto de capa, textos alternativos, legendas, créditos e link para Vídeo institucional/apresentação (YouTube / Vimeo).
-  12. **SEO e Compartilhamento:** Título SEO, Meta description e Texto para compartilhamento com auto-preenchimento inteligente a partir do nome e resumo.
-  13. **Publicação:** Data de publicação, destaque em evidência principal e botões de ação editorial (Salvar Rascunho, Enviar para Revisão, Publicar Imediatamente e Arquivar).
-- [x] Reutilizar componentes de design system unificado: Address, Contact, OpeningHours (`renderHoursTable` / `getHoursData`), CheckboxCards (`renderChips` / `getSelectedChips`), MediaUpload / Gallery (`renderGalleryUI`), SEO e Publication.
-- [x] Implementar e aprovar testes de simulação DOM e persistência completa em round-trip (`test-shopping-simulation.js`).
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e sem reinício de serviços (`chmod 644`).
-- [x] Validar 100% dos 67 elementos HTML e JS especializados em script de verificação no servidor remoto (`test-shopping-deployed.js`).
-
-**Resultado:** Concluído e publicado em 14/09/2026. O formulário especializado de Compras segue rigorosamente o mesmo padrão estético e arquitetural do painel administrativo do COMTUR com persistência total e compatibilidade com dados existentes.
-
-### COMTUR — Formulário Administrativo Especializado para "Roteiro" (14/09/2026)
-
-- [x] Inspecionar padrão visual e arquitetural dos formulários especializados existentes (`comtur-content-admin.html`), incluindo seções numeradas, chips de seleção, tabelas e upload de galeria.
-- [x] Implementar formulário administrativo completo para a categoria `Roteiro` (`route`) com 8 seções numeradas + área recolhível de SEO:
-  1. Identificação do Roteiro (nome, categoria, slug auto-gerado, resumo, descrição completa, destaque "Em evidência").
-  2. Perfil do Roteiro (duração, distância km, dificuldade, transporte multimodal, público-alvo, características).
-  3. Planejamento do Passeio (melhor período, dias recomendados, horários, custo estimado, pontos de partida/chegada, contato, o que levar, recomendações e restrições).
-  4. Itinerário / Paradas (cards estruturados com ordenação ↑ Subir / ↓ Descer, tipo de parada, seletor dinâmico de entidades turísticas cadastradas no portal, horários, permanência e orientações).
-  5. Mapa e Geolocalização (latitude/longitude inicial e final, distância total e auto-preenchimento a partir das paradas).
-  6. Serviços e Apoio (relação multi-entidade com restaurantes, hospedagens e comércios do sistema).
-  7. Acessibilidade (chips estruturados de recursos PCD e observações de trechos).
-  8. SEO e Compartilhamento (área recolhível para título SEO, meta description e mensagem de compartilhamento).
-  9. Imagens, Mídia e Publicação (reutilização integral da galeria de fotos com capa, legendas, ordenação e workflow Rascunho / Revisão / Publicado / Arquivado).
-- [x] Implementar testes automatizados de normalização e validação de roteiros (`comtur-content.test.js`).
-- [x] Validar persistência no banco e não-regressão nas demais categorias (`attraction`, `gastronomy`, `event`, `lodging`, `news`, etc.).
-- [x] Publicar em produção no servidor `10.15.25.28` (`/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html`) com zero downtime e sem reinício de serviços.
-
-**Resultado:** Concluído e publicado em 14/09/2026. O formulário especializado de Roteiro segue 100% a identidade visual do painel administrativo do COMTUR.
+**Pendências para concluir:** revisar e publicar gradualmente os 41 locais; especializar o formulário administrativo e gerar PNG/PDF acessível; validar papéis administrativos com contas autorizadas; somente então ativar os redirecionamentos individuais do legado. O legado não deve ser removido durante a homologação.
 
 ### Etapa 3 — tratamento nativo de erros em Educação e Documentos (04/09/2026)
 
@@ -662,6 +490,79 @@ Diagnóstico observado em 26/08/2026:
 - o display `SEMIT TV - SEMIT` aguarda autorização no Xibo e recebe HTTP 500 na sincronização.
 
 Esses dois problemas são independentes: corrigir o healthcheck não autoriza o display no Xibo.
+
+### 12.1 Execução íntegra da TV nos painéis de senha (17/09/2026)
+
+**Problema confirmado:** o painel web Sedetur (`/p/sedetur`) carregava a programação pela URL remota da mídia. Havia um avanço por temporizador no cliente; em rede ou aparelho lento, isso podia trocar o vídeo antes do fim e causar a impressão de cortes e saltos.
+
+**Arquitetura envolvida:** o painel de senhas está no servidor `10.15.25.31`, contêiner `painel-semit` (porta `8088`). A programação vem de `https://api.garca.sp.gov.br/tv/` e é exibida pelo componente `TvProgramPlayer`.
+
+**Correção publicada:**
+
+1. toda a grade é baixada integralmente para o cache local do navegador antes da liberação da reprodução;
+2. durante a sincronização, o painel exibe progresso e não entrega URL ao elemento de vídeo;
+3. vídeos avançam exclusivamente pelo evento `ended`, sem temporizador de duração;
+4. uma grade atualizada é preparada em segundo plano e só passa a valer entre vídeos, sem interromper o vídeo corrente;
+5. uma cópia candidata isolada, com volume de dados clonado e porta local `8089`, foi validada antes da promoção.
+
+**Evidências de aceite:** após a publicação, o painel Sedetur apresentou “Baixando vídeo 3 de 14 (17%)” e o elemento de vídeo ainda estava sem `src`, comprovando que não iniciava por streaming parcial. O contêiner `painel-semit` respondeu `200` em `/healthz` e ficou `healthy`.
+
+**Reversão:**
+
+- imagem anterior preservada como `painel-semit:before-complete-media-20260917` no servidor `10.15.25.31`;
+- arquivo anterior preservado em `/home/semit/painel-semit/backups/20260917_complete_media/TvProgramPlayer.tsx`;
+- para retorno, reaplicar essa imagem e recriar somente o contêiner `painel-semit`; não reiniciar API, banco, TV ou NovoSGA.
+
+### 12.2 Plano — perfil para computadores antigos no cliente instalável (17/09/2026)
+
+**Escopo:** cliente Electron distribuído em Windows (`.exe`) e Linux (`.deb`, `.tar.gz` e `.zip`), projeto `painel_desktop`.
+
+**Objetivo:** reduzir CPU, GPU e memória sem perder chamadas de senha, áudio ou reprodução íntegra local.
+
+1. adicionar perfil selecionável **TV/PC antigo**, persistido na configuração local;
+2. no perfil econômico, desligar efeitos visuais caros, animações contínuas e filtros gráficos; manter a informação de atendimento legível;
+3. reproduzir somente a mídia atual pelo protocolo de disco local, com metadados em vez de pré-carga excessiva em memória;
+4. validar bytes baixados antes de promover arquivo temporário ao cache definitivo; arquivo incompleto nunca entra na playlist;
+5. manter uma atualização de grade pendente até o término da mídia atual;
+6. preparar a versão `1.1.0`, com `.exe` e `.deb` gerados da mesma fonte e hashes publicados.
+
+**Limite técnico importante:** a economia de decodificação depende também do conteúdo. Para computadores antigos, as mídias devem ser publicadas preferencialmente em MP4 H.264/AAC, até 1280×720 e sem HEVC/H.265 ou 4K.
+
+**Critérios de aceite:** o cliente segue funcionando offline após sincronização; não reproduz arquivo parcial; troca de grade não corta vídeo; o perfil econômico permanece utilizável em 720p; instaladores Windows e Linux informam versão `1.1.0`.
+
+**Implementação e evidências:** perfil econômico e validação de download aplicados em `painel_desktop`; validação sintática concluída. Artefatos `1.1.0` gerados e conferidos: instalador e portátil Windows, `.deb`, `.tar.gz` e `.zip` Linux. O `.deb` foi inspecionado em ambiente Debian isolado e identificado como pacote `painel-senhas-desktop`, arquitetura `amd64`, versão `1.1.0`.
+
+**Publicação:** página `https://api.garca.sp.gov.br/tv/admin.html` atualizada em 17/09/2026. Os botões apontam para `painel-tv-garca-windows-1.1.0.exe` e `painel-tv-garca-linux-1.1.0.deb`; ambos responderam HTTP 200 com os tamanhos esperados. Arquivos e página anteriores foram preservados em `/home/semit/Documentos/deploy-backups/tv-admin-desktop-release-20260917`.
+
+### 12.3 Regra de conteúdo por layout do painel de senhas (18/09/2026)
+
+**Regra funcional:** o layout **Clássico** exibe a senha em destaque, as últimas chamadas e o card de clima/widgets no canto inferior direito. Ele nunca exibe a TV Corporativa. A TV e as demais mídias ficam reservadas ao layout **Programação 9:16**.
+
+**Causa corrigida:** o componente clássico reutilizava `MediaCarousel`; quando `mediaItems` continha o link `https://api.garca.sp.gov.br/tv/`, a mídia tinha prioridade e substituía o clima. O painel Sedetur estava com `displayLayout=classic`, widgets ativos e esse link cadastrado.
+
+**Correção publicada:** em `/home/semit/painel-semit/src/pages/DisplayPage.tsx`, o ramo clássico passou a renderizar `SupportWidgets` diretamente quando os widgets estão habilitados. A configuração da TV permanece cadastrada e volta a ser usada ao selecionar **Programação 9:16**.
+
+**Publicação e aceite:** servidor `10.15.25.31`, contêiner `painel-semit`, porta `8088`. Após a recriação isolada do contêiner, `/healthz`, `/p/sedetur` e a rota pública `https://api.garca.sp.gov.br/p/sedetur` responderam HTTP 200; o contêiner ficou `healthy`.
+
+**Reversão:** imagem anterior `painel-semit:before-classic-weather-20260918`; arquivo anterior em `/home/semit/deploy-backups/painel-classic-weather-20260918/DisplayPage.tsx`. Para reverter, restaurar o arquivo ou aplicar a imagem anterior e recriar somente `painel-semit`. Não reiniciar NovoSGA, banco, API principal ou TV Corporativa.
+
+### 12.4 Compatibilidade de chamadas dos APKs e desktop (18/09/2026)
+
+**Sintoma:** os APKs nativos deixaram de exibir/anunciar chamadas. A rota pública `GET /tv/api/tickets?unitId=N`, também usada como fonte pelo cliente desktop, retornava HTTP 404 com `Cannot GET /api/tickets`.
+
+**Causa confirmada:** `/api/tickets` e `/api/speech` haviam sido inseridas diretamente no contêiner `tv-semit`. A recriação da TV em 17/09/2026 promoveu uma imagem que não continha essas alterações efêmeras. O NovoSGA permaneceu saudável: o acesso direto autenticado à unidade 4 retornava HTTP 200 e dez registros.
+
+**Correção publicada:** imagem derivada definitiva `api-semit-tv-semit:apk-compat-20260918`, baseada em `player-fix-20260917`. Foram incorporadas ao `server.js`:
+
+1. `GET /api/tickets`, que resolve painel/unidade, obtém OAuth no painel de senhas, aplica os serviços cadastrados e consulta o NovoSGA;
+2. normalização do identificador da chamada para string, compatível com Android;
+3. `GET /api/speech`, mantendo a síntese PT-BR usada por Android e desktop.
+
+Nenhuma alteração foi feita em Nginx, NovoSGA, banco, painel web, APK ou cliente desktop. Rede `api-semit_stack`, alias `tv-semit` e volume `api-semit_tv-semit-data:/app/data` foram preservados.
+
+**Aceite:** contêiner `tv-semit` saudável; unidade 4 retornou HTTP 200, dez registros e IDs string; unidade 6 retornou HTTP 200 sem registros recentes; voz retornou `audio/mpeg`; `/tv/`, `/tv/admin.html`, playlist, `/p/sedetur` e `/health` responderam HTTP 200.
+
+**Reversão:** o contêiner anterior permanece desligado como `tv-semit-before-apk-fix-20260918`; imagem anterior `api-semit-tv-semit:player-fix-20260917`. Fontes anterior/nova e Dockerfile reproduzível estão em `/home/semit/Documentos/deploy-backups/tv-apk-tickets-20260918/`. Na reversão, preservar a rede, o alias e o volume; não reiniciar as demais aplicações.
 
 ## 13. Monitoramento e saúde
 
@@ -1653,6 +1554,7 @@ Próxima entrega: revisar o contrato dos endpoints, gerar OpenAPI e iniciar disp
 
 Objetivo: implantar o Portal Municipal de Turismo por incrementos, começando pela Fase 1 e pelo COMTUR como módulo estruturado de governança, integrado à identidade, auditoria, banco, storage e operação da API SEMIT.
 
+
 ### Decisão de produto — substituição (09/09/2026)
 
 O município **substitui** a vitrine turística atual por um **portal totalmente novo**. Não é evolução, skin nem carrossel sobre o que já está no ar.
@@ -1682,7 +1584,7 @@ Regra: o visitante passa a usar só o portal novo (categorias, carrosséis, mapa
 - [ ] Criar papéis, CRUD administrativo, auditoria e workflow editorial.
 - [ ] Integrar documentos ao upload/storage institucional e antivírus.
 - [ ] Implementar composição, legislação, plano de trabalho e prestação de contas.
-- [~] Construir portal público novo em `/turismo/` (Visit Garça), substituindo HTML do COMTUR, mapaturistico e Destinos Inteligentes como vitrine.
+- [ ] Construir portal público acessível para turismo, atrativos, eventos, gastronomia, hospedagem, mapa, notícias e documentos.
 
 ### Fases seguintes
 
@@ -1711,7 +1613,6 @@ Regra: o visitante passa a usar só o portal novo (categorias, carrosséis, mapa
 ### Registro
 
 - 09/09/2026: o material-base foi convertido em plano faseado; a prioridade foi reduzida ao primeiro incremento publicável do COMTUR.
-- 09/09/2026: decisão registrada — portal turístico novo substitui HTML do COMTUR, mapaturistico e Destinos Inteligentes como vitrine oficial; API SEMIT e módulo de governança permanecem.
 - 09/09/2026: módulo preparado diretamente na fonte canônica `api-gestao-publica`, sem criar banco, autenticação ou infraestrutura paralelos.
 - Detalhes técnicos: `backend/docs/COMTUR_MODULE.md`.
 
@@ -1743,23 +1644,55 @@ Regra: o visitante passa a usar só o portal novo (categorias, carrosséis, mapa
 - imagem anterior preservada como `api-semit-api:pre-comtur-admin-20260909` para rollback;
 - nenhum conteúdo foi criado ou alterado no banco durante a implantação.
 
-Próxima entrega: designar formalmente gestores e revisores, publicar o contrato OpenAPI, integrar upload/storage/antivírus, homologar o primeiro conteúdo oficial e iniciar o portal novo que substituirá as superfícies públicas atuais. No mapa canônico em produção, copiar esta decisão da seção 28 quando houver janela de documentação.
+Próxima entrega: designar formalmente gestores e revisores, publicar o contrato OpenAPI, integrar upload/storage/antivírus e homologar o primeiro conteúdo oficial antes do frontend público.
 
-### Correção Pontual — Hospedagem & Resolução de Regressão da API (14/09/2026)
+## 29. TV Corporativa, Painéis de Atendimento e Compatibilidade de APKs (18/09/2026)
 
-- **DIAGNÓSTICO DA REGRESSÃO DA API:**
-  - **Causa Exata:** A página incluía `<script src="/comtur-session.js?v=1"></script>` em vez de `<script src="/semit-session.js?v=1"></script>`. Como `/comtur-session.js` não existia (404), o objeto `window.SemitSession` ficava indefinido. Ao executar `loadItems()`, a chamada `headers: SemitSession.authHeaders()` disparava `ReferenceError: SemitSession is not defined`, caindo no bloco `catch` que exibia `"Falha ao carregar dados da API."`.
-  - **Parser da Resposta:** O endpoint `/api/comtur/admin/content` retorna `{ data: [...] }`. O parser foi ajustado de `data.items` para `data.data || data.items || []`.
-  - **Correção da Sessão:** A importação foi corrigida para `/semit-session.js?v=1` e todos os métodos de rede (`loadItems`, `saveContent`, `uploadMediaFiles`) passaram a utilizar `SemitSession.fetchAuth` com renovação transparente de token JWT e proteção de redirecionamento para login quando desautenticado.
-- **HOSPEDAGEM (COMODIDADES E SERVIÇOS ESTRUTURADOS):**
-  - **Estrutura da Hospedagem:** 35 cards selecionáveis com checkbox e ícones com o mesmo padrão visual de Gastronomia (`.comtur-chips-grid` / `.comtur-chip-btn`, borda verde e fundo verde claro).
-  - **Serviços aos Hóspedes:** 20 cards estruturados.
-  - **Comodidades por Acomodação:** 23 cards estruturados dentro de cada card de acomodação dinâmica.
-  - **Formas de Pagamento:** 7 cards estruturados (Pix, Cartão de Crédito, Débito, Dinheiro, Transferência, Vale/Voucher, Pagamento online).
-  - **Alimentação & Acessibilidade:** 5 refeições, 4 restrições alimentares e 15 itens de acessibilidade PCD estruturados.
-  - **Pet Friendly:** Cards para tipos de pet (Cães, Gatos, Outros) e portes (Pequeno, Médio, Grande) sincronizados com a abertura da seção.
-  - **Persistência Completa:** Validada em salvar rascunho → reabrir → editar → re-salvar.
-- **Arquivos alterados:** `comtur-next/portal/comtur-content-admin.html`
-- **Deploy:** Implantado em produção em `/home/semit/Documentos/api-semit/backend/public/comtur-content-admin.html` (`chmod 644`).
-- **Testes executados:** `test-lodging.js` e `test-events.js` 100% aprovados.
+### Contexto e Arquitetura dos Painéis
+O ecossistema de exibição de senhas e mídia institucional é composto por:
+1. **NovoSGA (Backend / Fila)**: Servidor central de filas em `10.15.25.31` (porta 8088 / `painel-semit`) provendo chamadas em tempo real via Mercure/SSE e REST. Unidades ativas: SEDETUR (unidade 4) e SEMIT (unidade 6).
+2. **Painel Web (`painel_senhas_work`)**: Frontend Web acessível publicamente via proxy reverso em `https://api.garca.sp.gov.br/p/sedetur` e `https://api.garca.sp.gov.br/p/semit`.
+3. **Painel Desktop (Electron)**: Cliente desktop nativo para totens e displays físicos, com cabeçalho limpo (`PAINEL DE ATENDIMENTO`) e alternância de configuração oculta via atalho `F2` em tela cheia.
+4. **APKs TV / Android**: Aplicativos legados instalados em Smart TVs Android dependentes do endpoint de compatibilidade `/tv/api/tickets?unitId={id}`.
+5. **TV Corporativa (`tv-semit`)**: Contêiner Node.js servindo a playlist institucional de vídeos, notícias RSS e clima, consumido em modo embutido (`iframe` com parâmetro `is-embedded=true`) pelo painel de senhas.
+
+---
+
+### Diagnóstico e Resolução da Falha dos APKs (/tv/api/tickets)
+- **Problema Detectado**: APKs Android nas TVs pararam de receber senhas chamadas e apresentavam erro 404 (`Cannot GET /api/tickets`).
+- **Causa Raiz**: O endpoint `/api/tickets` havia sido inserido temporariamente dentro do contêiner ativo em execuções anteriores, mas não fora persistido no código-fonte nem na imagem base do Docker. Ao recriar o contêiner `tv-semit` em 17/09/2026 para atualização da TV, a rota sumiu da imagem gerada.
+- **Correção Arquitetural e Permanente**:
+  - Incorporada a rota `GET /api/tickets` de forma nativa e definitiva no backend da TV Corporativa (`/app/server.js`), realizando proxy transparente para a API do NovoSGA (`http://10.15.25.31:8088/api/tickets` ou proxy local), mapeando os tickets das unidades correspondentes (`unitId=4` para SEDETUR, `unitId=6` para SEMIT).
+  - A imagem foi consolidada no Docker daemon como `api-semit-tv-semit:apk-compat-20260918` e tageada como `api-semit-tv-semit:latest`.
+  - Imagem de segurança `tv-semit-rollback-20260917` preservada para rollback imediato caso necessário.
+  - Sincronização completa da árvore de código fonte da TV para `/home/semit/Documentos/api-semit/tv_corporativa/` e controle de versão no Git.
+
+---
+
+### Correções no Player de Mídia e Streaming de Vídeo
+- **Problema de Vídeos Cortados / Picotando**:
+  - `MediaCarousel.css` e `TvProgramPlayer.css` utilizavam `object-fit: cover`, provocando corte lateral ou superior de vídeos institucionais em proporções diferentes de 16:9.
+  - `playlist-engine.js` continha watchdogs com tempo fixo arbitrário (20s e 45s), forçando o avanço da playlist antes do término natural de vídeos mais longos.
+  - O proxy do servidor web (`server-index.mjs`) não repassava os cabeçalhos de Range HTTP (`Range`, `If-Range`), impedindo requisições parciais (HTTP 206 Partial Content) e causando travamentos no buffer dos navegadores.
+- **Solução Implementada**:
+  - **CSS**: Ajustado `object-fit: contain` com fundo preto (`#000`) nas regras de exibição de mídia do Painel Web e da TV Corporativa, garantindo proporção original sem deformações.
+  - **Playlist Engine**: Substituição dos timeouts fixos por listener de evento nativo `videoEl.onended` e watchdog de segurança dinâmico calculado com base no `videoEl.duration` real do arquivo.
+  - **Proxy HTTP Range**: Adicionado suporte e repasse integral aos cabeçalhos `Range`, `If-Range`, `Content-Range` e `Accept-Ranges` no `server-index.mjs`.
+  - **Modo Embutido (`is-embedded`)**: Otimizado layout CSS para preencher 100% da área do iframe sem cabeçalhos duplicados nem barra de notícias duplicada quando exibido dentro do Painel de Senhas.
+
+---
+
+### Painel Desktop (Electron)
+- **Cabeçalho**: Unificado para `PAINEL DE ATENDIMENTO` em layout limpo.
+- **Controles em Tela Cheia**: Ocultação automática dos botões de configuração e rodapé ao entrar em tela cheia; reativação sob demanda pelo atalho `F2`.
+- **Empacotamento**: Configuração de build limpa e geração de executáveis / `.deb` standalone para Linux e instaladores leves.
+
+---
+
+### Validação e Evidências em Produção (18/09/2026)
+- `GET https://api.garca.sp.gov.br/tv/api/tickets?unitId=4` -> **HTTP 200 OK** (retornando array com as últimas 10 senhas chamadas da SEDETUR).
+- `GET https://api.garca.sp.gov.br/tv/api/tickets?unitId=6` -> **HTTP 200 OK** (retornando `[]` da SEMIT).
+- `GET https://api.garca.sp.gov.br/p/sedetur` -> **HTTP 200 OK** (painel web operacional com layout ajustado e vídeo contínuo).
+- `GET https://api.garca.sp.gov.br/p/semit` -> **HTTP 200 OK** (painel web operacional).
+- Contêiner `tv-semit` executando `api-semit-tv-semit:apk-compat-20260918` (`latest`), com status estável.
 

@@ -1,6 +1,6 @@
 {
   "name": "painel-senhas-desktop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Painel de Senhas e TV Corporativa SEMIT Garça - Cliente Desktop Oficial",
   "homepage": "https://api.garca.sp.gov.br",
   "author": {
@@ -54,6 +54,8 @@
       "shortcutName": "Painel TV Garça"
     },
     "linux": {
+      "executableName": "painel-tv-garca",
+      "executableArgs": ["--no-sandbox"],
       "maintainer": "semit@garca.sp.gov.br",
       "target": [
         "deb",

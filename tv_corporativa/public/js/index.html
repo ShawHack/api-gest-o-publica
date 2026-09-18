@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Metadados Oficiais Semit TV -->
+    <title>Semit TV</title>
+    <meta name="title" content="Semit TV">
+    <meta name="description" content="Canal Oficial de Comunicação & Informação da Semit TV">
+    
+    <!-- Open Graph / WhatsApp / Facebook Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://api.garca.sp.gov.br/tv/">
+    <meta property="og:title" content="Semit TV">
+    <meta property="og:description" content="Canal Oficial de Comunicação & Informação da Semit TV">
+    <meta property="og:site_name" content="Semit TV">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://api.garca.sp.gov.br/tv/">
+    <meta property="twitter:title" content="Semit TV">
+    <meta property="twitter:description" content="Canal Oficial de Comunicação & Informação da Semit TV">
+
+    <link rel="stylesheet" href="css/design-system.css?v=20260824_1825">
+    <link rel="stylesheet" href="css/player.css?v=20260824_1825">
+</head>
+<body>
+    <div id="player-root">
+        <!-- Header da TV -->
+        <header class="player-header">
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+                </div>
+                <div class="brand-info">
+                    <h1>SEMIT TV</h1>
+                    <p>Canal Oficial de Comunicação & Informação</p>
+                </div>
+            </div>
+
+            <div class="header-status">
+                <!-- Botão de Acesso ao Painel Admin -->
+                <a href="admin.html" class="badge badge-primary" style="text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Abrir Painel de Controle (Tecla C)">
+                    ⚙️ Admin
+                </a>
+
+                <!-- Indicador de Áudio / Som da TV -->
+                <div id="audio-status-badge" class="badge badge-emerald" style="cursor: pointer;" title="Clique para Ativar/Desativar Som (Tecla M)">
+                    🔊 Áudio Ativo
+                </div>
+
+                <!-- Indicador de Download / Sincronização em Tempo Real -->
+                <div id="sync-status-badge" class="badge badge-primary" style="display: none;">
+                    <span class="sync-spinner">🔄</span> <span id="sync-badge-text">Sincronizando: 0%</span>
+                </div>
+
+                <div id="xibo-status-badge" class="badge badge-emerald">
+                    <span class="pulse-dot"></span> SEMIT TV Conectada
+                </div>
+                <div class="clock-display">
+                    <div class="clock-time" id="clock-time">00:00:00</div>
+                    <div class="clock-date" id="clock-date">Carregando data...</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barra de Notificação de Download / Sincronização Flutuante -->
+        <div id="download-progress-card" class="download-progress-card glass-panel">
+            <div class="download-header">
+                <div class="download-title">
+                    <span class="sync-spinner">⚡</span>
+                    <strong>Sincronizando Conteúdos com a SEMIT TV</strong>
+                </div>
+                <span id="download-percentage" class="download-percentage">0%</span>
+            </div>
+            <div id="download-filename" class="download-filename">Verificando novos layouts e mídias...</div>
+            <div class="progress-track">
+                <div id="download-bar-fill" class="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Corpo com Zonas -->
+        <main class="player-body">
+            <!-- Zona Principal de Conteúdo -->
+            <section class="player-main-zone" id="player-main-zone">
+                <div class="slide-container active media-slide-container" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding: 24px;">
+                    <img src="images/logo.png" style="width:110px; height:110px; object-fit:contain; filter: drop-shadow(0 0 24px rgba(59,130,246,0.6));" alt="SEMIT TV">
+                    <div style="text-align:center;">
+                        <h2 style="font-size:1.4rem; color:#ffffff; margin:0 0 6px 0; font-weight:800; letter-spacing: -0.01em;">SEMIT TV</h2>
+                        <p style="font-size:0.9rem; color:#94a3b8; margin:0;">Iniciando reprodutor e sincronizando programação...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Zona Lateral (Sidebar) -->
+            <aside class="player-sidebar">
+                <!-- Widget de Clima -->
+                <div id="weather-widget-container"></div>
+
+                <!-- Card de Comunicados Rápidos & QR Code -->
+                <div class="notice-card glass-card">
+                    <div class="notice-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        <span>Acesso Rápido</span>
+                    </div>
+                    <div class="notice-body">
+                        Aponte a câmera do celular para o QR Code abaixo para acessar os comunicados e formulários internos da instituição.
+                    </div>
+                    <div class="qr-section">
+                        <div class="qr-box">
+                            <svg viewBox="0 0 100 100">
+                                <rect width="100" height="100" fill="white"/>
+                                <path d="M10,10 h30 v30 h-30 z M15,15 v20 h20 v-20 z M20,20 h10 v10 h-10 z" fill="black"/>
+                                <path d="M60,10 h30 v30 h-30 z M65,15 v20 h20 v-20 z M70,20 h10 v10 h-10 z" fill="black"/>
+                                <path d="M10,60 h30 v30 h-30 z M15,65 v20 h20 v-20 z M20,70 h10 v10 h-10 z" fill="black"/>
+                                <circle cx="50" cy="50" r="8" fill="black"/>
+                                <rect x="60" y="60" width="10" height="10" fill="black"/>
+                                <rect x="75" y="60" width="15" height="10" fill="black"/>
+                                <rect x="60" y="75" width="30" height="15" fill="black"/>
+                            </svg>
+                        </div>
+                        <div class="qr-info">
+                            <p>Portal do Colaborador</p>
+                            <p>Atualizado diariamente</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Zona Inferior: Ticker de Notícias -->
+        <footer class="player-ticker" id="ticker-widget-container"></footer>
+
+        <!-- Overlay de Alerta de Emergência -->
+        <div class="emergency-overlay" id="emergency-overlay">
+            <div class="emergency-icon">
+                <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            </div>
+            <h2 class="emergency-title">ALERTA DE EMERGÊNCIA</h2>
+            <div class="emergency-message" id="emergency-message">
+                Atenção: Mensagem de emergência em tempo real.
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts com Cache-Busting -->
+    <script src="js/storage-cache.js?v=20260825_0925"></script>
+    <script src="js/xibo-client.js?v=20260825_0925"></script>
+    <script src="js/weather-widget.js?v=20260825_0925"></script>
+    <script src="js/ticker-widget.js?v=20260825_0925"></script>
+    <script src="js/playlist-engine.js?v=20260825_0925"></script>
+    <script src="js/app.js?v=20260825_0925"></script>
+</body>
+</html>

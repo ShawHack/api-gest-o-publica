@@ -1,0 +1,25 @@
+{
+  "name": "xibo-tv-corporativa-player",
+  "version": "1.0.0",
+  "description": "Cliente Próprio de TV Corporativa e Player Xibo Digital Signage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "xibo",
+    "digital-signage",
+    "tv-corporativa",
+    "player",
+    "kiosk"
+  ],
+  "author": "TV Corporativa",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.7.2",
+    "fast-xml-parser": "^4.4.0",
+    "cors": "^2.8.5"
+  }
+}

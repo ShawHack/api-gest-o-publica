@@ -28,6 +28,25 @@ protocol.registerSchemesAsPrivileged([
 let mainWindow = null
 let syncManager = null
 
+function createLinuxDesktopShortcut() {
+  if (process.platform !== 'linux') return
+
+  try {
+    const desktopDir = app.getPath('desktop')
+    if (!desktopDir || !fs.existsSync(desktopDir)) return
+
+    const shortcutPath = path.join(desktopDir, 'Painel TV Garça.desktop')
+    if (fs.existsSync(shortcutPath)) return
+
+    const executable = app.getPath('exe').replace(/"/g, '\\"')
+    const desktopEntry = `[Desktop Entry]\nName=Painel TV Garça\nComment=Painel de Senhas e TV Corporativa SEMIT\nExec="${executable}" --no-sandbox\nTerminal=false\nType=Application\nCategories=Utility;\n`
+    fs.writeFileSync(shortcutPath, desktopEntry, { mode: 0o755 })
+    fs.chmodSync(shortcutPath, 0o755)
+  } catch (err) {
+    console.warn('[Linux] Não foi possível criar o atalho na Área de Trabalho:', err.message)
+  }
+}
+
 // Configurações persistentes simples
 const configPath = path.join(app.getPath('userData'), 'panel-config.json')
 
@@ -107,6 +126,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  createLinuxDesktopShortcut()
   // 1. Inicializa o gerenciador de sincronização de mídias em disco
   syncManager = new MediaSyncManager({
     serverUrl: appConfig.serverUrl,
