@@ -103,6 +103,9 @@ function App() {
                     <Route path="/formularios/*" element={
                         <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
+                    <Route path="/formularios-react/*" element={
+                        <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                    } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}
                     <Route
