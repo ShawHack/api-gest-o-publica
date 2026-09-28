@@ -43,6 +43,7 @@ import NotFoundPage from './components/pages/NotFound/NotFoundPage'
 import RuralAccessDeniedPage from './components/pages/RuralPortal/RuralAccessDeniedPage'
 import RuralOperatorLoginPage from './components/pages/RuralPortal/RuralOperatorLoginPage'
 import RuralVerifyEmailPage from './components/pages/RuralPortal/RuralVerifyEmailPage'
+import FormsGarcaPortal from './components/pages/FormsGarca/FormsGarcaPortal'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -98,6 +99,9 @@ function App() {
                     } />
                     <Route path="/rotas-rurais/admin" element={
                         <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
+                    } />
+                    <Route path="/formularios/*" element={
+                        <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}
