@@ -8,6 +8,9 @@ router.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
 // ─── ÁREA PÚBLICA (SEM TOKEN) ────────────────
 router.get('/public/forms/:slug', FormsGarcaController.getPublicFormBySlug);
+router.post('/public/forms/:slug/inscribe', FormsGarcaController.publicInscribeForm);
+router.get('/public/vouchers/:voucherCode', FormsGarcaController.getPublicVoucher);
+router.post('/public/upload', upload.single('file'), FormsGarcaController.upload);
 
 // ─── FORMULÁRIOS / EVENTOS (ADMIN & ORGANIZADOR) ──
 router.get('/forms/statistics', verifyToken, FormsGarcaController.getStatistics);
@@ -26,6 +29,7 @@ router.get('/inscriptions/check', verifyToken, FormsGarcaController.isUserInscri
 router.get('/inscriptions', verifyToken, FormsGarcaController.getInscriptions);
 router.get('/inscriptions/:id', verifyToken, FormsGarcaController.getInscriptionById);
 router.post('/inscriptions', verifyToken, FormsGarcaController.createInscription);
+router.patch('/inscriptions/:id/status', verifyToken, FormsGarcaController.updateInscriptionStatus);
 router.put('/inscriptions/:id', verifyToken, FormsGarcaController.updateInscription);
 router.delete('/inscriptions/:id', verifyToken, FormsGarcaController.deleteInscription);
 

@@ -1,0 +1,740 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding-bottom: 60px;
+}
+
+.bannerHeader {
+  width: 100%;
+  height: 280px;
+  position: relative;
+  overflow: hidden;
+  background-color: #0f172a;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.contentContainer {
+  max-width: 900px;
+  margin: -60px auto 0;
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.eventOverview {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.identityRow {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.eventLogo {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+
+.eventLogoFallback {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.titleGroup {
+  flex: 1;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.badgeType {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badgeStatus {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+}
+
+.status_disponivel {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.status_nao_iniciada {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.status_esgotada {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status_encerrada {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.eventTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.eventSubtitle {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.infoCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 24px;
+}
+
+.infoCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.infoIcon {
+  color: var(--event-primary, #1e3a8a);
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 22px;
+  height: 22px;
+}
+
+.infoCardLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.infoAddress {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.sectionBox {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px;
+}
+
+.descriptionText {
+  color: #334155;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.descriptionText p {
+  margin: 0 0 12px;
+}
+
+.descriptionText p:last-child {
+  margin-bottom: 0;
+}
+
+.formHeader {
+  margin-bottom: 24px;
+}
+
+.formSub {
+  color: #64748b;
+  margin: -8px 0 0;
+  font-size: 0.95rem;
+}
+
+.warningAlert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.fieldSection {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.fieldSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.fieldSectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 16px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.dynamicFieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.formLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.formLabelFull {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #0f172a;
+  background-color: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--event-primary, #1e3a8a);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+}
+
+.formTextarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.helpText {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.formGroupRadio {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radioGroupLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.radioOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #334155;
+  cursor: pointer;
+}
+
+.fileUploadBox {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fileUploadLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.fileDropArea {
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  background-color: #f8fafc;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.fileDropArea:hover {
+  border-color: var(--event-primary, #1e3a8a);
+  background-color: #eff6ff;
+  color: var(--event-primary, #1e3a8a);
+}
+
+.fileInputHidden {
+  display: none;
+}
+
+.fileUploadedSuccess {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #166534;
+}
+
+.linkViewFile {
+  margin-left: auto;
+  font-weight: 600;
+  color: #15803d;
+  text-decoration: underline;
+}
+
+.termsLabel {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #334155;
+  cursor: pointer;
+  background-color: #f8fafc;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.termsLabel input {
+  margin-top: 3px;
+}
+
+.formSubmitRow {
+  margin-top: 32px;
+}
+
+.btnSubmit {
+  width: 100%;
+  padding: 14px 24px;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btnSubmit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.btnSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.eventFooter {
+  margin-top: 32px;
+}
+
+.organizerCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.organizerLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+/* COMPROVANTE OFICIAL */
+.voucherContainer {
+  max-width: 650px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.voucherHeader {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.voucherHeader h2 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 12px 0 6px;
+}
+
+.voucherHeader p {
+  color: #64748b;
+  margin: 0;
+}
+
+.voucherCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #0f172a;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.voucherCardHeader {
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.badgeGov {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.voucherCardHeader h3 {
+  font-size: 1.35rem;
+  margin: 0;
+  color: #ffffff;
+}
+
+.cardSubtitle {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  margin: 4px 0 0;
+}
+
+.voucherCodeBox {
+  background-color: #1e293b;
+  border: 1px dashed #38bdf8;
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.voucherCodeLabel {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.voucherCodeText {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+}
+
+.voucherDetailsGrid {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.detailLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.voucherMessage {
+  padding: 16px 24px;
+  background-color: #f8fafc;
+  border-bottom: 1px dashed #e2e8f0;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.voucherFooter {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: #ffffff;
+}
+
+.qrCodeBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.qrCodeSvg {
+  width: 72px;
+  height: 72px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.qrCodeBox small {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.voucherAuditInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: right;
+}
+
+.voucherActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btnPrint,
+.btnCopy,
+.btnReset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnPrint {
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+}
+
+.btnPrint:hover {
+  background-color: #1e293b;
+}
+
+.btnCopy {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.btnCopy:hover {
+  background-color: #f8fafc;
+}
+
+.btnReset {
+  background-color: transparent;
+  color: #64748b;
+  border: none;
+}
+
+.btnReset:hover {
+  color: #0f172a;
+}
+
+/* SPINNER & LOADING */
+.loadingContainer,
+.errorContainer {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1e3a8a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorIcon {
+  color: #ef4444;
+}
+
+.btnBack {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* MODO DE IMPRESSÃO */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #comprovante-oficial,
+  #comprovante-oficial * {
+    visibility: visible;
+  }
+  #comprovante-oficial {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+  }
+  .voucherActions {
+    display: none !important;
+  }
+}

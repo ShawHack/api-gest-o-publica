@@ -2,10 +2,170 @@
 
 > Guia universal de arquitetura, operação, continuidade e recuperação.
 >
-> Atualização desta entrega: 04/09/2026 no servidor `10.15.25.28`; datas das demais análises constam nas respectivas seções.
+> Atualização desta entrega: 23/09/2026, proposta IOT; datas das demais análises constam nas respectivas seções.
 > Este documento não contém senhas, tokens, chaves privadas nem valores secretos.
 
 ## 1. Finalidade
+
+### Plano oficial — Forms Garça como plataforma municipal de eventos e inscrições (29/09/2026)
+
+**Situação:** arquitetura aprovada para planejamento; implementação ampliada ainda não iniciada. O módulo React/Mongo básico permanece em funcionamento com cadastro de formulário, campos dinâmicos, listagem de inscrições e exportação CSV. Não confundir este plano com funcionalidade já entregue.
+
+**Objetivo:** evoluir o Forms Garça para uma plataforma municipal de eventos e processos de inscrição, inspirada na organização funcional do Doity, sem copiar sua identidade visual. O organizador deverá configurar o evento, publicar uma página de apresentação com identidade própria, montar o formulário, receber inscrições, consultar participantes e exportar os resultados.
+
+#### 1. Arquitetura funcional
+
+O módulo será dividido em dois ambientes claramente separados:
+
+1. **Área administrativa:** criação, configuração, publicação e acompanhamento dos eventos.
+2. **Área pública:** apresentação do evento, autenticação/cadastro do participante, preenchimento do formulário e confirmação da inscrição.
+
+Fluxo principal:
+
+`Meus eventos → Painel do evento → Informações → Inscrições e vagas → Campos do formulário → Aparência/white label → Revisão e publicação → Página pública → Inscrição → Confirmação → Lista/exportação`
+
+#### 2. Área administrativa
+
+**Meus eventos**
+
+- Busca por título, período e situação.
+- Filtros: rascunho, publicado, inscrições abertas, encerrado e arquivado.
+- Cartões com data, situação, total de inscritos, vagas e atalhos.
+- Ações: abrir painel, duplicar, visualizar página pública, arquivar e excluir com confirmação.
+- Criação de evento sempre começa como rascunho.
+
+**Painel do evento**
+
+- Resumo do evento e da publicação.
+- Indicadores: inscritos, confirmados, pendentes, cancelados, vagas ocupadas e inscrições por período.
+- Atalhos para editar, abrir inscrições, copiar link público e visualizar a página.
+- Alertas de configuração incompleta antes da publicação.
+
+**Configuração em etapas**
+
+1. **Informações:** título, subtítulo, descrição formatada, tipo presencial/online/híbrido, início e término, local, endereço, CEP, bairro, cidade, estado e informações do organizador.
+2. **Inscrições:** período de inscrição, limite de vagas, abertura/fechamento manual, mensagem de confirmação e regras do processo. Nesta primeira fase não haverá cobrança, lotes pagos, certificados ou recursos financeiros.
+3. **Campos:** construtor com texto, texto longo, número, e-mail, telefone, CPF, data, seleção, múltipla escolha, confirmação/declaração e arquivo. Permitir obrigatoriedade, ajuda, opções, limite, edição, exclusão e reordenação.
+4. **Personalização/white label:** logotipo do órgão, banner, nome do organizador, cor principal, tema, pré-visualização para desktop/celular e definição do endereço público amigável.
+5. **Revisão e publicação:** checklist obrigatório, prévia e controle de publicação. Alterações relevantes após o início das inscrições devem gerar aviso e auditoria.
+
+**Inscritos**
+
+- Busca por nome, e-mail, CPF, código da inscrição e situação.
+- Indicadores de confirmados, pendentes e cancelados.
+- Tabela configurável com respostas principais.
+- Visualização individual de todas as respostas e arquivos.
+- Edição administrativa auditada, cancelamento e reativação.
+- Exportação CSV/Excel com filtros aplicados e lista de presença imprimível.
+- Dados pessoais completos disponíveis somente para perfis autorizados.
+
+#### 3. Área pública
+
+**Página de apresentação**
+
+- Endereço estável: `/formularios/evento/{slug}`.
+- Banner, logo, título, período, local, descrição, organizador e situação das inscrições.
+- Botão de inscrição com estados claros: disponível, ainda não iniciada, encerrada ou vagas esgotadas.
+- Layout responsivo, acessível e adaptado à identidade escolhida, sem retirar a identificação institucional mínima da Prefeitura/SEMIT.
+- Eventos em rascunho não podem ser encontrados pela API pública.
+
+**Inscrição e preenchimento**
+
+- Endereço: `/formularios/evento/{slug}/inscricao`.
+- Participante entra ou cria uma conta na base única de usuários.
+- Formulário renderizado a partir dos campos configurados pelo organizador.
+- Validações específicas para CPF, e-mail, telefone, datas, opções e arquivos.
+- Salvamento definitivo com proteção contra inscrição duplicada.
+- Confirmação exibe código único, resumo e orientação definida pelo organizador.
+- Uma área futura “Minhas inscrições” permitirá consultar e atualizar respostas enquanto o evento autorizar.
+
+#### 4. Papéis e permissões
+
+- `admin`: acesso total ao Forms Garça e gestão de permissões.
+- `forms_admin`: cria, publica, edita e gerencia inscrições de todos os eventos do módulo.
+- `forms_organizador`: gerencia somente eventos aos quais estiver vinculado.
+- `usuario`: visualiza eventos públicos e realiza as próprias inscrições.
+- Nenhum usuário comum poderá consultar listas, e-mails, CPF ou arquivos de terceiros.
+- Toda criação, publicação, edição administrativa, exportação e cancelamento deverá produzir registro de auditoria.
+
+#### 5. Modelo de dados MongoDB
+
+**Coleção `forms_garca` / evento**
+
+- Identidade: `titulo`, `subtitulo`, `slug`, `descricao`, `status`, `publicado`.
+- Agenda: `tipoEvento`, `dataEvento`, `dataFim`, `inicioInscricoes`, `fimInscricoes`.
+- Capacidade: `limiteInscricoes`, `inscricoesAbertas`.
+- Localização: `local`, `endereco`, `bairro`, `cidade`, `estado`, `cep`, dados online quando aplicável.
+- White label: `tema`, `corPrimaria`, `logoUrl`, `bannerUrl`, nome e descrição do organizador.
+- Formulário: campos com identificador estável, tipo, rótulo, ajuda, obrigatoriedade, opções, ordem e regras de validação.
+- Governança: criador, organizadores autorizados, datas de criação/alteração e integração opcional com 1Doc.
+
+**Coleção `inscriptions_garca` / inscrição**
+
+- Vínculos: evento e usuário.
+- Identificação controlada: nome, e-mail, telefone e CPF, conforme necessidade do processo.
+- Respostas indexadas pelo identificador estável do campo.
+- Código único, situação (`confirmada`, `pendente`, `cancelada`) e datas.
+- Referências de arquivos, nunca conteúdo binário diretamente no documento Mongo.
+- Índice único por evento + usuário quando for permitida somente uma inscrição.
+
+#### 6. APIs planejadas
+
+**Públicas, somente leitura:**
+
+- `GET /api/forms-garca/public/forms/:slug` — evento publicado e situação das vagas.
+
+**Participante autenticado:**
+
+- `POST /api/forms-garca/inscriptions` — criar a própria inscrição.
+- `GET /api/forms-garca/inscriptions/mine` — listar as próprias inscrições.
+- `GET/PUT /api/forms-garca/inscriptions/:id` — consultar/alterar somente inscrição própria dentro das regras.
+- `POST /api/forms-garca/upload` — arquivo validado e vinculado à inscrição.
+
+**Administração autorizada:**
+
+- CRUD de eventos em `/api/forms-garca/forms`.
+- Ações explícitas de publicar, despublicar, duplicar e arquivar.
+- Consulta paginada e filtrada de inscritos.
+- Exportação gerada no servidor para volumes grandes; CSV no navegador permitido apenas para conjuntos pequenos.
+
+#### 7. Estrutura React planejada
+
+- `FormsGarcaAdminLayout`: navegação lateral e contexto do evento.
+- `EventsListPage`: meus eventos e filtros.
+- `EventDashboardPage`: indicadores e atalhos.
+- `EventSettingsPage`: etapas Informações, Inscrições, Campos e Personalização.
+- `FormBuilder`: criação, validação e ordenação de campos.
+- `RegistrationsPage` e `RegistrationDetailPage`: lista, filtros, detalhes e exportação.
+- `PublicEventPage`: apresentação pública.
+- `PublicRegistrationPage`: preenchimento e envio.
+- `RegistrationConfirmationPage`: comprovante e código.
+- Componentes visuais próprios do Forms Garça; não reutilizar Navbar, WhatsApp flutuante ou estilos de outros módulos quando causarem interferência.
+
+#### 8. Segurança, LGPD e continuidade
+
+- Coletar somente dados necessários e explicar finalidade de dados sensíveis.
+- Arquivos com lista de extensões, tamanho máximo, nome aleatório e armazenamento fora da pasta executável.
+- Validar tudo novamente no backend; nunca confiar nas regras do navegador.
+- Sanitizar conteúdo formatado da descrição para impedir scripts.
+- Limitar tentativas e volume de upload; proteger exportações e registrar quem exportou.
+- Página pública nunca retorna dados de inscritos.
+- Preservar os formulários e inscrições existentes por migração compatível e reversível.
+- Fazer backup do Mongo e dos uploads antes de qualquer migração.
+- Publicar primeiro em homologação; não substituir o módulo atual sem testes de regressão e plano de rollback.
+
+#### 9. Fases de entrega
+
+1. [x] Consolidar modelo Mongo, índices, papéis e migração compatível.
+2. [ ] Implantar “Meus eventos”, painel e configuração de informações.
+3. [x] Implantar período de inscrição, vagas e construtor completo de campos.
+4. [x] Implantar white label, pré-visualização e página pública por slug.
+5. [x] Implantar inscrição, uploads, validação, comprovante e prevenção de duplicidade.
+6. [x] Implantar gestão de inscritos, filtros, detalhes, CSV/Excel e lista de presença.
+7. [ ] Testar autorização, LGPD, acessibilidade, responsividade, carga, backup e rollback.
+8. [ ] Homologar com evento de teste; publicar gradualmente e registrar evidências neste mapa.
+
+**Fora do escopo inicial:** pagamentos, lotes pagos, notas fiscais, certificados, aplicativo próprio, sorteios, e-mail marketing e chat. Esses recursos somente serão avaliados depois da estabilização do núcleo de eventos e inscrições.
 
 ### Plano oficial — integração do Mapa Turístico ao Turismo Garça e Pontos QR (15/09/2026)
 
@@ -1695,4 +1855,213 @@ O ecossistema de exibição de senhas e mídia institucional é composto por:
 - `GET https://api.garca.sp.gov.br/p/sedetur` -> **HTTP 200 OK** (painel web operacional com layout ajustado e vídeo contínuo).
 - `GET https://api.garca.sp.gov.br/p/semit` -> **HTTP 200 OK** (painel web operacional).
 - Contêiner `tv-semit` executando `api-semit-tv-semit:apk-compat-20260918` (`latest`), com status estável.
+
+## 30. IOT — Plataforma Municipal de Telemetria (23/09/2026)
+
+### 30.1 Objetivo
+
+Criar uma base única para receber, armazenar, monitorar e distribuir dados de dispositivos municipais. O primeiro uso será uma estação meteorológica com temperatura, umidade e vento. A mesma arquitetura deve atender posteriormente sensores de câmaras frias das cozinhas municipais, medidores, gateways e outros equipamentos, sem criar uma solução isolada para cada fabricante.
+
+Esta seção registra uma **proposta preparada, ainda não implantada em produção**. Em 23/09/2026 foi realizada conexão somente de leitura ao servidor `10.15.25.28` para confirmar a arquitetura ativa. Nenhum container, banco, rota pública, certificado ou configuração de rede foi alterado.
+
+### 30.2 Arquitetura proposta
+
+```text
+Sensores e estações
+        |
+        | MQTT com TLS (MQTTS/8883)
+        v
+Eclipse Mosquitto
+        |
+        v
+Worker de ingestão MQTT
+        |
+        +--> validação, normalização e deduplicação
+        +--> regras e alertas
+        +--> integrações externas
+        |
+        v
+PostgreSQL IOT <--> API Node.js/Express <--> dashboard e aplicativo
+                    |
+                    +--> Prometheus/Grafana
+                    +--> webhooks assinados
+```
+
+A plataforma observada já possui Node.js/Express, MongoDB, Redis, Docker, Nginx, Prometheus, Grafana e um PostgreSQL pertencente ao módulo Documentos. O IOT acrescenta broker Mosquitto, worker de ingestão e PostgreSQL 17 dedicado. O banco IOT não reutiliza o MongoDB da API nem o PostgreSQL de Documentos. O checkout de produção contém alterações locais em andamento; por isso, a implantação não deve reconstruir nem sobrescrever a stack principal sem reconciliação prévia.
+
+#### Decisão de persistência — PostgreSQL dedicado (23/09/2026)
+
+Após revisão arquitetural, foi escolhido PostgreSQL independente para o IOT. Telemetria exige consultas temporais, agregações, retenção, relacionamentos e integridade entre locais, dispositivos, regras e alertas. A mensagem original permanece em `jsonb`, enquanto as medições normalizadas usam colunas tipadas. Leituras e medições são particionadas mensalmente por `observed_at`; uma tabela independente mantém deduplicação por dispositivo e `messageId`.
+
+O PostgreSQL IOT usa volume, usuários, backup e ciclo de vida próprios. A porta `5432` não deve ser publicada no host. Os papéis são separados em proprietário de migração, `iot_api` e `iot_ingestion`. A implementação experimental em MongoDB foi retirada do pacote após essa decisão.
+
+### 30.3 Modelo de dados comum
+
+- **Local (`site`)**: prédio, cozinha, escola, unidade ou ponto geográfico.
+- **Dispositivo (`device`)**: estação, sensor, gateway ou controlador instalado em um local.
+- **Medição (`reading`)**: conjunto temporal normalizado de valores, unidades e qualidade.
+- **Regra (`rule`)**: limite, janela de tempo, severidade e política de recuperação.
+- **Alerta (`alert`)**: ocorrência aberta, reconhecida ou resolvida, com histórico dos responsáveis.
+- **Integração (`integration`)**: destino externo autorizado, inicialmente por webhook assinado.
+
+O modelo comum permite que uma estação meteorológica e um sensor de câmara fria utilizem as mesmas rotas, autenticação, auditoria, alertas e componentes de painel.
+
+### 30.4 Fluxo de ingestão
+
+1. Cada dispositivo recebe identificador e credencial MQTT exclusivos.
+2. O equipamento publica em `municipio/v1/{tenant}/{tipo}/{deviceId}/telemetry` usando TLS.
+3. O Mosquitto valida usuário e ACL; um sensor não pode publicar no tópico de outro.
+4. O worker valida versão, tamanho, horário, catálogo de métricas, unidade e duplicidade.
+5. A leitura normalizada é gravada no PostgreSQL IOT e o último estado do dispositivo é atualizado.
+6. Regras avaliam limites e permanência, evitando alertas por oscilações breves.
+7. Dashboard e aplicativo consultam a API; sistemas externos recebem eventos assinados, sem acesso direto ao broker ou banco.
+
+Exemplo de mensagem meteorológica:
+
+```json
+{
+  "schemaVersion": 1,
+  "messageId": "01K5X8Z3QVTZQ0YXN31RCA12C8",
+  "observedAt": "2026-09-23T14:30:00-03:00",
+  "metrics": {
+    "temperature": { "value": 24.7, "unit": "Cel" },
+    "relativeHumidity": { "value": 68.2, "unit": "%" },
+    "windSpeed": { "value": 4.1, "unit": "m/s" },
+    "windDirection": { "value": 225, "unit": "deg" }
+  },
+  "diagnostics": {
+    "battery": 87,
+    "signal": -68
+  }
+}
+```
+
+Para câmaras frias, o mesmo envelope suporta `temperature` e `doorOpen`. As unidades seguem UCUM, inicialmente `Cel`, `%`, `m/s`, `deg`, `Pa`, `mm` e `1`.
+
+### 30.5 API proposta
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| `GET` | `/api/iot/sites` | Listar locais autorizados |
+| `GET` | `/api/iot/devices` | Consultar dispositivos, estado e última comunicação |
+| `POST` | `/api/iot/devices` | Cadastrar dispositivo |
+| `PATCH` | `/api/iot/devices/:id` | Configurar, ativar ou colocar em manutenção |
+| `GET` | `/api/iot/readings` | Consultar séries temporais filtradas |
+| `GET` | `/api/iot/dashboard/summary` | Obter cartões, disponibilidade e alertas |
+| `GET` | `/api/iot/alerts` | Consultar a fila operacional |
+| `POST` | `/api/iot/alerts/:id/ack` | Reconhecer um alerta |
+| `POST` | `/api/iot/alerts/:id/resolve` | Resolver um alerta |
+| `GET/POST` | `/api/iot/rules` | Consultar e administrar regras |
+| `GET/POST` | `/api/iot/integrations` | Administrar webhooks e destinos externos |
+
+Todas as consultas devem usar a identidade central da API e aplicar permissão por local e papel. O `tenant` recebido do cliente nunca deve ser usado sozinho como fonte de autorização.
+
+### 30.6 Dashboard, aplicativo e integrações
+
+O resumo operacional deve fornecer:
+
+- dispositivos online, atrasados, offline e em manutenção;
+- alertas críticos e avisos em aberto;
+- última leitura e qualidade por dispositivo;
+- temperatura mínima, média e máxima por período;
+- mapa dos pontos com estado agregado;
+- conformidade das câmaras frias, incluindo tempo dentro e fora da faixa;
+- bateria, sinal e atraso de comunicação;
+- histórico de reconhecimento e resolução de alertas.
+
+Na primeira versão, dashboard e aplicativo podem atualizar os dados a cada 30 segundos por REST. Uma fase posterior poderá usar SSE para atualizações instantâneas, preservando as mesmas regras de autorização.
+
+As integrações externas devem usar webhooks HTTPS assinados com HMAC, tentativas com espera progressiva e fila de falhas. Serviços externos não devem receber credenciais do broker, acesso ao PostgreSQL IOT ou chaves de dispositivos.
+
+### 30.7 Segurança e operação
+
+- expor externamente somente MQTTS na porta `8883`; manter `1883` restrita à rede Docker;
+- proibir acesso anônimo e emitir uma credencial exclusiva por dispositivo;
+- aplicar ACL por tópico e permitir que o worker leia somente os tópicos necessários;
+- usar certificado público válido e não desativar a validação TLS nos equipamentos;
+- limitar mensagens a 16 KiB e controlar frequência, retenção e filas;
+- exigir `messageId` único por dispositivo para impedir duplicatas;
+- registrar separadamente o horário da medição e o horário de recebimento;
+- classificar leituras como `good`, `suspect`, `invalid` ou `late`;
+- auditar cadastros, regras, reconhecimento e resolução de alertas;
+- exportar métricas de mensagens aceitas/rejeitadas, atraso, dispositivos offline, alertas e falhas de integração ao Prometheus;
+- guardar senhas, certificados e chaves somente no runtime de segredos, nunca no Git.
+
+### 30.8 Retenção sugerida
+
+| Informação | Prazo inicial sugerido |
+|---|---|
+| Leituras detalhadas | 90 dias |
+| Agregados de 5 minutos | 2 anos |
+| Alertas e auditoria | 5 anos |
+| Último estado do dispositivo | Enquanto o dispositivo existir |
+
+Os prazos devem ser confirmados com as áreas responsáveis e o encarregado de dados antes da implantação.
+
+### 30.9 Fases de implantação
+
+#### Fase 1 — piloto meteorológico
+
+- [ ] Obter marca, modelo, manual e recursos MQTT da estação.
+- [ ] Definir nome DNS, certificado e rota de rede para MQTTS.
+- [ ] Subir Mosquitto e worker em composição isolada.
+- [ ] Cadastrar uma estação e validar reconexão, duplicidade e mensagens fora de ordem.
+- [ ] Disponibilizar consulta de leituras e painel operacional inicial.
+- [ ] Criar alertas de dispositivo offline e valores inválidos.
+- [ ] Acompanhar o piloto por pelo menos sete dias antes da expansão.
+
+#### Fase 2 — câmaras frias
+
+- [ ] Cadastrar cozinhas, equipamentos, responsáveis e faixas operacionais.
+- [ ] Aplicar regras por tipo de produto/equipamento.
+- [ ] Exigir permanência temporal fora da faixa para reduzir falsos positivos.
+- [ ] Registrar reconhecimento, resolução, observação e evidências.
+- [ ] Homologar notificações no aplicativo com as áreas responsáveis.
+
+#### Fase 3 — integrações e expansão
+
+- [ ] Ativar webhooks assinados e fila de reprocessamento.
+- [ ] Integrar notificações e visão histórica ao aplicativo municipal.
+- [ ] Disponibilizar exportação para BI ou dados abertos somente após aprovação.
+- [ ] Adicionar novos tipos de sensores sem acoplar fabricantes à API principal.
+
+### 30.10 Critérios de aceite e continuidade
+
+- credenciais e certificados provisionados fora do Git;
+- teste de reconexão e envio acumulado após perda de rede;
+- teste de mensagens duplicadas, atrasadas, inválidas e fora de ordem;
+- backup e restauração das coleções IOT validados;
+- responsáveis, horários e escala de atendimento de alertas definidos;
+- monitoramento e runbook de indisponibilidade documentados;
+- piloto estável por pelo menos sete dias;
+- plano de rollback sem reiniciar API, MongoDB, Redis, PostgreSQL de Documentos ou Nginx desnecessariamente.
+
+### 30.11 Implementação iniciada e estado atual
+
+Os artefatos iniciais estão em `iot-platform/`:
+
+- `iot-platform/docs/CONTRATO-MQTT.md`: contrato completo de tópicos e mensagens;
+- `iot-platform/backend/iot/`: catálogo, normalização, modelos, rotas iniciais e worker;
+- `iot-platform/deploy/docker-compose.iot.yml`: composição isolada proposta;
+- `iot-platform/deploy/mosquitto.conf`: configuração inicial do broker;
+- `iot-platform/deploy/acl.example`: exemplo de permissões por dispositivo.
+
+A implementação PostgreSQL foi iniciada em pacote isolado. Já existem esquema relacional, particionamento mensal, deduplicação transacional, payload original em `jsonb`, medições normalizadas, agregados de cinco minutos, retenção configurável e worker MQTT com healthcheck e métricas. O contrato OpenAPI e o painel operacional do Grafana permanecem preparados; seus repositórios de consulta serão ligados ao PostgreSQL no próximo incremento.
+
+**Homologação PostgreSQL concluída em 23/09/2026:** imagem `api-semit-iot-worker:pg-candidate` construída com ID `sha256:970ce440384d40b5ecf2c862c5fb463cea761d05c4a375ef07562680c05a5f0a`. PostgreSQL 17, Mosquitto e worker foram iniciados em rede Docker interna e descartável. O `readyz` respondeu `UP`; métricas registraram PostgreSQL e MQTT conectados. Uma mensagem meteorológica criou uma leitura e três medições. A repetição do mesmo `messageId` foi identificada como duplicata, mantendo uma única leitura. A função de agregação produziu séries de cinco minutos para temperatura, umidade relativa e velocidade do vento. Containers, rede e dados sintéticos foram removidos ao final; a imagem candidata foi preservada. Nenhum serviço ou dado de produção foi alterado.
+
+**Motor de alertas homologado em 23/09/2026:** segunda imagem candidata `api-semit-iot-worker:pg-alert-candidate`, ID `sha256:a552802520910a2429284c7bb5e7ed63004755d4353db374b411f9d2e6a25698`. Uma regra crítica `temperature > 25`, sem atraso, abriu alerta com leitura `30.5`; uma leitura normal `22.0` resolveu automaticamente a ocorrência e removeu o estado de violação; nova leitura `31.2` criou uma ocorrência ativa, preservando o histórico resolvido. Métricas contabilizaram duas aberturas. A implementação também passou a conter repositórios e rotas PostgreSQL iniciais para locais, dispositivos, leituras, agregados, dashboard, alertas e regras. Containers, rede e dados sintéticos da segunda homologação também foram removidos; somente a imagem candidata foi preservada.
+
+**Imagem candidata da API:** `api-semit-api:iot-pg-candidate`, ID `sha256:4b684f8c176001a5b8b0b7cbc84af5ab2610bce3d6296cf3671a7f4dbacd0ff1`. A imagem deriva da API ativa, adiciona somente o cliente PostgreSQL, o módulo `iot-pg`, rotas diretas e sob `/api/iot`, além dos papéis `iot_admin` e `iot_operator`. `server.js` e todos os arquivos JavaScript IOT passaram na validação estática dentro de container descartável. A imagem não foi iniciada nem promovida; o container `api` de produção permanece inalterado.
+
+**Fila de integrações homologada em 23/09/2026:** imagem `api-semit-iot-worker:pg-webhook-candidate`, ID `sha256:bb9fe80cc41eea2adb39a38b8d9e750075a059267f4e358c617fe8285443e473`. Uma leitura criou evento `reading.created` na outbox PostgreSQL. Como a rede descartável não permitia saída externa, a tentativa falhou de forma controlada, voltou para `pending`, registrou o erro e incrementou `iot_webhooks_total{result="retry"}`. O contador sintético foi avançado para validar a política final; na décima tentativa o evento passou para `dead` e a métrica correspondente foi registrada. O código aplica HTTPS, resolução DNS a cada entrega, bloqueio de endereços privados, assinatura HMAC, timeout, redirecionamento proibido, lock recuperável e `FOR UPDATE SKIP LOCKED`. A entrega HMAC bem-sucedida ainda deve ser homologada contra receptor HTTPS controlado. Containers, rede e dados sintéticos foram removidos.
+
+**API autenticada homologada em 23/09/2026:** imagem `api-semit-api:iot-pg-api-v2`, ID `sha256:dd7f1022dab50052e3aa2f8c97af968d19bb46bda5a2597ec9de534f0c65aabf`. A homologação usou MongoDB descartável apenas para duas identidades sintéticas e PostgreSQL descartável para todos os dados IOT. Com administrador autenticado, `GET /api/iot/dashboard/summary` respondeu 200, `POST /api/iot/sites` criou uma cozinha com 201 e `GET /api/iot/sites` retornou a lista paginada com 200. O registro foi confirmado exclusivamente no PostgreSQL pelo papel `iot_api`. Com `iot_operator`, a consulta respondeu 200 e a tentativa de cadastro respondeu 403; a contagem permaneceu em um local. API, worker, Mosquitto, PostgreSQL e MongoDB ficaram saudáveis durante o teste. Todos os containers, redes, identidades e dados sintéticos foram removidos ao final; somente as imagens candidatas foram preservadas.
+
+**Publicação em Produção concluída em 23/09/2026:** Release `20260923T163431Z` implantada em produção com status `production_ready`.
+- **Infraestrutura IoT dedicada**: PostgreSQL 17 (`api-semit-iot-iot-db-1`), Broker Mosquitto MQTTS na porta 8883 (`api-semit-iot-mqtt-1`), Worker de Ingestão (`api-semit-iot-iot-ingestion-1`) e Backup automático diário com snapshot inicial (`api-semit-iot-iot-backup-1`).
+- **Promoção da API**: Imagem `api-semit-api:iot-production-20260923` promovida para o container `api`, saudável (`GET /health` -> 200 OK) e com rotas `/api/iot/*` protegidas por autenticação e RBAC.
+- **Validação de ponta a ponta**: Mensagem de telemetria publicada via MQTTS na porta 8883, processada pelo worker, persistida na partição ativa do PostgreSQL e agregada em baldes de 5 minutos em `iot_measurement_5m`.
+- **Segurança e Isolamento**: PostgreSQL 17 sem exposição de porta no host; MQTTS exposto exclusivamente na porta 8883 com TLS; credenciais e certificados isolados em `/home/semit/runtime/iot/deploy/secrets` com permissões restritas. Imagem anterior de rollback preservada como `api-semit-api:rollback-before-iot-20260923T163431Z`.
+
 

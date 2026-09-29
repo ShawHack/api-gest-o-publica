@@ -47,6 +47,8 @@ import FormsGarcaPortal from './components/pages/FormsGarca/FormsGarcaPortal'
 import FormsAccessDeniedPage from './components/pages/FormsGarca/FormsAccessDeniedPage'
 import FormsLoginPage from './components/pages/FormsGarca/FormsLoginPage'
 import FormsVerifyEmailPage from './components/pages/FormsGarca/FormsVerifyEmailPage'
+import PublicEventPage from './components/pages/FormsGarca/PublicEventPage'
+import PublicVoucherValidatePage from './components/pages/FormsGarca/PublicVoucherValidatePage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -103,14 +105,18 @@ function App() {
                     <Route path="/rotas-rurais/admin" element={
                         <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
                     } />
-                    {/* ==================== FORMULÁRIOS GARÇA (PORTAL INDEPENDENTE) ==================== */}
+                    {/* ==================== FORMULÁRIOS GARÇA (PÁGINAS PÚBLICAS & ADMIN) ==================== */}
+                    <Route path="/formularios/evento/:slug" element={<PublicEventPage />} />
+                    <Route path="/formularios/evento/:slug/inscricao" element={<PublicEventPage />} />
+                    <Route path="/formularios/validar-comprovante" element={<PublicVoucherValidatePage />} />
+                    <Route path="/formularios/validar-comprovante/:voucherCode" element={<PublicVoucherValidatePage />} />
                     <Route path="/formularios/login" element={<FormsLoginPage />} />
                     <Route path="/formularios/verificar-email" element={<FormsVerifyEmailPage />} />
                     <Route path="/formularios/*" element={
-                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin', 'forms_organizador']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
                     <Route path="/formularios-react/*" element={
-                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin', 'forms_organizador']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}

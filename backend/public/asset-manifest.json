@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/rotas-rurais/static/css/main.20e10ddb.css",
-    "main.js": "/rotas-rurais/static/js/main.db9243c6.js",
+    "main.css": "/rotas-rurais/static/css/main.44a2e7f7.css",
+    "main.js": "/rotas-rurais/static/js/main.304d4e5c.js",
     "static/media/logo-cemi.png": "/rotas-rurais/static/media/logo-cemi.6eaef3c3b6eeae302ddb.png",
     "index.html": "/rotas-rurais/index.html",
-    "main.20e10ddb.css.map": "/rotas-rurais/static/css/main.20e10ddb.css.map",
-    "main.db9243c6.js.map": "/rotas-rurais/static/js/main.db9243c6.js.map"
+    "main.44a2e7f7.css.map": "/rotas-rurais/static/css/main.44a2e7f7.css.map",
+    "main.304d4e5c.js.map": "/rotas-rurais/static/js/main.304d4e5c.js.map"
   },
   "entrypoints": [
-    "static/css/main.20e10ddb.css",
-    "static/js/main.db9243c6.js"
+    "static/css/main.44a2e7f7.css",
+    "static/js/main.304d4e5c.js"
   ]
 }

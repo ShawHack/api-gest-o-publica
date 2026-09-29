@@ -29,3 +29,11 @@ export const deleteInscription = async (id) => (await api.delete(`${BASE}/inscri
 export const isUserInscribed = async (formId, userId) => (await api.get(`${BASE}/inscriptions/check`, { params: { formId, userId } })).data
 
 export const getPublicEvent = async (slug) => (await api.get(`${BASE}/public/forms/${slug}`)).data
+export const publicInscribe = async (slug, payload) => (await api.post(`${BASE}/public/forms/${slug}/inscribe`, payload)).data
+export const getPublicVoucher = async (voucherCode) => (await api.get(`${BASE}/public/vouchers/${voucherCode}`)).data
+export const publicUpload = async (file) => {
+  const data = new FormData()
+  data.append('file', file)
+  return (await api.post(`${BASE}/public/upload`, data, { headers: { 'Content-Type': 'multipart/form-data' } })).data
+}
+export const updateInscriptionStatus = async (id, status) => (await api.patch(`${BASE}/inscriptions/${id}/status`, { status })).data

@@ -752,6 +752,218 @@ module.exports = class FormsGarcaController {
     }
   }
 
+  // POST /forms-garca/public/forms/:slug/inscribe
+  static async publicInscribeForm(req, res) {
+    try {
+      const { slug } = req.params;
+      const { userName, userEmail, userPhone, userCpf, formData, arquivos } = req.body;
+
+      if (!userName || !userEmail) {
+        return res.status(422).json({ message: 'Nome e e-mail são obrigatórios.' });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userEmail.trim())) {
+        return res.status(422).json({ message: 'Por favor, informe um endereço de e-mail válido.' });
+      }
+
+      const form = await FormGarca.findOne({
+        slug: slug.toLowerCase(),
+        publicado: true,
+        deletedAt: null,
+      });
+
+      if (!form) {
+        return res.status(404).json({ message: 'Evento não encontrado ou indisponível para inscrições.' });
+      }
+
+      // Validação de período
+      const now = new Date();
+      if (form.inicioInscricoes && now < form.inicioInscricoes) {
+        return res.status(400).json({ message: 'As inscrições para este evento ainda não foram abertas.' });
+      }
+      if (form.fimInscricoes && now > form.fimInscricoes) {
+        return res.status(400).json({ message: 'O período de inscrições para este evento já foi encerrado.' });
+      }
+      if (!form.inscricoesAbertas || form.status === 'encerrado' || form.status === 'concluido' || form.status === 'arquivado') {
+        return res.status(400).json({ message: 'As inscrições estão encerradas pela organização.' });
+      }
+
+      // Validação de limite de vagas
+      if (form.limiteInscricoes !== null && form.limiteInscricoes > 0) {
+        const count = await InscriptionGarca.countDocuments({ formId: form._id, status: 'confirmada' });
+        if (count >= form.limiteInscricoes) {
+          return res.status(400).json({ message: 'As vagas para este evento encontram-se esgotadas.' });
+        }
+      }
+
+      // Prevenção de duplicidade por evento + e-mail / CPF
+      const cleanEmail = userEmail.toLowerCase().trim();
+      const cleanCpf = userCpf ? String(userCpf).replace(/\D/g, '') : null;
+
+      if (!form.permitirMultiplasInscricoes) {
+        const duplicateQuery = {
+          formId: form._id,
+          status: { $ne: 'cancelada' },
+          $or: [
+            { userEmail: cleanEmail },
+            ...(cleanCpf ? [{ userCpf: cleanCpf }, { userCpf: userCpf }] : [])
+          ]
+        };
+        const existing = await InscriptionGarca.findOne(duplicateQuery);
+        if (existing) {
+          return res.status(409).json({
+            message: 'Já existe uma inscrição ativa para este evento com este e-mail ou CPF.',
+            voucherCode: existing.voucherCode,
+          });
+        }
+      }
+
+      // Validação de campos obrigatórios
+      const submittedData = formData || {};
+      if (Array.isArray(form.campos)) {
+        for (const campo of form.campos) {
+          if (campo.required) {
+            const val = submittedData[campo.fieldId] || submittedData[campo.label];
+            if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
+              return res.status(422).json({
+                message: `O campo obrigatório "${campo.label}" não foi preenchido.`,
+                fieldId: campo.fieldId,
+              });
+            }
+          }
+        }
+      }
+
+      // Gera código de voucher único
+      let voucherCode = '';
+      let isUnique = false;
+      let attempts = 0;
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      while (!isUnique && attempts < 10) {
+        voucherCode = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        const check = await InscriptionGarca.findOne({ voucherCode });
+        if (!check) isUnique = true;
+        attempts++;
+      }
+
+      if (!isUnique) {
+        return res.status(500).json({ message: 'Erro ao gerar código único. Tente novamente.' });
+      }
+
+      const inscription = new InscriptionGarca({
+        formId: form._id,
+        userId: req?.user?.id || null,
+        userName: userName.trim(),
+        userEmail: cleanEmail,
+        userPhone: userPhone ? String(userPhone).trim() : '',
+        userCpf: cleanCpf || userCpf || '',
+        voucherCode,
+        status: 'confirmada',
+        formData: submittedData,
+        arquivos: Array.isArray(arquivos) ? arquivos : [],
+      });
+
+      await inscription.save();
+
+      await recordAudit(req, {
+        action: 'form.public_inscribe',
+        resourceType: 'inscription',
+        resourceId: inscription._id,
+        metadata: {
+          formId: form._id,
+          slug: form.slug,
+          voucherCode,
+          userName: inscription.userName,
+          userEmail: inscription.userEmail,
+        },
+      });
+
+      return res.status(201).json({
+        message: 'Inscrição confirmada com sucesso!',
+        inscription: {
+          id: inscription._id,
+          voucherCode: inscription.voucherCode,
+          userName: inscription.userName,
+          userEmail: inscription.userEmail,
+          createdAt: inscription.createdAt,
+          formTitle: form.titulo,
+          mensagemConfirmacao: form.mensagemConfirmacao || 'Sua inscrição foi confirmada com sucesso!',
+        },
+      });
+    } catch (error) {
+      console.error('Erro ao realizar inscrição pública:', error);
+      return res.status(500).json({ message: 'Erro ao processar inscrição.', error: error.message });
+    }
+  }
+
+  // GET /forms-garca/public/vouchers/:voucherCode
+  static async getPublicVoucher(req, res) {
+    try {
+      const code = String(req.params.voucherCode || '').toUpperCase().trim();
+      const inscription = await InscriptionGarca.findOne({ voucherCode: code });
+      if (!inscription) {
+        return res.status(404).json({ message: 'Comprovante não encontrado ou código inválido.' });
+      }
+
+      const form = await FormGarca.findOne({ _id: inscription.formId });
+
+      return res.status(200).json({
+        valid: inscription.status === 'confirmada',
+        status: inscription.status,
+        voucherCode: inscription.voucherCode,
+        userName: inscription.userName,
+        createdAt: inscription.createdAt,
+        event: form ? {
+          titulo: form.titulo,
+          dataEvento: form.dataEvento,
+          dataFim: form.dataFim,
+          local: form.local,
+          endereco: form.endereco,
+          organizadorNome: form.organizadorNome,
+          tipoEvento: form.tipoEvento,
+        } : null,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao consultar comprovante.', error: error.message });
+    }
+  }
+
+  // PATCH /forms-garca/inscriptions/:id/status
+  static async updateInscriptionStatus(req, res) {
+    try {
+      const { status } = req.body;
+      if (!['confirmada', 'pendente', 'cancelada'].includes(status)) {
+        return res.status(422).json({ message: 'Status inválido. Use confirmada, pendente ou cancelada.' });
+      }
+
+      const inscription = await InscriptionGarca.findById(req.params.id);
+      if (!inscription) {
+        return res.status(404).json({ message: 'Inscrição não encontrada.' });
+      }
+
+      const form = await FormGarca.findById(inscription.formId);
+      if (form && !canManageForm(req, form)) {
+        return res.status(403).json({ message: 'Sem permissão para alterar inscrição deste evento.' });
+      }
+
+      const oldStatus = inscription.status;
+      inscription.status = status;
+      await inscription.save();
+
+      await recordAudit(req, {
+        action: 'form.inscription_status_change',
+        resourceType: 'inscription',
+        resourceId: inscription._id,
+        metadata: { oldStatus, newStatus: status, formId: inscription.formId },
+      });
+
+      return res.status(200).json({ message: `Status alterado para ${status}!`, inscription });
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao alterar status da inscrição.', error: error.message });
+    }
+  }
+
   // ─── INSCRIÇÕES (CRUD) ────────────────────
 
   // POST /forms-garca/inscriptions
