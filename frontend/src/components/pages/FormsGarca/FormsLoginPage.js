@@ -182,13 +182,13 @@ export default function FormsLoginPage() {
     <div className={styles.shell}>
       {/* Top bar */}
       <header className={styles.topBar}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}><ClipboardList size={22} /></div>
-          <div>
-            <span className={styles.logoText}>Forms Garça</span>
-            <span className={styles.logoSub}>Prefeitura de Garça</span>
-          </div>
-        </div>
+        <Link to="/formularios" className={styles.logoLink}>
+          <img
+            src="/logos/forms_fundo_escuro.png"
+            alt="Forms Garça - Prefeitura de Garça"
+            className={styles.brandLogoImg}
+          />
+        </Link>
         <Link to="/dashboard" className={styles.backLink}>
           Ir para a Dashboard
         </Link>
@@ -223,6 +223,13 @@ export default function FormsLoginPage() {
         {/* Right Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
+            <div className={styles.cardLogoWrap}>
+              <img
+                src="/logos/forms_fundo_escuro.png"
+                alt="Forms Garça"
+                className={styles.cardLogoImg}
+              />
+            </div>
             <h2 className={styles.cardTitle}>
               {mode === 'login' ? 'Bem-vindo de volta' : 'Criar nova conta'}
             </h2>

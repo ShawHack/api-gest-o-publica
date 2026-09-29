@@ -47,13 +47,13 @@ export default function FormsVerifyEmailPage() {
     <div className={styles.shell}>
       {/* Top bar */}
       <header className={styles.topBar}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}><ClipboardList size={22} /></div>
-          <div>
-            <span className={styles.logoText}>Forms Garça</span>
-            <span className={styles.logoSub}>Prefeitura de Garça</span>
-          </div>
-        </div>
+        <Link to="/formularios" className={styles.logoLink}>
+          <img
+            src="/logos/forms_fundo_escuro.png"
+            alt="Forms Garça - Prefeitura de Garça"
+            className={styles.brandLogoImg}
+          />
+        </Link>
         <Link to="/dashboard" className={styles.backLink}>
           Ir para a Dashboard
         </Link>
@@ -62,6 +62,13 @@ export default function FormsVerifyEmailPage() {
       {/* Main Container */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
         <div className={styles.card} style={{ maxWidth: '520px', width: '100%', textAlign: 'center' }}>
+          <div className={styles.cardLogoWrap}>
+            <img
+              src="/logos/forms_fundo_escuro.png"
+              alt="Forms Garça"
+              className={styles.cardLogoImg}
+            />
+          </div>
           {state.loading && (
             <div style={{ padding: '30px 10px' }}>
               <Loader2 size={48} className={styles.spinner} style={{ margin: '0 auto 20px', borderColor: '#6366f1', borderTopColor: 'transparent', width: 44, height: 44 }} />
