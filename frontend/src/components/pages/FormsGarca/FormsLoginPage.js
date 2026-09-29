@@ -1,6 +1,6 @@
 import { useContext, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, EyeOff, ClipboardList, FileText, BarChart3, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Context } from '../../../context/UserContext'
 import api from '../../../utils/api'
 import styles from './FormsLoginPage.module.css'
@@ -199,25 +199,8 @@ export default function FormsLoginPage() {
         {/* Left Hero */}
         <div className={styles.heroSide}>
           <h1 className={styles.heroTitle}>
-            Gerencie formulários e inscrições em um só lugar
+            Prefeitura Municipal de Garça
           </h1>
-          <p className={styles.heroDesc}>
-            Plataforma moderna e segura para criação de formulários dinâmicos, acompanhamento de inscrições e exportação de dados com praticidade.
-          </p>
-          <ul className={styles.features}>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}><FileText size={18} /></span>
-              Crie formulários inteligentes com campos personalizados
-            </li>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}><BarChart3 size={18} /></span>
-              Acompanhe respostas e métricas em tempo real
-            </li>
-            <li className={styles.featureItem}>
-              <span className={styles.featureIcon}><CheckCircle2 size={18} /></span>
-              Autenticação centralizada e segura com validação por e-mail
-            </li>
-          </ul>
         </div>
 
         {/* Right Card */}
