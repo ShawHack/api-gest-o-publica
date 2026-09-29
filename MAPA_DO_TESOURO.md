@@ -1,0 +1,2067 @@
+# MAPA DO TESOURO — Plataforma de Gestão Pública SEMIT
+
+> Guia universal de arquitetura, operação, continuidade e recuperação.
+>
+> Atualização desta entrega: 23/09/2026, proposta IOT; datas das demais análises constam nas respectivas seções.
+> Este documento não contém senhas, tokens, chaves privadas nem valores secretos.
+
+## 1. Finalidade
+
+### Plano oficial — Forms Garça como plataforma municipal de eventos e inscrições (29/09/2026)
+
+**Situação:** arquitetura aprovada para planejamento; implementação ampliada ainda não iniciada. O módulo React/Mongo básico permanece em funcionamento com cadastro de formulário, campos dinâmicos, listagem de inscrições e exportação CSV. Não confundir este plano com funcionalidade já entregue.
+
+**Objetivo:** evoluir o Forms Garça para uma plataforma municipal de eventos e processos de inscrição, inspirada na organização funcional do Doity, sem copiar sua identidade visual. O organizador deverá configurar o evento, publicar uma página de apresentação com identidade própria, montar o formulário, receber inscrições, consultar participantes e exportar os resultados.
+
+#### 1. Arquitetura funcional
+
+O módulo será dividido em dois ambientes claramente separados:
+
+1. **Área administrativa:** criação, configuração, publicação e acompanhamento dos eventos.
+2. **Área pública:** apresentação do evento, autenticação/cadastro do participante, preenchimento do formulário e confirmação da inscrição.
+
+Fluxo principal:
+
+`Meus eventos → Painel do evento → Informações → Inscrições e vagas → Campos do formulário → Aparência/white label → Revisão e publicação → Página pública → Inscrição → Confirmação → Lista/exportação`
+
+#### 2. Área administrativa
+
+**Meus eventos**
+
+- Busca por título, período e situação.
+- Filtros: rascunho, publicado, inscrições abertas, encerrado e arquivado.
+- Cartões com data, situação, total de inscritos, vagas e atalhos.
+- Ações: abrir painel, duplicar, visualizar página pública, arquivar e excluir com confirmação.
+- Criação de evento sempre começa como rascunho.
+
+**Painel do evento**
+
+- Resumo do evento e da publicação.
+- Indicadores: inscritos, confirmados, pendentes, cancelados, vagas ocupadas e inscrições por período.
+- Atalhos para editar, abrir inscrições, copiar link público e visualizar a página.
+- Alertas de configuração incompleta antes da publicação.
+
+**Configuração em etapas**
+
+1. **Informações:** título, subtítulo, descrição formatada, tipo presencial/online/híbrido, início e término, local, endereço, CEP, bairro, cidade, estado e informações do organizador.
+2. **Inscrições:** período de inscrição, limite de vagas, abertura/fechamento manual, mensagem de confirmação e regras do processo. Nesta primeira fase não haverá cobrança, lotes pagos, certificados ou recursos financeiros.
+3. **Campos:** construtor com texto, texto longo, número, e-mail, telefone, CPF, data, seleção, múltipla escolha, confirmação/declaração e arquivo. Permitir obrigatoriedade, ajuda, opções, limite, edição, exclusão e reordenação.
+4. **Personalização/white label:** logotipo do órgão, banner, nome do organizador, cor principal, tema, pré-visualização para desktop/celular e definição do endereço público amigável.
+5. **Revisão e publicação:** checklist obrigatório, prévia e controle de publicação. Alterações relevantes após o início das inscrições devem gerar aviso e auditoria.
+
+**Inscritos**
+
+- Busca por nome, e-mail, CPF, código da inscrição e situação.
+- Indicadores de confirmados, pendentes e cancelados.
+- Tabela configurável com respostas principais.
+- Visualização individual de todas as respostas e arquivos.
+- Edição administrativa auditada, cancelamento e reativação.
+- Exportação CSV/Excel com filtros aplicados e lista de presença imprimível.
+- Dados pessoais completos disponíveis somente para perfis autorizados.
+
+#### 3. Área pública
+
+**Página de apresentação**
+
+- Endereço estável: `/formularios/evento/{slug}`.
+- Banner, logo, título, período, local, descrição, organizador e situação das inscrições.
+- Botão de inscrição com estados claros: disponível, ainda não iniciada, encerrada ou vagas esgotadas.
+- Layout responsivo, acessível e adaptado à identidade escolhida, sem retirar a identificação institucional mínima da Prefeitura/SEMIT.
+- Eventos em rascunho não podem ser encontrados pela API pública.
+
+**Inscrição e preenchimento**
+
+- Endereço: `/formularios/evento/{slug}/inscricao`.
+- Participante entra ou cria uma conta na base única de usuários.
+- Formulário renderizado a partir dos campos configurados pelo organizador.
+- Validações específicas para CPF, e-mail, telefone, datas, opções e arquivos.
+- Salvamento definitivo com proteção contra inscrição duplicada.
+- Confirmação exibe código único, resumo e orientação definida pelo organizador.
+- Uma área futura “Minhas inscrições” permitirá consultar e atualizar respostas enquanto o evento autorizar.
+
+#### 4. Papéis e permissões
+
+- `admin`: acesso total ao Forms Garça e gestão de permissões.
+- `forms_admin`: cria, publica, edita e gerencia inscrições de todos os eventos do módulo.
+- `forms_organizador`: gerencia somente eventos aos quais estiver vinculado.
+- `usuario`: visualiza eventos públicos e realiza as próprias inscrições.
+- Nenhum usuário comum poderá consultar listas, e-mails, CPF ou arquivos de terceiros.
+- Toda criação, publicação, edição administrativa, exportação e cancelamento deverá produzir registro de auditoria.
+
+#### 5. Modelo de dados MongoDB
+
+**Coleção `forms_garca` / evento**
+
+- Identidade: `titulo`, `subtitulo`, `slug`, `descricao`, `status`, `publicado`.
+- Agenda: `tipoEvento`, `dataEvento`, `dataFim`, `inicioInscricoes`, `fimInscricoes`.
+- Capacidade: `limiteInscricoes`, `inscricoesAbertas`.
+- Localização: `local`, `endereco`, `bairro`, `cidade`, `estado`, `cep`, dados online quando aplicável.
+- White label: `tema`, `corPrimaria`, `logoUrl`, `bannerUrl`, nome e descrição do organizador.
+- Formulário: campos com identificador estável, tipo, rótulo, ajuda, obrigatoriedade, opções, ordem e regras de validação.
+- Governança: criador, organizadores autorizados, datas de criação/alteração e integração opcional com 1Doc.
+
+**Coleção `inscriptions_garca` / inscrição**
+
+- Vínculos: evento e usuário.
+- Identificação controlada: nome, e-mail, telefone e CPF, conforme necessidade do processo.
+- Respostas indexadas pelo identificador estável do campo.
+- Código único, situação (`confirmada`, `pendente`, `cancelada`) e datas.
+- Referências de arquivos, nunca conteúdo binário diretamente no documento Mongo.
+- Índice único por evento + usuário quando for permitida somente uma inscrição.
+
+#### 6. APIs planejadas
+
+**Públicas, somente leitura:**
+
+- `GET /api/forms-garca/public/forms/:slug` — evento publicado e situação das vagas.
+
+**Participante autenticado:**
+
+- `POST /api/forms-garca/inscriptions` — criar a própria inscrição.
+- `GET /api/forms-garca/inscriptions/mine` — listar as próprias inscrições.
+- `GET/PUT /api/forms-garca/inscriptions/:id` — consultar/alterar somente inscrição própria dentro das regras.
+- `POST /api/forms-garca/upload` — arquivo validado e vinculado à inscrição.
+
+**Administração autorizada:**
+
+- CRUD de eventos em `/api/forms-garca/forms`.
+- Ações explícitas de publicar, despublicar, duplicar e arquivar.
+- Consulta paginada e filtrada de inscritos.
+- Exportação gerada no servidor para volumes grandes; CSV no navegador permitido apenas para conjuntos pequenos.
+
+#### 7. Estrutura React planejada
+
+- `FormsGarcaAdminLayout`: navegação lateral e contexto do evento.
+- `EventsListPage`: meus eventos e filtros.
+- `EventDashboardPage`: indicadores e atalhos.
+- `EventSettingsPage`: etapas Informações, Inscrições, Campos e Personalização.
+- `FormBuilder`: criação, validação e ordenação de campos.
+- `RegistrationsPage` e `RegistrationDetailPage`: lista, filtros, detalhes e exportação.
+- `PublicEventPage`: apresentação pública.
+- `PublicRegistrationPage`: preenchimento e envio.
+- `RegistrationConfirmationPage`: comprovante e código.
+- Componentes visuais próprios do Forms Garça; não reutilizar Navbar, WhatsApp flutuante ou estilos de outros módulos quando causarem interferência.
+
+#### 8. Segurança, LGPD e continuidade
+
+- Coletar somente dados necessários e explicar finalidade de dados sensíveis.
+- Arquivos com lista de extensões, tamanho máximo, nome aleatório e armazenamento fora da pasta executável.
+- Validar tudo novamente no backend; nunca confiar nas regras do navegador.
+- Sanitizar conteúdo formatado da descrição para impedir scripts.
+- Limitar tentativas e volume de upload; proteger exportações e registrar quem exportou.
+- Página pública nunca retorna dados de inscritos.
+- Preservar os formulários e inscrições existentes por migração compatível e reversível.
+- Fazer backup do Mongo e dos uploads antes de qualquer migração.
+- Publicar primeiro em homologação; não substituir o módulo atual sem testes de regressão e plano de rollback.
+
+#### 9. Fases de entrega
+
+1. [ ] Consolidar modelo Mongo, índices, papéis e migração compatível.
+2. [ ] Implantar “Meus eventos”, painel e configuração de informações.
+3. [ ] Implantar período de inscrição, vagas e construtor completo de campos.
+4. [ ] Implantar white label, pré-visualização e página pública por slug.
+5. [ ] Implantar inscrição, uploads, validação, comprovante e prevenção de duplicidade.
+6. [ ] Implantar gestão de inscritos, filtros, detalhes, CSV/Excel e lista de presença.
+7. [ ] Testar autorização, LGPD, acessibilidade, responsividade, carga, backup e rollback.
+8. [ ] Homologar com evento de teste; publicar gradualmente e registrar evidências neste mapa.
+
+**Fora do escopo inicial:** pagamentos, lotes pagos, notas fiscais, certificados, aplicativo próprio, sorteios, e-mail marketing e chat. Esses recursos somente serão avaliados depois da estabilização do núcleo de eventos e inscrições.
+
+### Plano oficial — integração do Mapa Turístico ao Turismo Garça e Pontos QR (15/09/2026)
+
+**Objetivo:** tornar o catálogo do portal `/turismo/` a fonte oficial dos locais turísticos, incorporar a visualização cartográfica e vincular QR Codes aos locais, sem duplicar cadastros nem perder os 41 pontos do mapa legado.
+
+1. [x] Inventariar e exportar os 41 pontos, fotos e categorias do mapa legado; registrar contagens e inconsistências sem alterar dados.
+2. [x] Ampliar o conteúdo turístico com localização estruturada, coordenadas, origem/migração e configuração QR; manter compatibilidade com conteúdos COMTUR existentes.
+3. [x] Criar migração idempotente: simulação obrigatória, importação inicial como `draft`, chave de origem única e relatório de itens ignorados/conflitantes.
+4. [x] Criar página pública estável `/turismo/local/{slug}` e API pública por slug; QR nunca deve apontar para ObjectId ou URL administrativa.
+5. [x] Incorporar mapa ao portal Turismo Garça usando somente locais publicados com coordenadas válidas; filtros e lista acessível devem funcionar sem depender apenas do mapa visual.
+6. [ ] Substituir o formulário genérico “Ponto QR” por seção do local: habilitação, identificação da placa, situação, instalação, manutenção e geração PNG/PDF.
+7. [ ] Preservar `/mapaturistico/` e páginas antigas durante homologação; mapear redirecionamentos por ID para o slug novo e só ativá-los após revisão/publicação dos registros.
+8. [ ] Validar permissões centrais `admin`, `admin_comtur` e `admin-comtur`, testes, backup, rollback e publicação gradual; documentar evidências e pendências aqui.
+
+**Regras de segurança e continuidade:** nenhuma importação direta como `published`; não apagar nem editar a coleção `pontos_turisticos`; não substituir URLs antigas antes de existir correspondência validada; não gerar QR para rascunho; registrar auditoria das mutações; preservar uploads e base única de usuários.
+
+**Estado inicial verificado:** mapa legado funcional em `/mapaturistico/`, 41 pontos ativos e administração exclusiva de `admin`. Portal `/turismo/` funcional, mas catálogo público sem atrativos; banco COMTUR contém 2 conteúdos de governança. O mapa ainda é acessado por link externo no portal novo. O formulário `qr_point` é genérico e não deve ser usado como cadastro paralelo.
+
+**Execução em 15/09/2026:** inventário JSON e cópia dos arquivos foram guardados em `/home/semit/Documentos/deploy-backups/tourism-map-20260915/`. A simulação encontrou 41 pontos aptos, zero conflitos e zero avisos. A migração criou 41 registros exclusivamente como `draft`; uma segunda simulação encontrou zero criações e 41 itens já reconhecidos, comprovando idempotência. O legado permaneceu com 41 pontos e continua público.
+
+A API recebeu consulta cartográfica pública `GET /api/comtur/map/locations`, limitada a locais publicados com coordenadas válidas, resolução controlada do ID legado e administração do ciclo físico de QR vinculada ao próprio local. Foram implantadas a ficha estável `/turismo/local/{slug}` e a página `/turismo/mapa/`, com busca, categorias, marcadores e lista acessível. O botão “Ver mapa” do portal passou a usar a URL nova; durante a revisão, a página oferece acesso explícito ao legado. A API voltou `healthy`; enquanto os registros aguardam revisão, o endpoint público retorna lista vazia por desenho de segurança. Nenhum ponto foi publicado automaticamente e nenhum QR foi ativado.
+
+**Pendências para concluir:** revisar e publicar gradualmente os 41 locais; especializar o formulário administrativo e gerar PNG/PDF acessível; validar papéis administrativos com contas autorizadas; somente então ativar os redirecionamentos individuais do legado. O legado não deve ser removido durante a homologação.
+
+### Etapa 3 — tratamento nativo de erros em Educação e Documentos (04/09/2026)
+
+- [x] Localizar os roteadores e fontes de produção; Educação usa React Router e Documentos usa Next.js 16.3.1 com base `/docs`.
+- [x] Educação: adicionar página de rota desconhecida e limite de erro React, preservando rotas de conselhos, administração, autenticação e conteúdo.
+- [x] Documentos: adicionar `not-found`, `error` e `global-error` nativos, sem expor mensagens internas, alterar cookies ou substituir erros de negócio.
+- [x] Testar renderização normal, falha controlada, recuperação e links em ambiente isolado; conferir diferenças entre fonte e build publicado.
+- [x] Publicar somente após build validado e revisão do escopo, com backup e reversão. A rota curinga de Documentos foi substituída pelas seis rotas legítimas explícitas para preservar 404 HTTP real.
+- [x] Registrar evidências, limites e estado real da publicação neste mapa.
+
+**Resultado:** concluído e publicado em 04/09/2026. Educação recebeu rota interna 404 e limite de erro nativo React; publicação estática, sem reinício. Documentos recebeu as convenções nativas do Next.js e uma imagem validada isoladamente; somente `sd_docs-web` foi recriado, mantendo API e banco. O Nginx foi validado e recarregado suavemente para atualizar o destino.
+
+**Evidências:** build Educação concluído (há avisos ESLint antigos e fora desta entrega; o modo CI os eleva a erro). Build Documentos concluiu compilação, TypeScript e 37 páginas. Em QA isolado, login respondeu 200, rota inexistente 404 e as seis rotas antes atendidas pelo curinga continuaram 200: estrutura/organograma, estrutura/contatos, estrutura/fila-assinaturas, notificações, minha-conta e relatórios. Em produção, navegador confirmou 404 institucional de Educação e Documentos e as páginas iniciais/login normais. HTTP confirmou dashboard, API, SAMA, GarçaPet, Agenda, Cultura e Rotas Rurais em 200. API permanece saudável. `tv-semit` continua unhealthy, condição anterior e não causada por esta entrega.
+
+**Códigos HTTP:** Documentos retorna 404 real para rota desconhecida. Educação é SPA: o servidor entrega seu shell com 200 e o React apresenta a tela interna 404; isso é esperado porque a decisão de rota ocorre no navegador. Arquivos inexistentes e rotas desconhecidas fora do SPA continuam sob a proteção HTTP global da etapa 1.
+
+**Segurança e dados:** mensagens não exibem exceção, stack ou identificadores internos. Nenhuma conta, cookie, sessão, permissão, API ou dado foi alterado. Falhas fatais foram exercitadas apenas em teste isolado; não foi provocada indisponibilidade em produção. Erros de negócio e 401/403 continuam com seus fluxos originais.
+
+**Arquivos e recuperação:** artefatos reproduzíveis em `module-errors/phase3/`. Backup em `/home/semit/Documentos/deploy-backups/module-errors-20260904-phase3/`. Educação: restaurar `education-runtime/index.html` (e manifestos, se necessário); assets novos ficam inertes. Documentos: imagem ativa `448cc2f4d7e34358d42807e0395905ed9156b481b5e1721cede1887c1b51394e`; anterior preservada como `sd_docs-web:pre-phase3-errors-20260904`. Retag da anterior e recriação apenas de `web` fazem a reversão; validar login e recarregar Nginx. Não tocar em volumes, API ou banco.
+
+### Etapa 2 — erros internos SAMA/GarçaPet e Agenda (04/09/2026)
+
+- [x] Mapear rotas do bundle e patches SAMA, inclusive recuperação de senha, administração e castração; Agenda usa hash para páginas de serviço.
+- [x] Adicionar guarda específica dos módulos: URL interna inválida mostra 404 institucional, falha fatal do JavaScript próprio mostra indisponibilidade; nunca limpar sessão ou modificar dados.
+- [x] Preservar retorno, histórico, acesso aos serviços e fluxo de login. Ignorar falhas de imagens/scripts externos; não substituir mensagens de negócio, validação ou 401/403.
+- [x] Testar rotas válidas, inválidas, hashes de Agenda, navegação e retorno sem gravações em produção; publicar apenas arquivos estáticos, com backup.
+- [x] Registrar evidências e limites. Educação e Documentos ficam para etapa própria, sem impor regras do roteador SAMA a esses módulos.
+
+
+**Resultado:** publicado e validado em 04/09/2026. Navegador confirmou tela institucional para `/garcapet/pagina-inexistente` e `/agendamentos/#/inexistente`; `/sama/` e a tela de login de `/agendamentos/` permaneceram funcionais. Testes isolados cobriram recuperação de senha, administração de castração, edição de pet, hashes válidos/inválidos, retorno ao estado normal e falhas JS próprias/externas. Não houve reinício de serviço nem gravação de dados.
+
+**Arquivos:** `module-errors/module-guard.js`, `test.cjs` e os dois HTMLs de referência. Em produção: `backend/public/portal-errors/module-guard.js`, carregado pelos index de SAMA e Agenda. Reutiliza as páginas institucionais de `portal-errors/`. Preservar essa inclusão em futuros builds até integração nativa nos roteadores.
+
+**Rollback:** restaurar `sama-index.html` e `agenda-index.html` de `/home/semit/Documentos/deploy-backups/module-errors-20260904/` para o index do respectivo módulo; não alterar banco ou API. O arquivo novo pode permanecer sem referência.
+
+**Limites:** a guarda é uma camada de apresentação por rota e captura de exceções fatais próprias, não substitui um Error Boundary React nativo. Em navegação interna de SPA, a tela mostra 404 mas a resposta inicial do HTML pode ser 200 (fragmentos de URL não chegam ao servidor). Os 404 HTTP reais da raiz e os JSON 404 da API continuam cobertos pela etapa 1. Falhas tratadas de negócio/recursos inexistentes e sessões permanecem no fluxo original. Não houve teste autenticado ou simulação de queda em produção.
+
+**Etapa seguinte concluída:** Educação e Documentos receberam tratamento nativo e revisão dos códigos HTTP na etapa 3 deste mapa.
+
+### Plano oficial — erros institucionais e isolamento de fallback (04/09/2026)
+
+Objetivo: endereços desconhecidos não devem abrir o Memorial; indisponibilidade deve ter orientação neutra da Prefeitura/SEMIT, sem esconder o status HTTP nem expor detalhes internos.
+
+1. [x] Diagnosticar Nginx e frontend publicado: fallback genérico `try_files ... /index.html` e React sem tela para rota desconhecida; fonte backend também contém fallback amplo.
+2. [x] Inventariar rotas legítimas do Memorial pelo bundle publicado e fonte. Preservar login, recuperação, cadastro, sepultados, usuários, plantões, educação e compliance; manter roteamento específico dos demais módulos.
+3. [x] Criar páginas estáticas independentes de API, com 404 e indisponibilidade/erro, botões Voltar, Acessar serviços e Tentar novamente quando aplicável. Identidade neutra; sem redirecionamento ao Memorial, detalhes técnicos ou inclusão de parâmetros sensíveis.
+4. [x] Restringir fallback raiz a rotas legítimas. Arquivos ausentes retornam 404; módulos com prefixos próprios permanecem com suas regras. Tratar 500/502/503/504 de páginas web sem interferir com autenticação nem converter respostas JSON em HTML.
+5. [x] Preservar API com erros em JSON: validar comportamento de endpoint inexistente e indisponibilidade. Não modificar respostas 401/403 nem expor stack traces. Não implantar mudanças amplas na imagem da API sem reconciliação do fonte divergente.
+6. [x] Proteger navegação interna desconhecida e falha fatal do shell Memorial com apresentação institucional; não tratar cada erro de imagem/requisição como falha total. Sessões expiradas continuam no fluxo existente de autenticação, sem limpar conta ou redirecionar a outro módulo.
+7. [x] Testar configuração isolada, códigos HTTP, JSON, rotas legítimas, módulos existentes e página de exemplo `/docs/platform-admin/login`; publicar com backup e recarga suave, verificar arquivo efetivamente montado no Nginx. Não derrubar serviços para simular erro em produção.
+8. [x] Registrar resultados, limites e rollback nesta seção.
+
+Escopo desta etapa: fallback global e shell Memorial. Telas internas específicas de cada SPA (SAMA, Agenda, Educação, Documentos etc.) precisam de integração por módulo; não substituir genericamente seus roteadores ou fluxos de login. Registrar integrações remanescentes como pendências, sem declarar cobertura total.
+
+
+#### Resultado da implantação — 04/09/2026, 13:44–13:45 BRT
+
+- Publicado: páginas estáticas `/portal-errors/404.html` e `unavailable.html`, CSS/JS independentes de API, fallback raiz restrito e proteção do shell Memorial. A URL inexistente permanece visível; o servidor retorna 404 real, sem redirecionamento ao Memorial.
+- Web: códigos 500/502/503/504 gerados no proxy usam tela institucional. Documentos tem interceptação explícita de falhas 5xx. Respostas upstream de outros módulos permanecem sob suas regras; não declarar cobertura universal de erros internos.
+- API: middleware `backend/helpers/api-not-found.js`, registrado depois das rotas existentes e antes do fallback genérico. O Nginx identifica requisições sob `/api/` pelo cabeçalho interno `X-SEMIT-API-Request: 1`. Endpoints desconhecidos agora retornam JSON com 404. Respostas de rotas existentes e autenticação não foram alteradas. Arquivos estáticos/rotas especiais anteriores ao middleware mantêm o comportamento existente.
+- Imagem mínima da API baseada na imagem que estava saudável: `api-semit-api:portal-errors-20260904` (`6ecaaf36da894ab60f2530d739cf47a5eb9d64523c1e2bb330f92a79c5584ca7`). Imagem anterior preservada: `api-semit-api:pre-portal-errors-20260904`. Reinício breve da API autorizado pelo responsável nesta conversa; apenas API recriada, sem alterar dados, volumes ou outros serviços. Health final: running/healthy e `{"status":"UP"}`.
+- Testes: middleware isolado validou JSON 404 e preservação de 200/401/404 específicos. Teste DOM validou rotas conhecidas, rota desconhecida, retorno e falha JS própria, ignorando erro de terceiro. Teste HTTP confirmou 404 institucional para URL inventada, página Cultura ausente e asset ausente; JSON 404 em API inventada; 200 para login, recuperação, pesquisa Memorial, Educação, dashboard, SAMA, adoção, castração, Agenda, Rotas Rurais, Teatro, Documentos e health. A página 404 também foi conferida no navegador.
+- Não simulamos queda de serviços em produção. Falhas 5xx e renderização responsiva completa ainda merecem homologação controlada. Nenhuma conta de teste ou solicitação foi criada.
+- Backup: `/home/semit/Documentos/deploy-backups/portal-errors-20260904/`, com nginx.conf, index.html e server.js anteriores. Rollback web: restaurar nginx.conf/index.html, conferir hash da montagem, executar nginx -t e recarregar. Rollback API: retag da imagem anterior para `api-semit-api:latest`, `docker compose up -d --no-deps --no-build api`, validar health e recarregar Nginx para atualizar resolução do container; restaurar o server.js de produção se revertendo também o fonte. Não excluir volumes.
+- Arquivos desta entrega e testes: diretório `portal-errors/` do repositório. `nginx.conf` é snapshot de produção: comparar com a configuração atual antes de reaplicar, nunca sobrescrever regras posteriores cegamente. `Dockerfile` usa a imagem-base anterior local; deve ser reconstruído sobre uma base verificada ou integrado ao build normal em outro servidor.
+- **Situação por módulo:** SAMA e Agenda foram cobertos na etapa 2; Educação e Documentos, na etapa 3. Permanecem para revisão gradual os demais SPAs; padronização visual das mensagens de sessão expirada sem mudar autenticação; homologação de 5xx e fluxos autenticados. Esta etapa conclui o fallback global, API desconhecida e shell Memorial, não a reescrita de todos os módulos.
+
+### Estado da migração de URLs SAMA — 04/09/2026
+
+**Atualização final, 13:22 BRT: migração publicada após autorização do responsável.** A configuração do host e a efetivamente montada no Nginx foram conferidas por SHA-256 idêntico (`dd86e627b533e331b3076b3f684f9bc7a51f8bdf6116db4290ef06b3431ef941`). Bastou recarga suave validada; não foi necessário substituir a configuração principal nem reiniciar containers. Os itens abaixo sobre bloqueio/reversão são o histórico da primeira tentativa, não o estado atual.
+
+- Endereços ativos: `/sama/`, `/sama/arvores`, `/sama/arvore/...`, `/sama/castracao`, `/sama/zoologico`, `/sama/denunciar`, `/sama/funcionalidade`, `/sama/vacinacao`. Adoção permanece em `/garcapet/`, `/garcapet/adotar` e rotas de acompanhamento. Conta e administração continuam compartilhadas nos endereços existentes.
+- Links antigos redirecionam com 302 e preservam parâmetros. Logo e Página Inicial voltam à área correspondente; adoção apresenta Voltar à Secretaria. Redirecionamentos temporários permitem rollback sem cache permanente de 301.
+- Evidências: navegador validou castração (campanha e acesso ao formulário), navegação interna para adoção e árvores e tela de login. HTTP 200 para zoológico, vacinação, health da API e teatro da Cultura; link antigo de castração retornou 302 para `/sama/castracao?origem=teste`. Login autenticado, envio de solicitações e fluxos administrativos não foram exercitados para não gravar dados de teste em produção.
+- Restauração: preservar o build legado, os arquivos JS versionados `*.sama-routes-20260904.js`, `routes.js`, `identity.js`, `identity.css`, `index.html` e `manifest.json`, além de `nginx/nginx.conf`. Cópia de referência desta entrega em `sama-identity/release-20260904/` no repositório de trabalho; testes e transformação reproduzível em `sama-identity/`.
+- Continuidade: consolidar essas adaptações no projeto React original quando o fonte for reconciliado. A camada de compatibilidade não altera APIs nem base de usuários.
+
+- Identidade visual SAMA/GarçaPet preservada em produção. URLs originais continuam ativas.
+- Migração preparada para `/sama/`, árvores/mudas, castração, zoológico, denúncias, funcionamento e vacinação; adoção permanece em `/garcapet/`. Login compartilhado preservado.
+- Testes automatizados de aliases React e conservação de query/hash aprovados; configuração Nginx passou em `nginx -t` isolado.
+- **Pendente de autorização operacional:** o Nginx montado somente leitura manteve a configuração antiga após atualização no host e recarga. O teste público de `/sama/castracao` retornou 404. Tentativa de trocar a inclusão na configuração principal foi bloqueada pela revisão automática por risco de afetar o proxy de todos os serviços. Não contornar esse bloqueio.
+- Reversão executada: `index.html`, `identity.js`, `manifest.json` e configuração do host restaurados do backup `/home/semit/Documentos/deploy-backups/sama-routes-20260904/`. `/garcapet/castracao` voltou a responder 200 e teve seu conteúdo validado no navegador, com a identidade SAMA e o formulário público preservados.
+- Próximo passo: obter autorização para intervenção controlada no Nginx, escolher janela/método com rollback, confirmar configuração efetiva no container e testar URLs públicas antes de republicar links canônicos. Não considerar a migração concluída.
+- Arquivos preparados e testes: `sama-identity/routes.js`, `prepare-routes.cjs`, `test-routes.cjs`; staging remoto `/tmp/sama-routes-20260904/`. O script de deploy exige revisão antes de reutilização, pois a recarga simples não resolveu a montagem ativa.
+
+### Plano SAMA / GarçaPet — identidade por seção (04/09/2026)
+
+- Objetivo: apresentar Secretaria do Meio Ambiente / SAMA nas páginas institucionais, ambientais e de conta; reservar GarçaPet ao catálogo, detalhes e acompanhamento de adoção. Serviços de animais (cadastro, castração, vacinação e denúncias) usam SAMA / Bem-estar animal.
+- Etapa 1: cabeçalho responsivo (nome completo no desktop, SAMA no celular), título da aba, identificação institucional no rodapé e nome do aplicativo instalado.
+- Etapa 2: título institucional na página `/garcapet/sama` e atalhos para árvores/mudas, bem-estar animal e GarçaPet / Quero adotar.
+- Etapa 3: testar rotas diretas, navegação interna, retorno e responsividade; publicar somente arquivos estáticos com backup. Não alterar API, autenticação, usuários, permissões, banco ou rotas.
+- Implementação: `sama-identity/identity.js` e `identity.css` são uma camada de apresentação sobre o pacote React legado já publicado. Integram os hooks de navegação existentes, com observador de DOM desconectado durante aplicação para evitar ciclos. Nenhuma requisição de escrita é adicionada.
+- Destino de produção: `/home/semit/Documentos/api-semit/backend/public/sama/`. Carregamento pelo `index.html`, com versão nos URLs. Preservar todos os scripts existentes e incluir esses arquivos em futuros rebuilds/restaurações.
+- Backup desta entrega: `/home/semit/Documentos/deploy-backups/sama-identity-20260904/`. Reversão: restaurar `index.html` e `manifest.json` desse diretório; os arquivos novos ficam inertes sem referência.
+- **Concluído:** URL institucional `/sama/` com redirecionamentos dos links antigos. **Manutenção futura:** integrar a camada diretamente ao projeto React original quando seu fonte/dependências forem reconciliados. Não substituir o build atual por fontes parciais recuperadas do source map.
+- Estado: publicado e validado; evidências e limites em `sama-identity/VALIDACAO.md`, instruções de restauração em `sama-identity/README.md`.
+
+Este documento existe para permitir que uma pessoa que nunca trabalhou no projeto consiga:
+
+- entender o que a plataforma entrega;
+- localizar a fonte correta de cada componente;
+- identificar onde ficam dados, uploads, segredos e builds;
+- operar, diagnosticar e atualizar os serviços com segurança;
+- compreender as dependências entre servidores;
+- restaurar a plataforma em outro servidor após um desastre;
+- saber quais documentos e scripts aprofundam cada procedimento.
+
+Use este arquivo como índice principal. Procedimentos destrutivos continuam exigindo autorização e devem seguir os runbooks específicos.
+
+## 2. Resumo executivo
+
+A plataforma é um conjunto modular de serviços municipais publicado principalmente em `https://api.garca.sp.gov.br`. A entrada pública é o Nginx. Atrás dele existem:
+
+- API principal Node.js/Express;
+- MongoDB e Redis;
+- workers de e-mail e tarefas;
+- frontend principal e diversos portais estáticos;
+- Garça Cidadão, com FastAPI e Next.js;
+- Caixa de Ferramentas, em Next.js;
+- TV corporativa;
+- Grafana e Prometheus;
+- integrações com Xibo, painel de senhas/Novo SGA, Firebase, SMTP, WhatsApp e serviços externos.
+
+O servidor principal é `10.15.25.28`. Ele depende funcionalmente de:
+
+| Endereço | Responsabilidade observada | Cobertura pelo backup local |
+|---|---|---|
+| `10.15.25.28` | API, bancos, portais, TV local, monitoramento e proxy | Sim |
+| `10.15.25.29` | Xibo CMS, layouts, campanhas, biblioteca e XMDS | Não; exige backup próprio |
+| `10.15.25.31` | Painel de senhas, triagem e Novo SGA | Não; exige backup próprio |
+
+## 3. Fonte de verdade
+
+### 3.1 Produção observada
+
+O Docker informa que a stack principal em execução usa:
+
+```text
+/home/semit/Documentos/api-gestao-publica
+```
+
+Projeto Compose: `api-semit`.
+
+Arquivos Compose efetivos:
+
+```text
+/home/semit/Documentos/api-gestao-publica/docker-compose.yml
+/home/semit/Documentos/api-gestao-publica/monitoring/docker-compose.monitoring.yml
+```
+
+Commit observado: `f0c69e57`.
+
+### 3.2 Divergência documental
+
+`docs/FONTE-CANONICA.md` ainda aponta `/home/semit/Documentos/api-semit`. Essa informação está desatualizada para a stack principal observada em 26/08/2026.
+
+O checkout `api-semit` ainda não pode ser descartado: a TV corporativa foi criada a partir dele e seu código está em:
+
+```text
+/home/semit/Documentos/api-semit/tv_corporativa
+```
+
+Em 27/08/2026 foi confirmada uma segunda dependência operacional desse checkout: embora o Compose seja controlado por `api-gestao-publica`, o container `nginx` mantém binds de publicação apontando para:
+
+```text
+/home/semit/Documentos/api-semit/frontend/build -> /usr/share/nginx/html
+/home/semit/Documentos/api-semit/backend/public -> /opt/backend-public
+/home/semit/Documentos/api-semit/nginx/nginx.conf -> /etc/nginx/conf.d/default.conf
+```
+
+Portanto, alterar ou compilar apenas `api-gestao-publica/frontend/build` não atualiza automaticamente o site em produção. Essa divergência deve ser eliminada futuramente de forma planejada; até lá, todo deploy web deve conferir os mounts efetivos do `nginx`.
+
+Regra operacional:
+
+- stack principal: trabalhar em `api-gestao-publica`;
+- TV corporativa: confirmar o checkout e o Compose de origem antes de reconstruir;
+- frontend/Nginx: compilar a partir da fonte versionada em `api-gestao-publica` e publicar de modo controlado no caminho efetivamente montado de `api-semit`;
+- nunca sincronizar os dois diretórios indiscriminadamente;
+- antes de qualquer deploy, confirmar `com.docker.compose.project.working_dir` com `docker inspect api` e os binds com `docker inspect nginx`.
+
+## 4. Visão da arquitetura
+
+```text
+Internet / rede municipal
+          |
+          v
+Nginx :80/:443/:8080/:8082/:8088/:8090
+          |
+          +--> API Express :5000
+          |       +--> MongoDB :27017 (replica set rs0)
+          |       +--> Redis :6379
+          |       +--> email-worker
+          |       +--> job-worker
+          |       +--> Firebase / SMTP / WhatsApp / Sentry / IA
+          |
+          +--> GovCidadão API :8000 + frontend :3000
+          +--> Ferramentas Next.js :3000
+          +--> TV corporativa :3050
+          +--> Frontends e assets montados no host
+          +--> Xibo em 10.15.25.29
+          +--> Painel de senhas / Novo SGA em 10.15.25.31
+
+Monitoramento: Prometheus :9090 --> coleta métricas
+               Grafana :3001   --> dashboards
+```
+
+Todos os containers principais compartilham a rede Compose `api-semit_stack`.
+
+## 5. Serviços e containers
+
+| Container | Tecnologia/imagem | Papel | Persistência |
+|---|---|---|---|
+| `nginx` | Nginx Alpine | TLS, entrada pública, estáticos e proxy reverso | Certificados, ACME, uploads e binds de assets |
+| `api` | Node.js/Express | API principal e entrega de módulos | MongoDB, uploads e binds do runtime |
+| `mongo` | MongoDB 6 | Banco principal, replica set `rs0` | `api-semit_mongo-data` e `/data/configdb` |
+| `redis` | Redis 7 Alpine | filas, cache e coordenação de workers | `api-semit_redis-data` |
+| `email-worker` | imagem da API | processamento assíncrono de e-mails | Redis/Mongo |
+| `job-worker` | imagem da API | tarefas em segundo plano | Redis/Mongo |
+| `govcidadao-api` | FastAPI | API Garça Cidadão | MongoDB |
+| `govcidadao-frontend` | Next.js | frontend Garça Cidadão | imagem/código |
+| `ferramentas` | Next.js | conversão e utilitários de documentos | imagem/código |
+| `certbot` | Certbot | emissão e renovação TLS | Let's Encrypt e ACME |
+| `tv-semit` | Node.js | player/sincronizador da TV corporativa | `api-semit_tv-semit-data` |
+| `prometheus` | Prometheus 2.55.1 | coleta de métricas | `api-semit_prometheus-data` |
+| `grafana` | Grafana 11.4.0 | visualização e alertas | `api-semit_grafana-data` |
+
+Containers encontrados mas não confirmados como parte ativa:
+
+- `api-fin`: estado `Created`;
+- `intelligent_elbakyan`: parado há meses.
+
+Não apagar containers desconhecidos sem identificar proprietário, dados e finalidade.
+
+## 6. Diretórios importantes
+
+| Caminho | Conteúdo |
+|---|---|
+| `backend/` | API Express, modelos, controladores, rotas, workers e testes |
+| `frontend/` | frontend React e builds web |
+| `agenda-web/` | portal React da Agenda Garça (`base` `/agendamentos/`) |
+| `GovCidadao/` | API FastAPI, frontend Next.js, testes e documentação |
+| `Ferramentas/` | aplicação Next.js de conversão de documentos |
+| `prefeitura_app-main/` | aplicativo Flutter municipal, mobile e web |
+| `estradas_rurais_app/` | cliente Flutter de Estradas Rurais |
+| `cultura-src/` | portal e ferramentas de Cultura/PNAB |
+| `mapaturistico/` | módulo do mapa turístico |
+| `nginx/` | configuração de publicação e proxy |
+| `monitoring/` | Compose, Prometheus e provisioning do Grafana |
+| `scripts/` | deploy, backup, restore, verificação, testes e operação |
+| `docs/` | runbooks, planos e normas operacionais |
+| `/home/semit/runtime/api-gestao-publica/` | segredos e assets efetivos separados do Git |
+| `/home/semit/Documentos/backups-completos/` | backups diários locais |
+
+## 7. Módulos funcionais
+
+### 7.1 Identidade e acesso
+
+- cadastro, login, sessão e verificação de e-mail;
+- recuperação e redefinição de senha;
+- JWT e refresh tokens;
+- perfis como `admin`, `concessionario`, `monitor`, `rotas_admin` e usuário autenticado;
+- permissões por módulo e trilha de auditoria.
+
+### 7.2 Memorial e sepultados
+
+- pesquisa, sugestões e detalhes;
+- CRUD administrativo;
+- imagens e comentários;
+- atribuição de concessionário;
+- agendamento, conclusão e moderação.
+
+### 7.3 Garça Pet / SEMIT A PET
+
+- pets, imagens, adoção e fila de interessados;
+- chat, presença e notificações;
+- denúncias, vacinação e campanhas de castração;
+- privacidade de contatos e controles administrativos.
+
+### 7.4 Serviços municipais
+
+- agendamentos (Agenda Garça em `/agendamentos/`: cidadão marca horário; gestor cadastra catálogo na aba Catálogo);
+- Formulários Garça e inscrições;
+- Iluminação Pública com QR Code;
+- Ordem de Serviços;
+- Arborização;
+- medicamentos;
+- educação;
+- Cultura e PNAB;
+- mapa turístico;
+- votação interna;
+- passagem de turno;
+- auditoria e compliance LGPD.
+
+### 7.5 Estradas Rurais
+
+- UPAs e vínculos de proprietários;
+- portal do produtor, login de operadores e administração;
+- mapa público dos bairros rurais e localização/compartilhamento de propriedades;
+- whitelist de veículos;
+- alertas de placas desconhecidas;
+- webhook Intelbras LPR;
+- integração Firebase RTDB/service account;
+- trilha LGPD e aprovações administrativas.
+
+### 7.6 Garça Cidadão
+
+- API FastAPI com Beanie/Motor;
+- frontend Next.js;
+- utiliza o MongoDB da plataforma;
+- publicado sob `/garca-cidadao` e `/garca-cidadao-api/`.
+
+### 7.7 Caixa de Ferramentas
+
+- conversão e manipulação de PDF, DOCX, imagens e HEIC;
+- Next.js, LibreOffice e bibliotecas de documentos;
+- publicado sob `/ferramentas`.
+
+## 8. API e persistência
+
+### 8.1 Banco MongoDB
+
+Bases observadas no backup e no servidor:
+
+- `apicemiterio`;
+- `govcidadao`;
+- `semit`;
+- `teatro_db`;
+- `admin`.
+
+`config` e `local` são bases internas do MongoDB e não substituem o dump lógico das bases de negócio.
+
+Principais famílias de coleções/modelos:
+
+- usuários, tokens e permissões;
+- sepultados e DLOC;
+- pets, adoções, vacinas, denúncias e castração;
+- formulários e inscrições;
+- iluminação e ordens de serviço;
+- educação;
+- cultura e PNAB;
+- estradas rurais, UPAs, veículos e eventos LPR;
+- votações, candidatos, eleitores e auditoria;
+- configurações do sistema e audit logs.
+
+### 8.2 Redis
+
+Redis sustenta filas e processamento assíncrono. Antes de copiar sua persistência, o backup solicita `BGSAVE` e copia `/data`.
+
+### 8.3 Uploads e arquivos
+
+Uploads persistentes ficam no volume montado em:
+
+```text
+/data/apicemiterio
+```
+
+O runtime também fornece:
+
+```text
+assets/backend-public
+assets/backend-private
+assets/frontend-build
+assets/mapaturistico-public
+```
+
+Banco restaurado sem uploads produz registros com imagens quebradas. Sempre trate dump e arquivos como uma unidade de recuperação.
+
+## 9. Publicação pelo Nginx
+
+Domínio principal: `api.garca.sp.gov.br`.
+
+Rotas relevantes:
+
+| Prefixo | Destino |
+|---|---|
+| `/api/`, `/health`, `/readyz`, `/stats` | API Express |
+| `/garcapet`, `/sama`, `/semit-a-pet` | assets do backend |
+| `/garca-cidadao` | frontend GovCidadão |
+| `/garca-cidadao-api/` | API GovCidadão |
+| `/ferramentas` | Caixa de Ferramentas |
+| `/tv/`, `/tv-semit/` | container `tv-semit:3050` |
+| `/servicos/`, `/agendamentos/`, `/formularios/`, `/iluminacao/` | builds web publicados |
+| `/rotas-rurais/` | frontend de Estradas Rurais |
+| `/ordem-servicos/` | portal Ordem de Serviços |
+| `/votacao/` | módulo de votação |
+| `/semittv/`, `/xibo/` e rotas Xibo | `10.15.25.29` |
+| `/painel-senhas/`, `/painel/`, `/triagem/`, `/senhas/`, `/sga/` | `10.15.25.31` |
+
+Portas publicadas pelo Nginx: `80`, `443`, `8080`, `8082`, `8088` e `8090`. Não modificar os proxies de `.29` e `.31` sem coordenar com os responsáveis por esses servidores.
+
+Para Estradas Rurais, o build deve referenciar assets sob `/rotas-rurais/static/`. A regra Nginx correspondente usa alias para `/usr/share/nginx/html/static/`. Se o `index.html` apontar para `/static/`, a requisição pode receber o HTML de fallback em vez de JavaScript/CSS e a aplicação React ficará vazia.
+
+## 10. Segredos e configuração
+
+Nunca escrever valores secretos neste documento.
+
+Locais efetivos:
+
+```text
+/home/semit/runtime/api-gestao-publica/secrets/production.env
+/home/semit/runtime/api-gestao-publica/secrets/backend.env
+/home/semit/.config/api-gestao-publica/upa-rural-service-account.json
+```
+
+`.env` da raiz e `backend/.env` podem ser links simbólicos. Exemplos versionados documentam somente nomes e formatos.
+
+Categorias de configuração:
+
+- MongoDB e Redis;
+- JWT, cookies, CORS, proxy e rate limit;
+- SMTP e remetente;
+- WhatsApp/Evolution;
+- Firebase/UPA Rural;
+- Sentry;
+- Gemini e Groq;
+- URLs públicas, diretórios de upload e alertas operacionais.
+
+Ao migrar de servidor, revisar caminhos absolutos no arquivo de produção. O script de restore reescreve o prefixo conhecido do runtime, mas não valida semanticamente serviços externos.
+
+## 11. Dependências externas
+
+| Dependência | Uso | Falha esperada se indisponível |
+|---|---|---|
+| DNS de `api.garca.sp.gov.br` | entrada pública | portal inacessível pelo domínio |
+| Let's Encrypt | HTTPS | certificado vencido/renovação falha |
+| SMTP | e-mails e recuperação de senha | mensagens ficam pendentes/falham |
+| Evolution/WhatsApp | notificações | avisos não enviados |
+| Firebase | Estradas Rurais | dados RTDB e autenticação rural falham |
+| Intelbras LPR | leitura de placas | eventos rurais deixam de chegar |
+| Sentry | observabilidade | perda de telemetria, sem derrubar a API |
+| Gemini/Groq | recursos de IA | funcionalidades dependentes ficam indisponíveis |
+| `10.15.25.29` | Xibo | TV/layouts/campanhas incompletos |
+| `10.15.25.31` | senhas/Novo SGA | painel e triagem indisponíveis |
+
+## 12. TV corporativa
+
+Container: `tv-semit`, porta `3050`, dados em `/app/data`.
+
+Fontes conhecidas:
+
+```text
+/home/semit/Documentos/api-semit/tv_corporativa
+/home/semit/Documentos/semit_tv_app
+/home/semit/Documentos/semit_tv_native
+```
+
+Health endpoint real:
+
+```text
+http://127.0.0.1:3050/api/health
+```
+
+Diagnóstico observado em 26/08/2026:
+
+- a aplicação responde HTTP 200 e informa versão `1.2.0`;
+- o healthcheck do container usa `localhost`, resolvido como IPv6 `::1`;
+- a aplicação escuta em IPv4, causando falso `unhealthy`;
+- `Garça Feed` envia heartbeat HTTP 200;
+- o display `SEMIT TV - SEMIT` aguarda autorização no Xibo e recebe HTTP 500 na sincronização.
+
+Esses dois problemas são independentes: corrigir o healthcheck não autoriza o display no Xibo.
+
+### 12.1 Execução íntegra da TV nos painéis de senha (17/09/2026)
+
+**Problema confirmado:** o painel web Sedetur (`/p/sedetur`) carregava a programação pela URL remota da mídia. Havia um avanço por temporizador no cliente; em rede ou aparelho lento, isso podia trocar o vídeo antes do fim e causar a impressão de cortes e saltos.
+
+**Arquitetura envolvida:** o painel de senhas está no servidor `10.15.25.31`, contêiner `painel-semit` (porta `8088`). A programação vem de `https://api.garca.sp.gov.br/tv/` e é exibida pelo componente `TvProgramPlayer`.
+
+**Correção publicada:**
+
+1. toda a grade é baixada integralmente para o cache local do navegador antes da liberação da reprodução;
+2. durante a sincronização, o painel exibe progresso e não entrega URL ao elemento de vídeo;
+3. vídeos avançam exclusivamente pelo evento `ended`, sem temporizador de duração;
+4. uma grade atualizada é preparada em segundo plano e só passa a valer entre vídeos, sem interromper o vídeo corrente;
+5. uma cópia candidata isolada, com volume de dados clonado e porta local `8089`, foi validada antes da promoção.
+
+**Evidências de aceite:** após a publicação, o painel Sedetur apresentou “Baixando vídeo 3 de 14 (17%)” e o elemento de vídeo ainda estava sem `src`, comprovando que não iniciava por streaming parcial. O contêiner `painel-semit` respondeu `200` em `/healthz` e ficou `healthy`.
+
+**Reversão:**
+
+- imagem anterior preservada como `painel-semit:before-complete-media-20260917` no servidor `10.15.25.31`;
+- arquivo anterior preservado em `/home/semit/painel-semit/backups/20260917_complete_media/TvProgramPlayer.tsx`;
+- para retorno, reaplicar essa imagem e recriar somente o contêiner `painel-semit`; não reiniciar API, banco, TV ou NovoSGA.
+
+### 12.2 Plano — perfil para computadores antigos no cliente instalável (17/09/2026)
+
+**Escopo:** cliente Electron distribuído em Windows (`.exe`) e Linux (`.deb`, `.tar.gz` e `.zip`), projeto `painel_desktop`.
+
+**Objetivo:** reduzir CPU, GPU e memória sem perder chamadas de senha, áudio ou reprodução íntegra local.
+
+1. adicionar perfil selecionável **TV/PC antigo**, persistido na configuração local;
+2. no perfil econômico, desligar efeitos visuais caros, animações contínuas e filtros gráficos; manter a informação de atendimento legível;
+3. reproduzir somente a mídia atual pelo protocolo de disco local, com metadados em vez de pré-carga excessiva em memória;
+4. validar bytes baixados antes de promover arquivo temporário ao cache definitivo; arquivo incompleto nunca entra na playlist;
+5. manter uma atualização de grade pendente até o término da mídia atual;
+6. preparar a versão `1.1.0`, com `.exe` e `.deb` gerados da mesma fonte e hashes publicados.
+
+**Limite técnico importante:** a economia de decodificação depende também do conteúdo. Para computadores antigos, as mídias devem ser publicadas preferencialmente em MP4 H.264/AAC, até 1280×720 e sem HEVC/H.265 ou 4K.
+
+**Critérios de aceite:** o cliente segue funcionando offline após sincronização; não reproduz arquivo parcial; troca de grade não corta vídeo; o perfil econômico permanece utilizável em 720p; instaladores Windows e Linux informam versão `1.1.0`.
+
+**Implementação e evidências:** perfil econômico e validação de download aplicados em `painel_desktop`; validação sintática concluída. Artefatos `1.1.0` gerados e conferidos: instalador e portátil Windows, `.deb`, `.tar.gz` e `.zip` Linux. O `.deb` foi inspecionado em ambiente Debian isolado e identificado como pacote `painel-senhas-desktop`, arquitetura `amd64`, versão `1.1.0`.
+
+**Publicação:** página `https://api.garca.sp.gov.br/tv/admin.html` atualizada em 17/09/2026. Os botões apontam para `painel-tv-garca-windows-1.1.0.exe` e `painel-tv-garca-linux-1.1.0.deb`; ambos responderam HTTP 200 com os tamanhos esperados. Arquivos e página anteriores foram preservados em `/home/semit/Documentos/deploy-backups/tv-admin-desktop-release-20260917`.
+
+### 12.3 Regra de conteúdo por layout do painel de senhas (18/09/2026)
+
+**Regra funcional:** o layout **Clássico** exibe a senha em destaque, as últimas chamadas e o card de clima/widgets no canto inferior direito. Ele nunca exibe a TV Corporativa. A TV e as demais mídias ficam reservadas ao layout **Programação 9:16**.
+
+**Causa corrigida:** o componente clássico reutilizava `MediaCarousel`; quando `mediaItems` continha o link `https://api.garca.sp.gov.br/tv/`, a mídia tinha prioridade e substituía o clima. O painel Sedetur estava com `displayLayout=classic`, widgets ativos e esse link cadastrado.
+
+**Correção publicada:** em `/home/semit/painel-semit/src/pages/DisplayPage.tsx`, o ramo clássico passou a renderizar `SupportWidgets` diretamente quando os widgets estão habilitados. A configuração da TV permanece cadastrada e volta a ser usada ao selecionar **Programação 9:16**.
+
+**Publicação e aceite:** servidor `10.15.25.31`, contêiner `painel-semit`, porta `8088`. Após a recriação isolada do contêiner, `/healthz`, `/p/sedetur` e a rota pública `https://api.garca.sp.gov.br/p/sedetur` responderam HTTP 200; o contêiner ficou `healthy`.
+
+**Reversão:** imagem anterior `painel-semit:before-classic-weather-20260918`; arquivo anterior em `/home/semit/deploy-backups/painel-classic-weather-20260918/DisplayPage.tsx`. Para reverter, restaurar o arquivo ou aplicar a imagem anterior e recriar somente `painel-semit`. Não reiniciar NovoSGA, banco, API principal ou TV Corporativa.
+
+### 12.4 Compatibilidade de chamadas dos APKs e desktop (18/09/2026)
+
+**Sintoma:** os APKs nativos deixaram de exibir/anunciar chamadas. A rota pública `GET /tv/api/tickets?unitId=N`, também usada como fonte pelo cliente desktop, retornava HTTP 404 com `Cannot GET /api/tickets`.
+
+**Causa confirmada:** `/api/tickets` e `/api/speech` haviam sido inseridas diretamente no contêiner `tv-semit`. A recriação da TV em 17/09/2026 promoveu uma imagem que não continha essas alterações efêmeras. O NovoSGA permaneceu saudável: o acesso direto autenticado à unidade 4 retornava HTTP 200 e dez registros.
+
+**Correção publicada:** imagem derivada definitiva `api-semit-tv-semit:apk-compat-20260918`, baseada em `player-fix-20260917`. Foram incorporadas ao `server.js`:
+
+1. `GET /api/tickets`, que resolve painel/unidade, obtém OAuth no painel de senhas, aplica os serviços cadastrados e consulta o NovoSGA;
+2. normalização do identificador da chamada para string, compatível com Android;
+3. `GET /api/speech`, mantendo a síntese PT-BR usada por Android e desktop.
+
+Nenhuma alteração foi feita em Nginx, NovoSGA, banco, painel web, APK ou cliente desktop. Rede `api-semit_stack`, alias `tv-semit` e volume `api-semit_tv-semit-data:/app/data` foram preservados.
+
+**Aceite:** contêiner `tv-semit` saudável; unidade 4 retornou HTTP 200, dez registros e IDs string; unidade 6 retornou HTTP 200 sem registros recentes; voz retornou `audio/mpeg`; `/tv/`, `/tv/admin.html`, playlist, `/p/sedetur` e `/health` responderam HTTP 200.
+
+**Reversão:** o contêiner anterior permanece desligado como `tv-semit-before-apk-fix-20260918`; imagem anterior `api-semit-tv-semit:player-fix-20260917`. Fontes anterior/nova e Dockerfile reproduzível estão em `/home/semit/Documentos/deploy-backups/tv-apk-tickets-20260918/`. Na reversão, preservar a rede, o alias e o volume; não reiniciar as demais aplicações.
+
+## 13. Monitoramento e saúde
+
+Endpoints principais:
+
+```text
+GET /health   # processo da API
+GET /readyz   # prontidão e dependências
+GET /stats    # estatísticas/métricas da aplicação
+```
+
+Prometheus: `http://10.15.25.28:9090`.
+
+Grafana: `http://10.15.25.28:3001`.
+
+Cron de uptime: a cada 10 minutos, usando `scripts/uptime-check.sh`.
+
+Diagnóstico inicial seguro:
+
+```bash
+cd /home/semit/Documentos/api-gestao-publica
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+docker compose ps
+curl -fsS http://127.0.0.1:5000/health
+curl -fsS http://127.0.0.1:5000/readyz
+docker logs --tail 200 api
+```
+
+Consultar `docs/RUNBOOK-INCIDENTES.md` antes de reiniciar componentes.
+
+## 14. Backup diário
+
+Agendamento observado:
+
+```text
+01:15 diariamente
+```
+
+Diretório:
+
+```text
+/home/semit/Documentos/backups-completos/YYYY-MM-DD_HH-MM-SS/
+```
+
+Retenção padrão: 14 dias. A cópia externa é feita manualmente e deve ser validada por SHA-256.
+
+Conteúdo esperado:
+
+- projeto e código efetivo da API;
+- MongoDB;
+- Redis;
+- uploads;
+- frontend e Nginx;
+- TLS;
+- segredos dereferenciados;
+- runtime;
+- imagens Docker;
+- TV corporativa, seu volume, configuração e fontes;
+- volumes Grafana e Prometheus;
+- volumes auxiliares Certbot/Mongo;
+- inventário e manifesto.
+
+Scripts:
+
+```text
+backup_completo.sh
+scripts/backup-diario.sh
+scripts/verificar-backup.sh
+scripts/publicar-backup-transferencia.sh
+scripts/teste-restore-homologacao.sh
+```
+
+Verificação manual:
+
+```bash
+cd /home/semit/Documentos/api-gestao-publica
+BASE_DIR=/home/semit/Documentos/backups-completos bash scripts/verificar-backup.sh
+```
+
+## 15. Recuperação em outro servidor
+
+Documento normativo: `docs/RESTORE-BACKUP.md`.
+
+Pré-requisitos:
+
+- Linux com espaço suficiente;
+- Docker Engine e plugin Compose;
+- `rsync`, `gzip`, `tar`, `sha256sum` e acesso administrativo;
+- pasta completa do backup, incluindo payload, imagens, hashes, manifesto e log;
+- endereços/regras de rede para `.29`, `.31` e integrações externas.
+
+Sequência resumida:
+
+1. conferir SHA-256;
+2. extrair `full/`;
+3. executar `scripts/restore-host-novo.sh` com autorização explícita;
+4. restaurar Mongo, Redis, uploads, TLS e volumes complementares;
+5. carregar imagens e subir a stack;
+6. validar API, frontends, TV, Grafana e Prometheus;
+7. revisar DNS e HTTPS;
+8. validar integrações externas e fluxos de negócio.
+
+O script recusa executar no hostname de produção `SEMIT`, salvo liberação deliberada por variável específica.
+
+## 16. Deploy e atualização
+
+Preferir deploy seletivo:
+
+```bash
+cd /home/semit/Documentos/api-gestao-publica
+./scripts/deploy-seletivo.sh api email-worker job-worker
+```
+
+Rebuild completo:
+
+```bash
+./rebuild.sh
+```
+
+Uma parada geral somente deve ocorrer quando solicitada explicitamente com `FULL_STACK_DOWN=1`.
+
+Antes de qualquer deploy:
+
+1. confirmar diretório e Compose efetivos;
+2. conferir `git status` e preservar alterações locais;
+3. gerar/verificar backup recente;
+4. registrar imagens e estado dos containers;
+5. planejar rollback;
+6. atualizar apenas serviços em escopo;
+7. validar `/health`, `/readyz` e fluxos afetados.
+
+### Publicação segura do frontend estático
+
+Procedimento validado em 27/08/2026:
+
+1. confirmar que a fonte versionada está limpa e sincronizada;
+2. instalar dependências conforme o lockfile; atualmente o frontend exige `npm ci --legacy-peer-deps` por conflito de peer dependency entre React 19 e `@emoji-mart/react`;
+3. executar testes dirigidos dos módulos afetados;
+4. gerar novo `frontend/build` com `npm run build`;
+5. conferir que o build informa hospedagem em `/rotas-rurais/` e que o `index.html` referencia `/rotas-rurais/static/js/` e `/rotas-rurais/static/css/`;
+6. validar sintaxe do bundle principal e existência de todos os assets referenciados;
+7. criar cópia integral do build atualmente montado pelo Nginx;
+8. copiar primeiro os novos assets sem excluir os antigos, preservando sessões abertas;
+9. substituir `index.html` por rename atômico somente depois dos assets;
+10. testar conteúdo e MIME de HTML, JavaScript, CSS e imagens;
+11. validar em navegador o fluxo afetado e pelo menos um fluxo principal não relacionado;
+12. conferir saúde dos containers e manter o rollback até o encerramento da observação.
+
+Não é necessário reiniciar Nginx, API, MongoDB ou Redis para substituir apenas arquivos estáticos. Não usar sincronização com exclusão enquanto houver clientes com a versão anterior aberta.
+
+## 17. Testes e qualidade
+
+Ferramentas existentes:
+
+- Jest/Supertest no backend;
+- Pytest no GovCidadão;
+- Playwright em `e2e/`;
+- k6 em `k6/`;
+- testes Flutter;
+- smoke tests da Caixa de Ferramentas;
+- teste de restauração Mongo em homologação.
+
+Comandos são encapsulados pelos scripts:
+
+```text
+scripts/run-gov-pytest.sh
+scripts/run-playwright.sh
+scripts/run-k6.sh
+scripts/teste-restore-homologacao.sh
+```
+
+Não assuma que a existência de testes significa cobertura integral. Mudanças em autenticação, votação, LGPD, uploads e restauração exigem validação dirigida.
+
+## 18. Segurança e LGPD
+
+Controles observados:
+
+- Helmet, CORS, rate limit e sanitização;
+- JWT e cookies configuráveis;
+- trilha de auditoria;
+- papéis e autorização por módulo;
+- logs e retenção de auditoria;
+- backups com permissões restritas;
+- segredos fora do Git.
+
+Regras obrigatórias:
+
+- não enviar `.env`, service accounts ou backups para Git;
+- não registrar tokens, senhas ou dados pessoais em logs;
+- criptografar e controlar acesso à cópia externa;
+- aplicar menor privilégio;
+- seguir `docs/GOV-LGPD.md`, `docs/FASE4-LGPD.md` e `docs/ROTACAO-SECRETS.md`;
+- registrar ações administrativas e incidentes relevantes.
+
+## 19. Automações agendadas
+
+| Frequência | Tarefa |
+|---|---|
+| A cada 10 min | uptime check da API |
+| Diariamente, 01:15 | backup completo |
+| Domingo, 03:45 | retenção de logs de auditoria |
+
+Logs operacionais ficam em `backups-completos/_logs/`.
+
+## 20. Situações comuns
+
+### API fora do ar
+
+1. testar `/health` e `/readyz` localmente;
+2. conferir `docker ps`;
+3. ler logs da API, Mongo e Redis;
+4. verificar disco e memória;
+5. não reiniciar toda a stack sem identificar o componente.
+
+### Portal abre, mas imagens falham
+
+1. conferir o volume `apicemiterio_data`;
+2. conferir mounts do `api` e `nginx`;
+3. testar `/images/`;
+4. validar permissões dos arquivos.
+
+### E-mails não chegam
+
+1. conferir `email-worker`;
+2. verificar fila/Redis;
+3. testar conectividade SMTP sem expor credenciais;
+4. procurar falhas nos logs do worker.
+
+### TV aparece `unhealthy`
+
+1. testar `127.0.0.1:3050/api/health` dentro do container;
+2. conferir se o healthcheck usa `localhost`/IPv6;
+3. separar falha do player de falha de autorização Xibo;
+4. conferir logs e estado do display no servidor `.29`.
+
+### Painel de senhas falha
+
+1. testar conectividade com `10.15.25.31`;
+2. conferir rotas Nginx correspondentes;
+3. diagnosticar a aplicação no servidor `.31`;
+4. não procurar banco/código do painel no backup deste servidor.
+
+### Estradas Rurais abre somente cabeçalho e rodapé
+
+Diagnóstico registrado em 27/08/2026:
+
+1. confirmar que `/api/rotas-rurais/map/properties/search` responde; isso separa falha da API de falha visual;
+2. conferir o hash do bundle referenciado pelo `index.html` efetivamente montado no container `nginx`;
+3. verificar se JavaScript e CSS retornam seus MIME corretos, e não `text/html` de fallback;
+4. confirmar que o build publicado contém as rotas `/rotas-rurais/login`, `/proprietario`, `/operador`, `/admin` e `/mapa`;
+5. testar `/rotas-rurais/banner-estradas.png`;
+6. comparar `/home/semit/Documentos/api-gestao-publica/frontend/build` com `/home/semit/Documentos/api-semit/frontend/build`;
+7. seguir o procedimento de publicação estática segura da seção 16.
+
+Ocorrência de 27/08/2026: o Nginx servia um build de 31/07/2026 pelo checkout `api-semit`, enquanto a fonte e o build mais recentes estavam em `api-gestao-publica`. Uma primeira cópia revelou também que o build antigo apontava para `/static/`, retornando HTML no lugar do JavaScript. O frontend foi recompilado a partir da fonte versionada, 16 testes rurais passaram e a publicação final passou a usar o bundle `main.cb40049b.js` sob `/rotas-rurais/static/`.
+
+Evidências da validação final:
+
+- login rural renderizado com e-mail, senha, entrada e cadastro;
+- mapa com o título “Mapa dos bairros rurais de Garça”;
+- banner, JavaScript, API e HTML respondendo `200` com tipos corretos;
+- login principal do Memorial renderizado sem erro de console;
+- API, MongoDB, Redis e GovCidadão saudáveis;
+- Nginx aprovado em teste de configuração;
+- nenhum container foi reiniciado;
+- rollback preservado em `/home/semit/Documentos/deploy-rollbacks/frontend-build-before-rural-20260827-080655`.
+
+## 21. Riscos e dívidas técnicas conhecidas
+
+1. `docs/FONTE-CANONICA.md` diverge da stack efetiva.
+2. A TV pertence a um checkout diferente da stack principal.
+3. O healthcheck da TV usa `localhost` e falha por IPv6.
+4. O display `SEMIT TV - SEMIT` aguarda autorização no Xibo e registra HTTP 500.
+5. Xibo e painel de senhas dependem de servidores cujo backup não pertence a esta rotina.
+6. Existem containers antigos/indeterminados que precisam de classificação formal.
+7. O repositório possui arquivos de backup e mudanças locais; limpeza deve ser controlada.
+8. A recuperação completa atualizada precisa ser testada periodicamente em host isolado.
+9. Os binds de frontend, arquivos públicos e configuração do Nginx ainda apontam para `api-semit`, apesar de a fonte principal estar em `api-gestao-publica`.
+10. O frontend usa React 19 com dependência que declara suporte somente até React 18; a instalação reproduzível exige `--legacy-peer-deps` até a compatibilidade ser resolvida.
+11. O build registra avisos ESLint e o Node.js 18 é inferior ao requisito declarado pelo React Router 7; atualizar runtime e dependências exige homologação própria.
+
+## 22. Checklist de continuidade
+
+### Diário
+
+- [ ] backup das 01:15 concluído;
+- [ ] verificador sem falhas;
+- [ ] API e dependências saudáveis;
+- [ ] espaço em disco adequado.
+
+### Semanal
+
+- [ ] confirmar cópia externa e SHA-256;
+- [ ] revisar alertas Grafana/Prometheus;
+- [ ] revisar filas e erros de workers;
+- [ ] verificar renovação TLS;
+- [ ] revisar erros repetitivos da TV/Xibo.
+
+### Trimestral
+
+- [ ] restaurar em ambiente isolado;
+- [ ] medir RPO e RTO reais;
+- [ ] validar login, uploads, e-mail, TV e monitoramento;
+- [ ] revisar acessos e segredos;
+- [ ] atualizar este mapa e os runbooks.
+
+## 23. Índice de documentos
+
+| Documento | Finalidade |
+|---|---|
+| `README.md` | introdução do projeto |
+| `FUNCIONALIDADES_DO_SISTEMA.md` | catálogo funcional |
+| `docs/RESTORE-BACKUP.md` | restauração de desastre |
+| `docs/RESTORE-BACKUP-LOG.md` | histórico de testes de restore |
+| `docs/RUNBOOK-INCIDENTES.md` | resposta a incidentes |
+| `docs/MANUTENCAO-DISCO.md` | capacidade e limpeza segura |
+| `docs/ROTACAO-SECRETS.md` | rotação de credenciais |
+| `docs/GOV-LGPD.md` | governança LGPD |
+| `docs/FASE4-LGPD.md` | controles LGPD |
+| `docs/FASE6-AUDITORIA-OPS.md` | auditoria e operação |
+| `docs/PLAYWRIGHT-E2E.md` | testes ponta a ponta |
+| `docs/PORTAL-SERVICOS-WEB.md` | builds e publicação web |
+| `backend/docs/AGENDA_GARCA_API.md` | contrato inicial, identidade e segurança da Agenda Garça |
+| `docs/FONTE-CANONICA.md` | histórico da fonte; possui divergência conhecida |
+
+## 24. Comandos de consulta segura
+
+```bash
+cd /home/semit/Documentos/api-gestao-publica
+
+# Estado geral
+docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+docker compose ps
+
+# Fonte realmente usada
+docker inspect api -f '{{index .Config.Labels "com.docker.compose.project.working_dir"}}'
+docker inspect api -f '{{index .Config.Labels "com.docker.compose.project.config_files"}}'
+
+# Saúde
+curl -fsS http://127.0.0.1:5000/health
+curl -fsS http://127.0.0.1:5000/readyz
+
+# Volumes e mounts
+docker volume ls
+docker inspect api -f '{{json .Mounts}}'
+
+# Backup
+bash scripts/verificar-backup.sh
+```
+
+Esses comandos são de leitura. Comandos de restore, exclusão, rotação de segredos, rebuild ou alteração de banco devem seguir autorização e runbook.
+
+## 25. A ser implementado — Plano de proteção e segurança
+
+### 25.1 Objetivo e regras de execução
+
+Objetivo: reduzir a superfície de ataque sem interromper os serviços municipais, proteger dados pessoais e permitir rollback rápido.
+
+Regras para toda implementação:
+
+1. executar primeiro em homologação ou clone isolado;
+2. confirmar backup recente, hash e cópia externa;
+3. registrar estado anterior, arquivos e imagens Docker;
+4. mudar um domínio de risco por vez;
+5. validar healthchecks e fluxos de negócio;
+6. manter rollback documentado e testado;
+7. não registrar segredos em Git, logs ou neste documento;
+8. atualizar este plano ao concluir cada item.
+
+Estados permitidos para acompanhamento:
+
+- `[ ]` pendente;
+- `[~]` em implementação;
+- `[x]` concluído e validado;
+- `[!]` bloqueado, com justificativa registrada.
+
+### 25.2 Fase 0 — Preparação e linha de base
+
+Prazo recomendado: antes de qualquer correção.
+
+- [ ] Designar responsável técnico e aprovador para mudanças de segurança.
+- [ ] Criar inventário oficial de domínios, IPs, portas, containers, imagens, volumes e integrações.
+- [ ] Classificar `api-fin` e `intelligent_elbakyan` como ativos, legados ou removíveis.
+- [ ] Confirmar proprietários e backup dos servidores `10.15.25.29` e `10.15.25.31`.
+- [ ] Resolver documentalmente qual checkout é canônico para a stack e para a TV.
+- [ ] Registrar testes funcionais mínimos para API, login, uploads, e-mail, votação, TV, painel de senhas e monitoramento.
+- [ ] Gerar relatório inicial de vulnerabilidades de dependências e imagens.
+- [ ] Definir janelas de manutenção e contatos para incidentes.
+
+Critério de aceite: inventário conferido contra o ambiente real e teste de restore recente registrado.
+
+### 25.3 Fase 1 — Contenção imediata da TV corporativa
+
+Prioridade: crítica.
+
+- [ ] Remover a publicação direta de `3050` em todas as interfaces; manter acesso apenas pela rede Docker/Nginx ou bind local.
+- [ ] Criar autenticação obrigatória para operações administrativas da TV.
+- [ ] Separar rotas públicas de leitura das rotas administrativas de escrita.
+- [ ] Proteger criação/exclusão de displays, configuração, registro Xibo, sincronização manual e playlists.
+- [ ] Aplicar autorização por papel e trilha de auditoria nas alterações.
+- [ ] Adicionar rate limit para login, sincronização e operações administrativas.
+- [ ] Validar entrada e tamanho de todos os payloads.
+- [ ] Alterar o healthcheck para `127.0.0.1:3050/api/health`.
+- [ ] Executar o container como usuário não-root.
+- [ ] Autorizar corretamente o display `SEMIT TV - SEMIT` no Xibo e investigar o HTTP 500.
+
+Critérios de aceite:
+
+- chamadas administrativas sem credencial retornam `401` ou `403`;
+- a porta `3050` não está exposta fora do caminho aprovado;
+- healthcheck fica saudável;
+- playlist e displays continuam funcionando;
+- eventos administrativos aparecem na auditoria.
+
+Rollback: restaurar imagem e Compose anteriores, mantendo o volume `api-semit_tv-semit-data` intacto.
+
+### 25.4 Fase 2 — Proteção de MongoDB e Redis
+
+Prioridade: alta.
+
+- [ ] Criar credenciais exclusivas para MongoDB e habilitar `authorization`.
+- [ ] Criar usuários separados por aplicação e menor privilégio quando tecnicamente viável.
+- [ ] Atualizar URIs da API, workers, GovCidadão e ferramentas sem expor valores.
+- [ ] Configurar autenticação no Redis com segredo forte.
+- [ ] Atualizar todos os clientes Redis e validar filas existentes.
+- [ ] Restringir MongoDB e Redis exclusivamente à rede Docker necessária.
+- [ ] Rotacionar credenciais após validação.
+- [ ] Garantir que backup e restore funcionem com autenticação habilitada.
+- [ ] Documentar recuperação de credenciais por procedimento administrativo seguro.
+
+Critérios de aceite:
+
+- conexão sem credencial é recusada;
+- API e workers ficam saudáveis;
+- dumps e restores autenticados passam em homologação;
+- nenhuma credencial aparece em logs ou no Git.
+
+Rollback: reverter configuração de autenticação e arquivos de ambiente a partir da cópia protegida, sem recriar volumes.
+
+### 25.5 Fase 3 — Uploads e conteúdo fornecido por usuários
+
+Prioridade: alta.
+
+- [ ] Validar o tipo real do arquivo por assinatura, não apenas pelo MIME enviado pelo cliente.
+- [ ] Gerar extensão do arquivo a partir do tipo validado; nunca conservar extensão arbitrária.
+- [ ] Rejeitar HTML, SVG ativo, scripts, executáveis e formatos não previstos.
+- [ ] Reprocessar imagens com biblioteca segura para remover metadados e conteúdo inesperado.
+- [ ] Manter limites de tamanho, dimensões, quantidade e frequência.
+- [ ] Servir uploads em origem sem cookies ou com `Content-Disposition` e `nosniff` adequados.
+- [ ] Impedir execução de arquivos no diretório de uploads.
+- [ ] Aplicar antivírus/antimalware quando houver documentos ou arquivos complexos.
+- [ ] Criar testes para MIME falso, dupla extensão, path traversal, arquivo poliglota e volume abusivo.
+
+Critério de aceite: arquivos forjados são rejeitados e imagens legítimas continuam funcionando em todos os módulos.
+
+### 25.6 Fase 4 — Rede, firewall e acessos administrativos
+
+Prioridade: alta.
+
+- [ ] Definir política de firewall local com negação por padrão.
+- [ ] Liberar publicamente somente `80` e `443`, conforme necessidade institucional.
+- [ ] Restringir SSH `22` a IPs administrativos ou VPN.
+- [ ] Restringir Grafana `3001` e Prometheus `9090` à rede administrativa.
+- [ ] Revisar a necessidade de `8080`, `8082`, `8088`, `8090`, `7070` e `56654`.
+- [ ] Restringir ou remover portas RustDesk não necessárias.
+- [ ] Instalar proteção contra tentativas repetidas de SSH, como Fail2ban ou controle equivalente.
+- [ ] Desativar autenticação SSH por senha, root remoto e `X11Forwarding` se não forem necessários.
+- [ ] Manter autenticação por chave e revisar chaves autorizadas periodicamente.
+- [ ] Auditar membros dos grupos `sudo` e `docker`.
+- [ ] Registrar regras equivalentes no firewall externo da rede municipal.
+
+Critérios de aceite:
+
+- varredura de rede mostra apenas portas aprovadas;
+- acesso administrativo continua disponível pelos caminhos autorizados;
+- regras persistem após reinicialização;
+- existe acesso de emergência testado antes da aplicação das regras.
+
+Rollback: console local ou acesso fora de banda com restauração do conjunto anterior de regras.
+
+### 25.7 Fase 5 — Dependências, imagens e sistema operacional
+
+Prioridade: alta, com implantação controlada.
+
+- [ ] Separar dependências de runtime das dependências apenas de build/desenvolvimento.
+- [ ] Atualizar primeiro vulnerabilidades críticas e altas alcançáveis.
+- [ ] Revisar `nodemailer`, `axios`, `react-router`, `react-scripts`, `tar`, `mongoose`, `multer` e `express-rate-limit`.
+- [ ] Reconstruir imagens com lockfiles atualizados e bases suportadas.
+- [ ] Escanear imagens Docker e gerar SBOM por release.
+- [ ] Fixar imagens por versão ou digest; evitar atualização implícita.
+- [ ] Atualizar pacotes de segurança do Debian, kernel, Docker e Compose em janela própria.
+- [ ] Reiniciar o host quando a atualização do kernel exigir.
+- [ ] Executar testes Jest, Pytest, Playwright, smoke e fluxos manuais antes de promover.
+- [ ] Criar rotina periódica de auditoria de dependências com alerta, sem `fix --force` automático em produção.
+
+Critério de aceite: nenhuma vulnerabilidade crítica alcançável e plano registrado para altas remanescentes.
+
+### 25.8 Fase 6 — Endurecimento dos containers
+
+Prioridade: média/alta.
+
+- [ ] Executar `tv-semit`, `ferramentas`, `govcidadao-api` e `govcidadao-frontend` como não-root.
+- [ ] Ativar filesystem somente leitura onde possível.
+- [ ] Criar mounts graváveis exclusivos para dados temporários necessários.
+- [ ] Remover capabilities Linux e adicionar somente as indispensáveis.
+- [ ] Ativar `no-new-privileges`.
+- [ ] Manter seccomp/AppArmor ou controle equivalente.
+- [ ] Definir limites de memória, CPU e processos para todos os serviços.
+- [ ] Configurar healthchecks coerentes com cada aplicação.
+- [ ] Impedir acesso ao socket Docker e mounts desnecessários.
+- [ ] Separar redes Docker por função, reduzindo comunicação lateral.
+
+Critério de aceite: serviços iniciam sem root, respeitam limites e acessam somente dependências necessárias.
+
+### 25.9 Fase 7 — Autenticação, autorização e sessões
+
+Prioridade: alta.
+
+- [ ] Elevar o mínimo real de senha para pelo menos 12 caracteres ou adotar passphrases.
+- [ ] Corrigir a divergência entre comentário e implementação da política de senha.
+- [ ] Implementar MFA para administradores e perfis sensíveis.
+- [ ] Armazenar somente hash dos tokens de redefinição de senha.
+- [ ] Invalidar sessões após troca de senha, mudança de papel ou incidente.
+- [ ] Definir TTL, rotação e revogação para refresh tokens.
+- [ ] Substituir API keys globais por credenciais individuais com escopo, expiração e auditoria.
+- [ ] Usar comparação segura para segredos de webhook/API keys.
+- [ ] Aplicar middleware de papel diretamente nas rotas sensíveis, mantendo validação adicional no controller.
+- [ ] Construir matriz de permissões por perfil e testes negativos automatizados.
+- [ ] Revisar rotas públicas documentadas no OpenAPI.
+
+Critérios de aceite:
+
+- testes comprovam que usuário comum não executa ações administrativas;
+- tokens e chaves possuem ciclo de vida controlado;
+- MFA funciona para administradores;
+- OpenAPI descreve corretamente os requisitos de segurança.
+
+### 25.10 Fase 8 — Nginx, navegador e proxies externos
+
+Prioridade: média/alta.
+
+- [ ] Eliminar o drift entre o Nginx montado de `api-semit` e o projeto `api-gestao-publica`.
+- [ ] Consolidar e versionar a configuração efetivamente publicada.
+- [ ] Adicionar Content Security Policy compatível com cada frontend.
+- [ ] Adicionar Permissions Policy e revisar `frame-ancestors`.
+- [ ] Manter TLS 1.2/1.3, HSTS, `nosniff`, política de referência e ocultamento de versão.
+- [ ] Reduzir `client_max_body_size` por rota ao mínimo funcional.
+- [ ] Aplicar rate limit no Nginx para endpoints de maior risco quando adequado.
+- [ ] Revisar redirecionamentos e rotas administrativas encaminhadas a `.29` e `.31`.
+- [ ] Garantir autenticação no upstream ou no proxy para painel de senhas, Xibo e administração.
+- [ ] Definir timeouts e limites de resposta para upstreams externos.
+
+Critério de aceite: teste de configuração passa, frontends funcionam com CSP e nenhuma rota administrativa fica exposta sem controle.
+
+### 25.11 Fase 9 — Cloudflare e proteção da borda pública
+
+Prioridade: alta.
+
+Objetivo: colocar uma camada externa de proteção diante do portal e da API pública, sem transformar a Cloudflare em substituta do firewall, da autenticação ou das correções internas da aplicação.
+
+Diretriz de contratação:
+
+- iniciar a implantação controlada no plano Free para validar DNS, proxy, TLS e compatibilidade;
+- adotar o plano Pro como referência mínima recomendada para a operação pública institucional;
+- avaliar o plano Business somente se suporte, SLA, regras avançadas ou exigências institucionais justificarem o custo;
+- usar Cloudflare Zero Trust/Access para painéis administrativos; verificar a franquia gratuita e os preços vigentes antes da contratação;
+- registrar preços, impostos, câmbio, responsável pela conta, forma de pagamento e data de renovação no inventário administrativo, sem guardar dados de cobrança neste documento.
+
+Escopo de implementação:
+
+- [ ] Confirmar titularidade do domínio, registrador, conta institucional e responsáveis autorizados.
+- [ ] Exportar e conferir toda a zona DNS antes de alterar nameservers.
+- [ ] Reduzir antecipadamente o TTL e definir janela de implantação e rollback.
+- [ ] Migrar os registros DNS sem remover entradas de e-mail, SPF, DKIM, DMARC ou integrações existentes.
+- [ ] Ativar o proxy da Cloudflare somente para os hostnames HTTP/HTTPS públicos aprovados.
+- [ ] Manter MongoDB, Redis, SSH, Grafana, Prometheus, TV administrativa, painel de senhas e demais portas internas fora da exposição pública.
+- [ ] Configurar TLS no modo `Full (strict)` com certificado válido também no servidor de origem.
+- [ ] Ativar proteção DDoS, regras WAF gerenciadas aplicáveis, proteção contra bots e limites de requisição por endpoint.
+- [ ] Aplicar limites específicos a login, recuperação de senha, cadastro, uploads, pesquisas, exportações e APIs de escrita.
+- [ ] Implantar Cloudflare Turnstile, com validação obrigatória no servidor, nos formulários sujeitos a abuso.
+- [ ] Proteger Grafana e outros painéis web administrativos com Cloudflare Access/Zero Trust, MFA e política de menor privilégio, quando o fluxo institucional permitir.
+- [ ] Configurar Nginx e a aplicação para confiar no IP do cliente somente por cabeçalhos enviados por proxies Cloudflare validados.
+- [ ] Preservar `CF-Connecting-IP`/cadeia de proxy corretamente para auditoria e rate limit, sem aceitar cabeçalhos forjados em acesso direto.
+- [ ] Restringir no firewall de origem as portas `80` e `443` aos endereços oficiais da Cloudflare e aos caminhos administrativos expressamente aprovados.
+- [ ] Automatizar ou documentar a atualização segura das faixas de IP oficiais da Cloudflare.
+- [ ] Bloquear o acesso direto ao IP de origem e testar que ele não contorna WAF, autenticação ou limites.
+- [ ] Impedir cache de respostas autenticadas, dados pessoais, APIs de escrita e conteúdo administrativo.
+- [ ] Definir cache apenas para conteúdo público estático e testar invalidação após publicação.
+- [ ] Ativar logs e alertas de eventos de segurança, preservando dados mínimos necessários e a retenção aprovada.
+- [ ] Documentar recuperação da conta, MFA, responsáveis, tokens de API com escopo mínimo e procedimento de emergência.
+- [ ] Criar runbook de ativação, validação, rollback de nameservers e operação durante indisponibilidade do provedor.
+- [ ] Revisar termos, tratamento de dados, localização de logs e requisitos de LGPD antes da produção.
+
+Critérios de aceite:
+
+- portal e API funcionam pelo domínio com TLS válido e sem regressão nos fluxos essenciais;
+- acesso direto ao IP de origem não permite contornar a Cloudflare;
+- somente hostnames e portas aprovados estão publicados;
+- IP real do cliente aparece corretamente nos logs e controles de abuso;
+- login, uploads, TV, painel de senhas e integrações continuam funcionando;
+- regras de teste bloqueiam requisições maliciosas sem bloquear o uso legítimo;
+- conta institucional possui MFA, pelo menos dois responsáveis e recuperação documentada;
+- existe evidência de rollback testado e de exportação da zona DNS.
+
+Rollback: manter exportação da zona anterior, valores de TTL, configuração de origem e sequência documentada para restaurar os nameservers/registros. Não remover certificado nem proteção local do servidor durante a implantação.
+
+Observação: Cloudflare não corrige APIs sem autenticação, bancos sem credenciais, uploads inseguros, dependências vulneráveis, portas administrativas abertas ou backups sem criptografia. Esses controles continuam obrigatórios nas demais fases.
+
+### 25.12 Fase 10 — Logs, auditoria e disponibilidade
+
+Prioridade: média/alta.
+
+- [ ] Configurar rotação `json-file` ou driver centralizado para todos os containers.
+- [ ] Definir tamanho, quantidade e retenção dos logs.
+- [ ] Remover ou mascarar dados pessoais, tokens e credenciais dos logs.
+- [ ] Criar alertas para autenticação anômala, mudança de papel, exclusão, exportação e falhas repetidas.
+- [ ] Alertar sobre disco, memória, CPU, filas, expiração TLS, backup e indisponibilidade de `.29`/`.31`.
+- [ ] Monitorar crescimento dos volumes e do diretório de uploads.
+- [ ] Sincronizar horário do host e preservar timestamps de auditoria.
+- [ ] Restringir acesso ao Grafana e proteger a configuração do Prometheus.
+- [ ] Criar runbook para indisponibilidade e esgotamento de recursos.
+
+Critério de aceite: logs não crescem indefinidamente, alertas são recebidos e um evento de teste pode ser rastreado ponta a ponta.
+
+### 25.13 Fase 11 — Backup, segredos e recuperação
+
+Prioridade: alta.
+
+- [ ] Criptografar o pacote destinado à cópia externa com ferramenta e chave institucionais.
+- [ ] Manter a chave de recuperação separada do servidor e do backup.
+- [ ] Registrar recebimento externo por hash, data, tamanho e responsável.
+- [ ] Definir retenção, descarte seguro e controle de acesso.
+- [ ] Garantir que logs e manifestos não exponham valores secretos.
+- [ ] Rotacionar credenciais se uma cópia perder cadeia de custódia.
+- [ ] Testar trimestralmente o restore completo em servidor isolado.
+- [ ] Validar no restore Mongo autenticado, Redis, uploads, TV, Grafana, Prometheus e TLS.
+- [ ] Medir e registrar RPO/RTO reais.
+- [ ] Criar backup próprio e restore dos servidores `.29` e `.31`.
+- [ ] Manter uma geração offline ou imutável contra ransomware.
+
+Critérios de aceite:
+
+- pacote externo não pode ser lido sem a chave;
+- hashes conferem;
+- restore completo passa;
+- chave de recuperação está disponível a pelo menos dois responsáveis autorizados.
+
+### 25.14 Fase 12 — Governança e validação contínua
+
+Prioridade: contínua.
+
+- [ ] Criar política de atualização e correção por criticidade.
+- [ ] Revisar acessos administrativos trimestralmente.
+- [ ] Rotacionar segredos e chaves conforme criticidade e eventos.
+- [ ] Realizar análise estática, dependências, imagens e testes de segurança no fluxo de entrega.
+- [ ] Impedir commit de segredos com scanner automatizado.
+- [ ] Executar teste de invasão autorizado em homologação após as fases prioritárias.
+- [ ] Fazer exercício anual de incidente e desastre.
+- [ ] Manter inventário de dados pessoais, finalidade, retenção e base legal.
+- [ ] Atualizar documentação, diagramas e matriz de permissões a cada release relevante.
+- [ ] Registrar exceções de segurança com risco aceito, responsável e data de revisão.
+
+### 25.15 Ordem consolidada
+
+| Ordem | Entrega | Prioridade | Dependência principal |
+|---:|---|---|---|
+| 1 | Proteger API e porta da TV | Crítica | backup e teste funcional da TV |
+| 2 | Autenticar MongoDB e Redis | Alta | inventário de clientes e segredos |
+| 3 | Corrigir uploads | Alta | testes de todos os módulos com imagem |
+| 4 | Restringir portas e SSH | Alta | acesso de emergência |
+| 5 | Atualizar dependências e sistema | Alta | homologação e rollback |
+| 6 | Criptografar backup externo | Alta | gestão institucional de chaves |
+| 7 | Melhorar autenticação e sessões | Alta | matriz de permissões |
+| 8 | Endurecer containers | Média/alta | testes por serviço |
+| 9 | Implantar Cloudflare e bloquear bypass da origem | Alta | domínio, DNS, firewall e rollback |
+| 10 | Consolidar Nginx e headers | Média/alta | eliminar drift de fonte |
+| 11 | Logs, alertas e limites | Média/alta | capacidade e retenção |
+| 12 | Governança e testes recorrentes | Contínua | responsáveis definidos |
+
+### 25.16 Evidências obrigatórias por item concluído
+
+Para marcar `[x]`, anexar ou referenciar:
+
+- data e responsável;
+- arquivos, imagens e serviços alterados;
+- resultado de testes positivos e negativos;
+- evidência de que segredos não foram expostos;
+- resultado de healthchecks;
+- plano de rollback testado;
+- ocorrências observadas após a implantação;
+- atualização do inventário e deste mapa.
+
+## 26. Manutenção deste mapa
+
+Atualizar este documento quando ocorrer qualquer um destes eventos:
+
+- mudança do servidor, domínio ou diretório canônico;
+- inclusão ou remoção de container;
+- novo banco, volume ou integração;
+- mudança de backup/restore;
+- alteração relevante de Nginx;
+- mudança de papéis ou dados pessoais tratados;
+- teste de desastre com novas descobertas.
+
+Registrar no topo a data da observação e manter valores secretos fora do arquivo.
+
+## 27. Em implementação — Agenda Garça
+
+### 27.1 Decisão de arquitetura
+
+O novo sistema de agendamentos será construído como um módulo da plataforma, inspirado nos fluxos de produtos como Zoho Bookings, sem criar uma identidade paralela.
+
+Arquitetura aprovada:
+
+```text
+React web ───────┐
+                 ├──> API Express `/api/agenda` ──> MongoDB + Redis + workers
+Flutter mobile ──┘                  |
+                                    └──> coleção central `users`
+```
+
+Regras invioláveis de identidade:
+
+1. `User`/coleção `users` é a única fonte oficial de cadastro e autenticação;
+2. cadastro, login, verificação de e-mail, recuperação de senha e desativação continuam nos endpoints centrais `/users`;
+3. React e Flutter usam o mesmo JWT emitido pela API principal;
+4. nenhuma senha, hash, CPF ou conta de login será criada em coleções da Agenda;
+5. agendamentos referenciam obrigatoriamente `User._id` obtido do token validado, nunca um `userId` confiado ao cliente;
+6. permissões da Agenda são vínculos ao usuário central, com unidade, papel, concessor e auditoria;
+7. uma pessoa desativada na base central perde acesso ao módulo em todos os clientes;
+8. snapshots mínimos de nome/e-mail/telefone podem ser preservados no agendamento para integridade histórica, mas não constituem nova identidade;
+9. Firebase deixa de ser fonte oficial dos novos agendamentos e permanece apenas durante a migração controlada do legado;
+10. `api-semit` e `api-gestao-publica` devem convergir para a mesma API e a mesma base lógica de usuários.
+
+### 27.2 Escopo funcional alvo
+
+Portal do cidadão:
+
+- seleção de secretaria/unidade, serviço, data e horário;
+- confirmação com protocolo e histórico em “Meus agendamentos”;
+- cancelamento e reagendamento conforme regras do serviço;
+- confirmação e lembretes por e-mail; WhatsApp após homologação específica;
+- fila de espera e aviso de vaga em fase posterior;
+- experiência acessível e responsiva para navegador e aplicativo.
+
+Operação e administração:
+
+- unidades, serviços, duração, intervalos, capacidade e locais;
+- agendas por serviço, atendente e recurso;
+- horário regular, feriados, pausas, férias, bloqueios e exceções;
+- calendário diário, semanal e mensal;
+- criação manual pelo atendente;
+- confirmação, atendimento, ausência, cancelamento e reagendamento;
+- permissões por unidade e papéis `agenda_admin`, `agenda_manager` e `agenda_attendant`;
+- relatórios de volume, ocupação, cancelamentos, ausência e tempo de espera;
+- exportação controlada e trilha de auditoria.
+
+### 27.3 Requisitos técnicos e de segurança
+
+- reserva atômica de horário, impedindo dupla marcação concorrente;
+- idempotência em criação, cancelamento, reagendamento e notificações;
+- datas armazenadas em UTC e apresentadas em `America/Sao_Paulo`;
+- rate limit nos fluxos de consulta e escrita;
+- validação no servidor de duração, antecedência, janela, disponibilidade e permissão;
+- MongoDB como fonte transacional; Redis somente para fila, cache e bloqueios efêmeros;
+- logs sem senha, token ou CPF completo;
+- minimização, retenção e descarte definidos segundo LGPD;
+- acessibilidade eMAG/WCAG e navegação por teclado;
+- OpenAPI, testes unitários, integração, concorrência e ponta a ponta;
+- backup e restore das novas coleções incluídos antes da entrada em produção;
+- nenhum deploy destrutivo ou substituição do legado sem homologação e rollback.
+
+### 27.4 Fases de implementação
+
+#### Fase A — Fundação da API e identidade única
+
+- [x] Definir `User` central como única identidade.
+- [x] Criar modelos iniciais de unidade, serviço, vínculo de permissão e agendamento.
+- [x] Criar middleware de autorização da Agenda referenciado ao usuário central.
+- [x] Criar endpoints iniciais `/api/agenda/me`, catálogo, meus agendamentos, criação e cancelamento.
+- [x] Criar consulta de disponibilidade por serviço/data sem exposição de dados pessoais.
+- [x] Criar fechamento de data e horários especiais por serviço.
+- [x] Impedir que o cliente escolha o proprietário do agendamento.
+- [x] Criar chave exclusiva de reserva para impedir dupla marcação.
+- [x] Criar e executar testes de identidade, autorização, concorrência e liberação do slot.
+- [ ] Publicar OpenAPI inicial.
+
+Critério de aceite: nenhum endpoint da Agenda cria usuário ou aceita identidade enviada pelo cliente; duas reservas simultâneas não ocupam o mesmo slot.
+
+#### Fase B — Disponibilidade e administração
+
+- [x] Implementar buffers protegidos antes e depois dos atendimentos.
+- [x] Implementar feriados gerais, férias, pausas e manutenções por intervalo de unidade/recurso.
+- [x] Suportar capacidade de 1 a 20 vagas com faixas exclusivas e proteção contra concorrência.
+- [x] Implementar cadastro, listagem e desativação de atendentes, salas e equipamentos por unidade.
+- [x] Vincular recursos ativos aos serviços e às reservas com seleção automática e exclusividade concorrente.
+- [x] Criar listagem e edição administrativa de unidades e serviços com escopo por unidade.
+- [x] Criar listagem, concessão e revogação auditável de vínculos operacionais.
+- [ ] Completar exclusão lógica, paginação e telas do CRUD administrativo.
+- [x] Implementar reagendamento atômico do cidadão.
+- [x] Implementar agendamento manual idempotente pelo atendente, referenciando apenas usuário central ativo.
+- [x] Implementar estados e transições formais do atendimento.
+- [x] Criar agenda operacional paginada e filtrada por escopo.
+- [x] Criar resumo por status e auditoria das transições.
+- [ ] Completar indicadores avançados, exportação e painéis históricos.
+
+#### Fase C — Portal React
+
+- [x] Criar frontend React isolado, responsivo e compilável com base `/agendamentos/`.
+- [x] Reutilizar login e sessão centrais, sem cadastro paralelo.
+- [x] Implementar fluxo inicial serviço → data → horário → confirmação.
+- [x] Implementar “Meus agendamentos” e cancelamento.
+- [x] Implementar reagendamento visual atômico e acesso à recuperação central de senha.
+- [x] Criar painel operacional inicial por perfil e unidade, com transições e resumo gerencial.
+- [x] Criar configuração React inicial de serviços, recursos e bloqueios por escopo.
+- [x] Separar cidadão e gestão em abas; tornar cadastro de Unidade/Serviço visível em coluna única (28/08/2026).
+- [x] Adicionar testes do cliente HTTP/sessão central, foco visível, link de salto e bloqueio de datas passadas.
+- [ ] Validar acessibilidade, segurança, desempenho e navegadores suportados.
+
+#### Fase D — Adequação do Flutter
+
+- [x] Criar cliente HTTP da Agenda usando o JWT central.
+- [ ] Remover acesso direto do Flutter às coleções Firestore de agendamento.
+- [x] Adaptar criação, histórico, cancelamento e reagendamento nas telas do cidadão.
+- [ ] Manter compatibilidade temporária com versões móveis anteriores.
+- [ ] Publicar atualização somente após homologação web/API.
+
+Cliente móvel preparado em `lib/features/agenda/data/`: usa exclusivamente os tokens centrais `token`/`auth_token`, envia rastreabilidade corporativa, não recebe nem transmite `userId` na jornada do cidadão e cobre identidade, catálogo, disponibilidade, histórico, criação idempotente, cancelamento e reagendamento atômico. O serviço Firestore legado permanece intacto como compatibilidade temporária; a troca das telas e a remoção das escritas antigas só ocorrerão depois dos testes e da reconciliação da migração.
+
+As rotas Flutter já existentes `/new-appointment` e `/my-appointments` foram adequadas para consumir esse cliente central, preservando os endereços usados pelo menu. As telas administrativas antigas continuam separadas no Firestore até que o painel React e a migração sejam homologados; não deve haver dupla escrita entre MongoDB e Firestore.
+
+Testes de interface do cidadão validam o carregamento do catálogo e do histórico, o uso do JWT central e a consulta `/appointments/mine` sem identificador de usuário fornecido pelo dispositivo.
+
+#### Fase E — Migração e notificações
+
+- [ ] Inventariar `appointments`, `services`, bloqueios e vínculos no Firestore.
+- [ ] Mapear usuários legados para `User._id`, com relatório de ambiguidades e duplicidades.
+- [ ] Migrar em ensaio repetível, com hashes, contagens e reconciliação.
+- [ ] Criar confirmação e lembretes idempotentes nos workers.
+- [ ] Testar e-mail; homologar WhatsApp separadamente.
+- [ ] Preservar histórico e cadeia de auditoria.
+
+Ferramenta de inventário somente leitura preparada em `backend/scripts/agenda-firestore-inventory.js`. Ela separa bloqueios legados (`userId: BLOCKED`) de reservas, contabiliza estados, datas e serviços inválidos, cruza e-mails normalizados com a coleção central `users` e sinaliza usuários ausentes ou ambíguos. O relatório detalhado usa apenas hash parcial do e-mail e não imprime CPF, telefone, token ou senha. A execução contra dados reais continua pendente de credencial restrita e janela de homologação; o script não contém operações de escrita.
+
+O gerador puro `agenda-migration-plan.js` transforma somente registros inequívocos em plano determinístico com checksum. Mudanças pendentes/aprovadas, divergências de duração, usuários/serviços sem correspondência e bloqueios específicos de serviço são rejeitados para revisão humana. O procedimento completo e os critérios que impedem o go-live estão em `backend/docs/AGENDA_MIGRATION_RUNBOOK.md`; ainda não existe executor de escrita habilitado.
+
+#### Fase F — Homologação e entrada em produção
+
+- [ ] Executar testes funcionais com cidadãos, atendentes e gestores.
+- [ ] Realizar teste de carga e disputa pelo mesmo horário.
+- [ ] Testar backup, restore, rollback e indisponibilidade de integrações.
+- [ ] Operar legado e novo sistema em paralelo controlado.
+- [ ] Trocar o cartão “Agendamentos” somente após aceite formal.
+- [ ] Manter o legado somente para consulta durante a janela definida.
+- [ ] Desativar escritas no Firestore apenas após reconciliação final.
+
+### 27.6 Implantação técnica controlada em 28/08/2026
+
+- API da Agenda implantada como camada mínima sobre a imagem de produção previamente saudável, sem reconstruir os demais módulos a partir do checkout divergente.
+- Portal React publicado em `/agendamentos/`; página e arquivos estáticos responderam `200` externamente.
+- `/api/agenda/services` respondeu `401` sem JWT, confirmando a proteção pela identidade central.
+- Container `api` ficou `healthy` e `/health` respondeu `200`; Nginx e demais containers não foram reiniciados.
+- Backup anterior à implantação: `/home/semit/Documentos/deploy-backups/agenda-20260828-implantacao`, contendo MongoDB completo, frontend anterior, arquivos afetados e hashes SHA-256.
+- Imagem anterior preservada localmente como `api-semit-api:pre-agenda` para rollback rápido.
+- Estado inicial do banco após a implantação: `0` unidades, `0` serviços, `0` recursos, `0` vínculos e `0` agendamentos. O módulo está publicado, mas só ficará apto a receber reservas após cadastro administrativo do catálogo e homologação funcional.
+- A primeira tentativa de rebuild integral foi revertida automaticamente por inconsistências preexistentes do código-fonte da Votação; a produção voltou a saudável antes da estratégia de camada mínima ser aplicada e validada em container paralelo.
+- Correção pós-implantação: o React chamava `/users/login`, tratado pelo Nginx como rota estática e respondido com `405`. O cliente passou a usar o endpoint canônico `/api/users/login`; teste automatizado, build e teste externo com credenciais fictícias confirmaram resposta `422` de autenticação em vez de `405`. A API não precisou ser reiniciada nessa correção.
+
+### 27.7 Correção de UX do catálogo em 28/08/2026
+
+Problema observado em produção: o gestor autenticado via “Configuração da Agenda”, mas **não encontrava onde cadastrar Unidade nem Serviço**. A tela misturava cidadão, operação e gestão na mesma rolagem; a grade de duas colunas escondia o passo 1; Recursos e Bloqueios pediam Unidade num `<select>` vazio, como se a unidade não existisse.
+
+Correção (somente frontend `agenda-web`; **API, Nginx e containers não reiniciados**):
+
+- abas: Agendar, Meus agendamentos, Operação (vínculo), Catálogo (gestor);
+- catálogo vazio abre a aba Catálogo automaticamente para quem pode gerir;
+- cadastro em coluna única, ordem obrigatória: 1 Unidade → 2 Serviço → 3 Recurso (opcional) → 4 bloqueios;
+- empty states explicando que o dropdown de Unidade em Recurso/Bloqueio **não cria** unidade;
+- cidadão vê aviso quando não há serviço no catálogo.
+
+Onde cadastrar (após o build publicado):
+
+1. entrar em `/agendamentos/` com conta `admin` global (`role=admin` ou `isAdmin`) ou vínculo `agenda_admin` / `agenda_manager`;
+2. abrir a aba **Catálogo**;
+3. passo 1: nome da unidade (ex.: Paço Municipal) e Salvar unidade;
+4. passo 2: unidade + nome do serviço, duração, intervalo, capacidade, horário e dias; Salvar serviço;
+5. só então o combo Unidade em Recursos/Bloqueios passa a ter opções.
+
+Fonte: `agenda-web/src/App.jsx`, `AdminConfig.jsx`, `styles.css`. Build Vite `base=/agendamentos/`. Assets publicados em `/opt/backend-public/agendamentos/` (volume Nginx `root /opt/backend-public`, origem observada `api-semit/backend/public/agendamentos`). Publicação segura: backup do portal anterior, copiar `assets/` novos sem apagar os antigos, depois substituir `index.html`. Diretório `assets` e pasta do portal em `755`, arquivos em `644`; permissão `700` faz o Nginx devolver HTML no lugar do JavaScript.
+
+Rollback desta UX: restaurar o diretório `agendamentos` a partir de `/home/semit/Documentos/deploy-backups/agenda-20260828-ux-catalogo/` (sem mexer na API).
+
+O banco continua podendo estar vazio (0 unidades/serviços) até o cadastro administrativo e a homologação funcional. Esta entrega **não** troca o cartão legado nem libera reservas reais.
+
+### 27.8 Layout moderno do portal em 28/08/2026
+
+Segunda entrega de UX no mesmo dia, ainda só no frontend `agenda-web` (sem rebuild de API/Nginx):
+
+- casca fluida (gradiente, header em faixa, navegação sticky, conteúdo até ~1180px);
+- login em duas colunas no desktop e uma coluna no celular;
+- catálogo em **stepper**: um passo visível por vez (Unidade → Serviço → Extras), com trilha à esquerda no desktop e faixa horizontal no mobile;
+- botão “Salvar e ir ao serviço” avança sozinho para o passo 2;
+- passos 2 e 3 bloqueados até existir unidade.
+
+Publicação: mesmo procedimento da 27.7 (`assets` 755/644). Backup desta versão visual: `/home/semit/Documentos/deploy-backups/agenda-20260828-ux-layout/`.
+
+### 27.9 Almoço e atendentes no serviço em 28/08/2026
+
+A API já suportava vários períodos no dia (`weeklyAvailability.periods`) e `resourceIds` de atendentes. A tela misturava isso em “Extras” (tipo Sala + bloqueio de feriado), então o gestor não encontrava almoço nem equipe.
+
+Ajuste só de frontend:
+
+- no passo **Serviço**: expediente (abre/fecha), **intervalo de almoço** (gera dois períodos, ex. 08:00–12:00 e 13:00–17:00), equipe com checkbox e cadastro rápido de atendente;
+- “Intervalo (min)” passou a se chamar **De quanto em quanto**, para não confundir com almoço;
+- serviço existente tem **Editar** (PATCH), para Transporte Escolar e outros já criados;
+- passo 3 ficou só **Feriados** pontuais.
+
+Almoço diário **não** é bloqueio de feriado. Atendente **não** é “tipo Sala”.
+
+### 27.10 Calendário de disponibilidade em 28/08/2026
+
+A aba **Agendar** mostra calendário mensal e grade de horários via `/api/agenda/services/:id/availability`.
+
+### 27.11 Landing exclusiva com QR em 28/08/2026
+
+Cada serviço ativo ganha página pública:
+
+- URL: `/agendamentos/#/p/{slug-da-unidade}/{slug-do-serviço}`
+- API sem JWT: `GET /api/agenda/public/:unitSlug/:serviceSlug` e `.../availability?date=`
+- calendário + grade de horários; reserva continua exigindo JWT da coleção `users`
+- no Catálogo, **Link e QR** gera o cartaz de divulgação
+
+Rotas autenticadas seguem com `verifyToken`. As públicas não expõem CPF, senha nem token.
+
+### 27.12 Configuração da landing em 28/08/2026
+
+A página pública passou a exibir e gravar:
+
+- `landingBannerUrl` (imagem de cabeçalho);
+- `landingAddress` (endereço do atendimento; se vazio, usa o da unidade);
+- `bookingFrom` / `bookingUntil` (período em que o calendário aceita reserva);
+- `description` (texto da página).
+
+Gestor vê **Configurar página** na própria landing e o bloco equivalente no Catálogo. O servidor recusa horário fora do período.
+
+### 27.13 Painel do atendente em 28/08/2026
+
+A aba **Atendente** (`agenda_attendant`, gerente ou admin) mostra calendário mensal com contagem de fila por dia e visão diária em linha do tempo. Ações usam as transições já existentes (`booked` → `confirmed` → `completed`/`no_show`, ou cancelamento). API: `GET /api/agenda/admin/appointments/calendar?month=YYYY-MM`.
+
+A escolha do horário na landing e na aba Agendar passou a ser em lista por faixa de hora, com botão **Confirmar agendamento**. Após a reserva, a API envia comprovante pelo `mailer` SMTP já usado pelos demais módulos (`helpers/agenda-voucher.js`), sem interromper a reserva se o e-mail falhar.
+
+### 27.5 Estado inicial em 27/08/2026
+
+A implementação começou somente no checkout versionado `api-gestao-publica`; nenhuma rota foi implantada no container de produção e o agendamento Flutter atual não foi alterado.
+
+Fundação criada:
+
+- `AgendaUnit`: unidade/local de atendimento;
+- `AgendaService`: serviço, duração, intervalo e disponibilidade semanal;
+- `AgendaUserAssignment`: papel da Agenda referenciado ao `User` central;
+- `AgendaAppointment`: agendamento referenciado ao `User`, com protocolo e reserva exclusiva;
+- `AgendaAvailabilityException`: fechamento ou horário especial por serviço/data;
+- `AgendaRoutes`/`AgendaController`: identidade, catálogo, criação, histórico, cancelamento e administração inicial;
+- `agenda-auth`: autorização por vínculo e administrador global;
+- `agenda-time`: validação de janela e disponibilidade na zona municipal;
+- teste de integração para identidade central, tentativa de personificação, autorização e disputa do slot.
+
+Validação inicial concluída:
+
+- 15 testes próprios da Agenda aprovados;
+- identidade carregada exclusivamente de `users`;
+- tentativa de enviar outro `userId` ignorada e vínculo mantido com o usuário autenticado;
+- cidadão impedido de criar unidades ou conceder permissões;
+- segunda reserva do mesmo serviço/horário recusada com conflito;
+- cancelamento libera o slot para nova reserva;
+- consulta de disponibilidade oculta dados pessoais e respeita fechamento/horário especial;
+- criação também respeita fechamento e horário especial, impedindo contorno da consulta;
+- proteção exclusiva cobre todo o intervalo e bloqueia sobreposição parcial;
+- criação e reagendamento possuem chaves de idempotência; cancelamento repetido é seguro;
+- reagendamento troca o intervalo atomicamente e preserva a reserva original quando há conflito;
+- 26 testes de regressão de cadastro, login, refresh token, autorização e Estradas Rurais aprovados;
+- conjunto final com 41 testes aprovados em 7 suítes;
+- sintaxe dos modelos, helpers, controller, rotas, teste e servidor validada;
+- nenhuma imagem foi reconstruída e nenhum container de produção foi reiniciado.
+
+Próxima entrega: revisar o contrato dos endpoints, gerar OpenAPI e iniciar disponibilidade avançada antes de qualquer frontend.
+
+## 28. Plano de implementação `comtur`
+
+Objetivo: implantar o Portal Municipal de Turismo por incrementos, começando pela Fase 1 e pelo COMTUR como módulo estruturado de governança, integrado à identidade, auditoria, banco, storage e operação da API SEMIT.
+
+
+### Decisão de produto — substituição (09/09/2026)
+
+O município **substitui** a vitrine turística atual por um **portal totalmente novo**. Não é evolução, skin nem carrossel sobre o que já está no ar.
+
+O que deixa de ser a entrada oficial do visitante, no cutover:
+
+- o HTML atual (`/comtur-portal.html` e telas administrativas estáticas associadas como face pública);
+- o módulo legado `mapaturistico`;
+- o guia externo Destinos Inteligentes (`guia.destinosinteligentes.tur.br/Garça/`) como vitrine institucional de Garça.
+
+O que permanece e não é reescrito neste projeto:
+
+- a API SEMIT, identidade `users`, MongoDB, auditoria, Nginx, backup e papéis;
+- o COMTUR como **módulo de governança** (atas, legislação, composição) **dentro** do portal novo, não como site principal;
+- Cultura/teatro, Agenda e Rotas Rurais como serviços a integrar, não a duplicar.
+
+Regra: o visitante passa a usar só o portal novo (categorias, carrosséis, mapa, ficha). O conselho não aparece como home. Destinos Inteligentes pode existir na rede nacional, mas deixa de ser o endereço que a Prefeitura divulga. Cutover com backup, redirecionamentos e rollback; nada de operar dois portais oficiais em paralelo depois da troca.
+
+### Fase 1 — Fundação
+
+- [x] Inspecionar a fonte canônica, stack e convenções reais da API SEMIT.
+- [x] Modelar reuniões e documentos do COMTUR em Mongoose.
+- [x] Criar consultas públicas paginadas por ano, tipo, texto e slug.
+- [x] Garantir que somente conteúdo publicado seja exposto.
+- [x] Adicionar testes unitários da normalização e segurança dos filtros.
+- [ ] Homologar os endpoints com conteúdo oficial do COMTUR.
+- [ ] Criar papéis, CRUD administrativo, auditoria e workflow editorial.
+- [ ] Integrar documentos ao upload/storage institucional e antivírus.
+- [ ] Implementar composição, legislação, plano de trabalho e prestação de contas.
+- [ ] Construir portal público acessível para turismo, atrativos, eventos, gastronomia, hospedagem, mapa, notícias e documentos.
+
+### Fases seguintes
+
+- Fase 2: roteiros, favoritos, planejador, trade/Cadastur, multilíngue, PWA e mapas.
+- Fase 3: Observatório, indicadores, pesquisas, Plano Municipal e dados abertos.
+- Fase 4: QR codes, totens, integrações externas, roteiros adaptativos e inteligência regional.
+
+### Critérios de aceite do incremento 1
+
+- endpoints `GET /api/comtur/meetings` e `GET /api/comtur/meetings/:slug` registrados;
+- respostas públicas restritas a `status=published`;
+- filtros inválidos retornam 422 e paginação tem limite máximo;
+- busca trata entrada como texto literal;
+- modelo armazena metadados da reunião, documentos, deliberações e revisão;
+- testes do módulo e validação de sintaxe aprovados;
+- saúde da API preservada após implantação controlada.
+
+### Dependências e próximos passos
+
+- receber lei, regimento, mandato, composição, calendário, atas e documentos oficiais;
+- definir gestores e revisores do módulo na identidade central;
+- reutilizar MongoDB, storage, auditoria, backups, monitoramento e proxy da API SEMIT;
+- documentar o contrato no OpenAPI e criar índices no ambiente de homologação;
+- testar acessibilidade dos PDFs e da futura interface com teclado e leitor de tela.
+
+### Registro
+
+- 09/09/2026: o material-base foi convertido em plano faseado; a prioridade foi reduzida ao primeiro incremento publicável do COMTUR.
+- 09/09/2026: módulo preparado diretamente na fonte canônica `api-gestao-publica`, sem criar banco, autenticação ou infraestrutura paralelos.
+- Detalhes técnicos: `backend/docs/COMTUR_MODULE.md`.
+
+### Implantação controlada em 09/09/2026
+
+- módulo replicado de forma seletiva no checkout operacional `api-semit`, sem sincronizar alterações alheias entre os checkouts;
+- imagem candidata `api-semit-api:comtur-candidate` construída e homologada em container paralelo na porta local 5001;
+- candidato confirmou saúde `UP`, conexão MongoDB, lista pública vazia paginada e resposta 422 para tipo inválido;
+- imagem promovida ao container `api`, que voltou ao estado `healthy`;
+- endpoint público `GET /api/comtur/meetings?limit=5` confirmado com HTTP 200 após reload validado do Nginx;
+- imagem anterior preservada como `api-semit-api:pre-comtur-20260909-141940` para rollback;
+- quatro testes unitários do COMTUR aprovados e sintaxe de modelo, helper, controller, rotas e servidor validada;
+- regressão ampla da fonte canônica continua bloqueada por declaração duplicada preexistente de `unitAllowed` em `AgendaController.js`;
+- regressão ampla do checkout operacional continua bloqueada por `node_modules` local desatualizado, embora a imagem Docker tenha instalado corretamente o lockfile;
+- nenhum registro demonstrativo foi inserido: a coleção pública permanece vazia até a homologação de conteúdo oficial.
+
+### Administração e workflow editorial implantados em 09/09/2026
+
+- CRUD administrativo inicial disponível sob `/api/comtur/admin/meetings`, protegido pela identidade central para os papéis `admin` e `admin-comtur`;
+- criação sempre inicia em `draft`, independentemente do estado enviado pelo cliente;
+- transições permitidas: `draft → review → published`, retorno de publicado para revisão, arquivamento explícito e restauração de arquivado para rascunho;
+- conteúdo publicado não pode ser editado diretamente: deve retornar para revisão;
+- criação, edição e transições registram ator, recurso, alterações e estado na auditoria central;
+- documentos aceitam somente URLs HTTP/HTTPS e tipos documentais reconhecidos pelo módulo;
+- modelo passou a registrar revisão, arquivamento e número incremental de revisão;
+- sete testes unitários do COMTUR aprovados, incluindo payload administrativo, URLs perigosas e transições editoriais;
+- imagem `api-semit-api:comtur-admin-candidate` promovida ao container `api`, confirmado `healthy` e com `/health` em estado `UP`;
+- consulta pública preservada com HTTP 200; acessos administrativos sem autenticação confirmados com HTTP 401;
+- imagem anterior preservada como `api-semit-api:pre-comtur-admin-20260909` para rollback;
+- nenhum conteúdo foi criado ou alterado no banco durante a implantação.
+
+Próxima entrega: designar formalmente gestores e revisores, publicar o contrato OpenAPI, integrar upload/storage/antivírus e homologar o primeiro conteúdo oficial antes do frontend público.
+
+## 29. TV Corporativa, Painéis de Atendimento e Compatibilidade de APKs (18/09/2026)
+
+### Contexto e Arquitetura dos Painéis
+O ecossistema de exibição de senhas e mídia institucional é composto por:
+1. **NovoSGA (Backend / Fila)**: Servidor central de filas em `10.15.25.31` (porta 8088 / `painel-semit`) provendo chamadas em tempo real via Mercure/SSE e REST. Unidades ativas: SEDETUR (unidade 4) e SEMIT (unidade 6).
+2. **Painel Web (`painel_senhas_work`)**: Frontend Web acessível publicamente via proxy reverso em `https://api.garca.sp.gov.br/p/sedetur` e `https://api.garca.sp.gov.br/p/semit`.
+3. **Painel Desktop (Electron)**: Cliente desktop nativo para totens e displays físicos, com cabeçalho limpo (`PAINEL DE ATENDIMENTO`) e alternância de configuração oculta via atalho `F2` em tela cheia.
+4. **APKs TV / Android**: Aplicativos legados instalados em Smart TVs Android dependentes do endpoint de compatibilidade `/tv/api/tickets?unitId={id}`.
+5. **TV Corporativa (`tv-semit`)**: Contêiner Node.js servindo a playlist institucional de vídeos, notícias RSS e clima, consumido em modo embutido (`iframe` com parâmetro `is-embedded=true`) pelo painel de senhas.
+
+---
+
+### Diagnóstico e Resolução da Falha dos APKs (/tv/api/tickets)
+- **Problema Detectado**: APKs Android nas TVs pararam de receber senhas chamadas e apresentavam erro 404 (`Cannot GET /api/tickets`).
+- **Causa Raiz**: O endpoint `/api/tickets` havia sido inserido temporariamente dentro do contêiner ativo em execuções anteriores, mas não fora persistido no código-fonte nem na imagem base do Docker. Ao recriar o contêiner `tv-semit` em 17/09/2026 para atualização da TV, a rota sumiu da imagem gerada.
+- **Correção Arquitetural e Permanente**:
+  - Incorporada a rota `GET /api/tickets` de forma nativa e definitiva no backend da TV Corporativa (`/app/server.js`), realizando proxy transparente para a API do NovoSGA (`http://10.15.25.31:8088/api/tickets` ou proxy local), mapeando os tickets das unidades correspondentes (`unitId=4` para SEDETUR, `unitId=6` para SEMIT).
+  - A imagem foi consolidada no Docker daemon como `api-semit-tv-semit:apk-compat-20260918` e tageada como `api-semit-tv-semit:latest`.
+  - Imagem de segurança `tv-semit-rollback-20260917` preservada para rollback imediato caso necessário.
+  - Sincronização completa da árvore de código fonte da TV para `/home/semit/Documentos/api-semit/tv_corporativa/` e controle de versão no Git.
+
+---
+
+### Correções no Player de Mídia e Streaming de Vídeo
+- **Problema de Vídeos Cortados / Picotando**:
+  - `MediaCarousel.css` e `TvProgramPlayer.css` utilizavam `object-fit: cover`, provocando corte lateral ou superior de vídeos institucionais em proporções diferentes de 16:9.
+  - `playlist-engine.js` continha watchdogs com tempo fixo arbitrário (20s e 45s), forçando o avanço da playlist antes do término natural de vídeos mais longos.
+  - O proxy do servidor web (`server-index.mjs`) não repassava os cabeçalhos de Range HTTP (`Range`, `If-Range`), impedindo requisições parciais (HTTP 206 Partial Content) e causando travamentos no buffer dos navegadores.
+- **Solução Implementada**:
+  - **CSS**: Ajustado `object-fit: contain` com fundo preto (`#000`) nas regras de exibição de mídia do Painel Web e da TV Corporativa, garantindo proporção original sem deformações.
+  - **Playlist Engine**: Substituição dos timeouts fixos por listener de evento nativo `videoEl.onended` e watchdog de segurança dinâmico calculado com base no `videoEl.duration` real do arquivo.
+  - **Proxy HTTP Range**: Adicionado suporte e repasse integral aos cabeçalhos `Range`, `If-Range`, `Content-Range` e `Accept-Ranges` no `server-index.mjs`.
+  - **Modo Embutido (`is-embedded`)**: Otimizado layout CSS para preencher 100% da área do iframe sem cabeçalhos duplicados nem barra de notícias duplicada quando exibido dentro do Painel de Senhas.
+
+---
+
+### Painel Desktop (Electron)
+- **Cabeçalho**: Unificado para `PAINEL DE ATENDIMENTO` em layout limpo.
+- **Controles em Tela Cheia**: Ocultação automática dos botões de configuração e rodapé ao entrar em tela cheia; reativação sob demanda pelo atalho `F2`.
+- **Empacotamento**: Configuração de build limpa e geração de executáveis / `.deb` standalone para Linux e instaladores leves.
+
+---
+
+### Validação e Evidências em Produção (18/09/2026)
+- `GET https://api.garca.sp.gov.br/tv/api/tickets?unitId=4` -> **HTTP 200 OK** (retornando array com as últimas 10 senhas chamadas da SEDETUR).
+- `GET https://api.garca.sp.gov.br/tv/api/tickets?unitId=6` -> **HTTP 200 OK** (retornando `[]` da SEMIT).
+- `GET https://api.garca.sp.gov.br/p/sedetur` -> **HTTP 200 OK** (painel web operacional com layout ajustado e vídeo contínuo).
+- `GET https://api.garca.sp.gov.br/p/semit` -> **HTTP 200 OK** (painel web operacional).
+- Contêiner `tv-semit` executando `api-semit-tv-semit:apk-compat-20260918` (`latest`), com status estável.
+
+## 30. IOT — Plataforma Municipal de Telemetria (23/09/2026)
+
+### 30.1 Objetivo
+
+Criar uma base única para receber, armazenar, monitorar e distribuir dados de dispositivos municipais. O primeiro uso será uma estação meteorológica com temperatura, umidade e vento. A mesma arquitetura deve atender posteriormente sensores de câmaras frias das cozinhas municipais, medidores, gateways e outros equipamentos, sem criar uma solução isolada para cada fabricante.
+
+Esta seção registra uma **proposta preparada, ainda não implantada em produção**. Em 23/09/2026 foi realizada conexão somente de leitura ao servidor `10.15.25.28` para confirmar a arquitetura ativa. Nenhum container, banco, rota pública, certificado ou configuração de rede foi alterado.
+
+### 30.2 Arquitetura proposta
+
+```text
+Sensores e estações
+        |
+        | MQTT com TLS (MQTTS/8883)
+        v
+Eclipse Mosquitto
+        |
+        v
+Worker de ingestão MQTT
+        |
+        +--> validação, normalização e deduplicação
+        +--> regras e alertas
+        +--> integrações externas
+        |
+        v
+PostgreSQL IOT <--> API Node.js/Express <--> dashboard e aplicativo
+                    |
+                    +--> Prometheus/Grafana
+                    +--> webhooks assinados
+```
+
+A plataforma observada já possui Node.js/Express, MongoDB, Redis, Docker, Nginx, Prometheus, Grafana e um PostgreSQL pertencente ao módulo Documentos. O IOT acrescenta broker Mosquitto, worker de ingestão e PostgreSQL 17 dedicado. O banco IOT não reutiliza o MongoDB da API nem o PostgreSQL de Documentos. O checkout de produção contém alterações locais em andamento; por isso, a implantação não deve reconstruir nem sobrescrever a stack principal sem reconciliação prévia.
+
+#### Decisão de persistência — PostgreSQL dedicado (23/09/2026)
+
+Após revisão arquitetural, foi escolhido PostgreSQL independente para o IOT. Telemetria exige consultas temporais, agregações, retenção, relacionamentos e integridade entre locais, dispositivos, regras e alertas. A mensagem original permanece em `jsonb`, enquanto as medições normalizadas usam colunas tipadas. Leituras e medições são particionadas mensalmente por `observed_at`; uma tabela independente mantém deduplicação por dispositivo e `messageId`.
+
+O PostgreSQL IOT usa volume, usuários, backup e ciclo de vida próprios. A porta `5432` não deve ser publicada no host. Os papéis são separados em proprietário de migração, `iot_api` e `iot_ingestion`. A implementação experimental em MongoDB foi retirada do pacote após essa decisão.
+
+### 30.3 Modelo de dados comum
+
+- **Local (`site`)**: prédio, cozinha, escola, unidade ou ponto geográfico.
+- **Dispositivo (`device`)**: estação, sensor, gateway ou controlador instalado em um local.
+- **Medição (`reading`)**: conjunto temporal normalizado de valores, unidades e qualidade.
+- **Regra (`rule`)**: limite, janela de tempo, severidade e política de recuperação.
+- **Alerta (`alert`)**: ocorrência aberta, reconhecida ou resolvida, com histórico dos responsáveis.
+- **Integração (`integration`)**: destino externo autorizado, inicialmente por webhook assinado.
+
+O modelo comum permite que uma estação meteorológica e um sensor de câmara fria utilizem as mesmas rotas, autenticação, auditoria, alertas e componentes de painel.
+
+### 30.4 Fluxo de ingestão
+
+1. Cada dispositivo recebe identificador e credencial MQTT exclusivos.
+2. O equipamento publica em `municipio/v1/{tenant}/{tipo}/{deviceId}/telemetry` usando TLS.
+3. O Mosquitto valida usuário e ACL; um sensor não pode publicar no tópico de outro.
+4. O worker valida versão, tamanho, horário, catálogo de métricas, unidade e duplicidade.
+5. A leitura normalizada é gravada no PostgreSQL IOT e o último estado do dispositivo é atualizado.
+6. Regras avaliam limites e permanência, evitando alertas por oscilações breves.
+7. Dashboard e aplicativo consultam a API; sistemas externos recebem eventos assinados, sem acesso direto ao broker ou banco.
+
+Exemplo de mensagem meteorológica:
+
+```json
+{
+  "schemaVersion": 1,
+  "messageId": "01K5X8Z3QVTZQ0YXN31RCA12C8",
+  "observedAt": "2026-09-23T14:30:00-03:00",
+  "metrics": {
+    "temperature": { "value": 24.7, "unit": "Cel" },
+    "relativeHumidity": { "value": 68.2, "unit": "%" },
+    "windSpeed": { "value": 4.1, "unit": "m/s" },
+    "windDirection": { "value": 225, "unit": "deg" }
+  },
+  "diagnostics": {
+    "battery": 87,
+    "signal": -68
+  }
+}
+```
+
+Para câmaras frias, o mesmo envelope suporta `temperature` e `doorOpen`. As unidades seguem UCUM, inicialmente `Cel`, `%`, `m/s`, `deg`, `Pa`, `mm` e `1`.
+
+### 30.5 API proposta
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| `GET` | `/api/iot/sites` | Listar locais autorizados |
+| `GET` | `/api/iot/devices` | Consultar dispositivos, estado e última comunicação |
+| `POST` | `/api/iot/devices` | Cadastrar dispositivo |
+| `PATCH` | `/api/iot/devices/:id` | Configurar, ativar ou colocar em manutenção |
+| `GET` | `/api/iot/readings` | Consultar séries temporais filtradas |
+| `GET` | `/api/iot/dashboard/summary` | Obter cartões, disponibilidade e alertas |
+| `GET` | `/api/iot/alerts` | Consultar a fila operacional |
+| `POST` | `/api/iot/alerts/:id/ack` | Reconhecer um alerta |
+| `POST` | `/api/iot/alerts/:id/resolve` | Resolver um alerta |
+| `GET/POST` | `/api/iot/rules` | Consultar e administrar regras |
+| `GET/POST` | `/api/iot/integrations` | Administrar webhooks e destinos externos |
+
+Todas as consultas devem usar a identidade central da API e aplicar permissão por local e papel. O `tenant` recebido do cliente nunca deve ser usado sozinho como fonte de autorização.
+
+### 30.6 Dashboard, aplicativo e integrações
+
+O resumo operacional deve fornecer:
+
+- dispositivos online, atrasados, offline e em manutenção;
+- alertas críticos e avisos em aberto;
+- última leitura e qualidade por dispositivo;
+- temperatura mínima, média e máxima por período;
+- mapa dos pontos com estado agregado;
+- conformidade das câmaras frias, incluindo tempo dentro e fora da faixa;
+- bateria, sinal e atraso de comunicação;
+- histórico de reconhecimento e resolução de alertas.
+
+Na primeira versão, dashboard e aplicativo podem atualizar os dados a cada 30 segundos por REST. Uma fase posterior poderá usar SSE para atualizações instantâneas, preservando as mesmas regras de autorização.
+
+As integrações externas devem usar webhooks HTTPS assinados com HMAC, tentativas com espera progressiva e fila de falhas. Serviços externos não devem receber credenciais do broker, acesso ao PostgreSQL IOT ou chaves de dispositivos.
+
+### 30.7 Segurança e operação
+
+- expor externamente somente MQTTS na porta `8883`; manter `1883` restrita à rede Docker;
+- proibir acesso anônimo e emitir uma credencial exclusiva por dispositivo;
+- aplicar ACL por tópico e permitir que o worker leia somente os tópicos necessários;
+- usar certificado público válido e não desativar a validação TLS nos equipamentos;
+- limitar mensagens a 16 KiB e controlar frequência, retenção e filas;
+- exigir `messageId` único por dispositivo para impedir duplicatas;
+- registrar separadamente o horário da medição e o horário de recebimento;
+- classificar leituras como `good`, `suspect`, `invalid` ou `late`;
+- auditar cadastros, regras, reconhecimento e resolução de alertas;
+- exportar métricas de mensagens aceitas/rejeitadas, atraso, dispositivos offline, alertas e falhas de integração ao Prometheus;
+- guardar senhas, certificados e chaves somente no runtime de segredos, nunca no Git.
+
+### 30.8 Retenção sugerida
+
+| Informação | Prazo inicial sugerido |
+|---|---|
+| Leituras detalhadas | 90 dias |
+| Agregados de 5 minutos | 2 anos |
+| Alertas e auditoria | 5 anos |
+| Último estado do dispositivo | Enquanto o dispositivo existir |
+
+Os prazos devem ser confirmados com as áreas responsáveis e o encarregado de dados antes da implantação.
+
+### 30.9 Fases de implantação
+
+#### Fase 1 — piloto meteorológico
+
+- [ ] Obter marca, modelo, manual e recursos MQTT da estação.
+- [ ] Definir nome DNS, certificado e rota de rede para MQTTS.
+- [ ] Subir Mosquitto e worker em composição isolada.
+- [ ] Cadastrar uma estação e validar reconexão, duplicidade e mensagens fora de ordem.
+- [ ] Disponibilizar consulta de leituras e painel operacional inicial.
+- [ ] Criar alertas de dispositivo offline e valores inválidos.
+- [ ] Acompanhar o piloto por pelo menos sete dias antes da expansão.
+
+#### Fase 2 — câmaras frias
+
+- [ ] Cadastrar cozinhas, equipamentos, responsáveis e faixas operacionais.
+- [ ] Aplicar regras por tipo de produto/equipamento.
+- [ ] Exigir permanência temporal fora da faixa para reduzir falsos positivos.
+- [ ] Registrar reconhecimento, resolução, observação e evidências.
+- [ ] Homologar notificações no aplicativo com as áreas responsáveis.
+
+#### Fase 3 — integrações e expansão
+
+- [ ] Ativar webhooks assinados e fila de reprocessamento.
+- [ ] Integrar notificações e visão histórica ao aplicativo municipal.
+- [ ] Disponibilizar exportação para BI ou dados abertos somente após aprovação.
+- [ ] Adicionar novos tipos de sensores sem acoplar fabricantes à API principal.
+
+### 30.10 Critérios de aceite e continuidade
+
+- credenciais e certificados provisionados fora do Git;
+- teste de reconexão e envio acumulado após perda de rede;
+- teste de mensagens duplicadas, atrasadas, inválidas e fora de ordem;
+- backup e restauração das coleções IOT validados;
+- responsáveis, horários e escala de atendimento de alertas definidos;
+- monitoramento e runbook de indisponibilidade documentados;
+- piloto estável por pelo menos sete dias;
+- plano de rollback sem reiniciar API, MongoDB, Redis, PostgreSQL de Documentos ou Nginx desnecessariamente.
+
+### 30.11 Implementação iniciada e estado atual
+
+Os artefatos iniciais estão em `iot-platform/`:
+
+- `iot-platform/docs/CONTRATO-MQTT.md`: contrato completo de tópicos e mensagens;
+- `iot-platform/backend/iot/`: catálogo, normalização, modelos, rotas iniciais e worker;
+- `iot-platform/deploy/docker-compose.iot.yml`: composição isolada proposta;
+- `iot-platform/deploy/mosquitto.conf`: configuração inicial do broker;
+- `iot-platform/deploy/acl.example`: exemplo de permissões por dispositivo.
+
+A implementação PostgreSQL foi iniciada em pacote isolado. Já existem esquema relacional, particionamento mensal, deduplicação transacional, payload original em `jsonb`, medições normalizadas, agregados de cinco minutos, retenção configurável e worker MQTT com healthcheck e métricas. O contrato OpenAPI e o painel operacional do Grafana permanecem preparados; seus repositórios de consulta serão ligados ao PostgreSQL no próximo incremento.
+
+**Homologação PostgreSQL concluída em 23/09/2026:** imagem `api-semit-iot-worker:pg-candidate` construída com ID `sha256:970ce440384d40b5ecf2c862c5fb463cea761d05c4a375ef07562680c05a5f0a`. PostgreSQL 17, Mosquitto e worker foram iniciados em rede Docker interna e descartável. O `readyz` respondeu `UP`; métricas registraram PostgreSQL e MQTT conectados. Uma mensagem meteorológica criou uma leitura e três medições. A repetição do mesmo `messageId` foi identificada como duplicata, mantendo uma única leitura. A função de agregação produziu séries de cinco minutos para temperatura, umidade relativa e velocidade do vento. Containers, rede e dados sintéticos foram removidos ao final; a imagem candidata foi preservada. Nenhum serviço ou dado de produção foi alterado.
+
+**Motor de alertas homologado em 23/09/2026:** segunda imagem candidata `api-semit-iot-worker:pg-alert-candidate`, ID `sha256:a552802520910a2429284c7bb5e7ed63004755d4353db374b411f9d2e6a25698`. Uma regra crítica `temperature > 25`, sem atraso, abriu alerta com leitura `30.5`; uma leitura normal `22.0` resolveu automaticamente a ocorrência e removeu o estado de violação; nova leitura `31.2` criou uma ocorrência ativa, preservando o histórico resolvido. Métricas contabilizaram duas aberturas. A implementação também passou a conter repositórios e rotas PostgreSQL iniciais para locais, dispositivos, leituras, agregados, dashboard, alertas e regras. Containers, rede e dados sintéticos da segunda homologação também foram removidos; somente a imagem candidata foi preservada.
+
+**Imagem candidata da API:** `api-semit-api:iot-pg-candidate`, ID `sha256:4b684f8c176001a5b8b0b7cbc84af5ab2610bce3d6296cf3671a7f4dbacd0ff1`. A imagem deriva da API ativa, adiciona somente o cliente PostgreSQL, o módulo `iot-pg`, rotas diretas e sob `/api/iot`, além dos papéis `iot_admin` e `iot_operator`. `server.js` e todos os arquivos JavaScript IOT passaram na validação estática dentro de container descartável. A imagem não foi iniciada nem promovida; o container `api` de produção permanece inalterado.
+
+**Fila de integrações homologada em 23/09/2026:** imagem `api-semit-iot-worker:pg-webhook-candidate`, ID `sha256:bb9fe80cc41eea2adb39a38b8d9e750075a059267f4e358c617fe8285443e473`. Uma leitura criou evento `reading.created` na outbox PostgreSQL. Como a rede descartável não permitia saída externa, a tentativa falhou de forma controlada, voltou para `pending`, registrou o erro e incrementou `iot_webhooks_total{result="retry"}`. O contador sintético foi avançado para validar a política final; na décima tentativa o evento passou para `dead` e a métrica correspondente foi registrada. O código aplica HTTPS, resolução DNS a cada entrega, bloqueio de endereços privados, assinatura HMAC, timeout, redirecionamento proibido, lock recuperável e `FOR UPDATE SKIP LOCKED`. A entrega HMAC bem-sucedida ainda deve ser homologada contra receptor HTTPS controlado. Containers, rede e dados sintéticos foram removidos.
+
+**API autenticada homologada em 23/09/2026:** imagem `api-semit-api:iot-pg-api-v2`, ID `sha256:dd7f1022dab50052e3aa2f8c97af968d19bb46bda5a2597ec9de534f0c65aabf`. A homologação usou MongoDB descartável apenas para duas identidades sintéticas e PostgreSQL descartável para todos os dados IOT. Com administrador autenticado, `GET /api/iot/dashboard/summary` respondeu 200, `POST /api/iot/sites` criou uma cozinha com 201 e `GET /api/iot/sites` retornou a lista paginada com 200. O registro foi confirmado exclusivamente no PostgreSQL pelo papel `iot_api`. Com `iot_operator`, a consulta respondeu 200 e a tentativa de cadastro respondeu 403; a contagem permaneceu em um local. API, worker, Mosquitto, PostgreSQL e MongoDB ficaram saudáveis durante o teste. Todos os containers, redes, identidades e dados sintéticos foram removidos ao final; somente as imagens candidatas foram preservadas.
+
+**Publicação em Produção concluída em 23/09/2026:** Release `20260923T163431Z` implantada em produção com status `production_ready`.
+- **Infraestrutura IoT dedicada**: PostgreSQL 17 (`api-semit-iot-iot-db-1`), Broker Mosquitto MQTTS na porta 8883 (`api-semit-iot-mqtt-1`), Worker de Ingestão (`api-semit-iot-iot-ingestion-1`) e Backup automático diário com snapshot inicial (`api-semit-iot-iot-backup-1`).
+- **Promoção da API**: Imagem `api-semit-api:iot-production-20260923` promovida para o container `api`, saudável (`GET /health` -> 200 OK) e com rotas `/api/iot/*` protegidas por autenticação e RBAC.
+- **Validação de ponta a ponta**: Mensagem de telemetria publicada via MQTTS na porta 8883, processada pelo worker, persistida na partição ativa do PostgreSQL e agregada em baldes de 5 minutos em `iot_measurement_5m`.
+- **Segurança e Isolamento**: PostgreSQL 17 sem exposição de porta no host; MQTTS exposto exclusivamente na porta 8883 com TLS; credenciais e certificados isolados em `/home/semit/runtime/iot/deploy/secrets` com permissões restritas. Imagem anterior de rollback preservada como `api-semit-api:rollback-before-iot-20260923T163431Z`.
+
+
