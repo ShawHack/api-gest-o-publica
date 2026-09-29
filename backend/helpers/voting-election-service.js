@@ -11,6 +11,7 @@ const {
   computeCpfHash,
   matriculaLookupValues,
   normalizeNomeForLogin,
+  findServidorByNomeLogin,
 } = require('./voting-identity-hash')
 
 function nowInRange(v) {
@@ -51,6 +52,21 @@ async function findServidorByNomeAndCpf(nome, cpf) {
   for (const doc of rows) {
     if (normalizeNomeForLogin(doc.nome) === nomeNorm) return doc
   }
+  return null
+}
+
+/** Login/verificação apenas pelo nome completo (substitui CPF). */
+async function findServidorByNome(nome) {
+  const nomeNorm = normalizeNomeForLogin(nome)
+  if (!nomeNorm) return null
+
+  const byHash = await findServidorByNomeLogin(VotingServidor, nome)
+  if (byHash) return byHash
+
+  // Compatibilidade: registros antigos sem hash de nome
+  const rows = await VotingServidor.find({ active: { $ne: false } }).limit(8000)
+  const matches = rows.filter((d) => normalizeNomeForLogin(d.nome) === nomeNorm)
+  if (matches.length === 1) return matches[0]
   return null
 }
 
@@ -332,6 +348,7 @@ module.exports = {
   nowInRange,
   findServidorByMatriculaAndCpf,
   findServidorByNomeAndCpf,
+  findServidorByNome,
   assertElectionActive,
   hasParticipated,
   buildBallot,

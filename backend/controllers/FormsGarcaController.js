@@ -56,7 +56,7 @@ module.exports = class FormsGarcaController {
                 dataEvento: new Date(dataEvento),
                 idSolicitacao1Doc,
                 status: status || 'aberto',
-                createdBy,
+                createdBy: createdBy || String(req.user?.id || req.user?._id || ''),
                 campos: camposMapped,
             });
 
@@ -123,7 +123,7 @@ module.exports = class FormsGarcaController {
             if (dataEvento !== undefined) updateData.dataEvento = new Date(dataEvento);
             if (idSolicitacao1Doc !== undefined) updateData.idSolicitacao1Doc = idSolicitacao1Doc;
             if (status !== undefined) updateData.status = status;
-            if (updatedBy !== undefined) updateData.updatedBy = updatedBy;
+            updateData.updatedBy = updatedBy || String(req.user?.id || req.user?._id || '');
 
             if (campos !== undefined) {
                 updateData.campos = (campos || []).map(c => ({
@@ -136,7 +136,7 @@ module.exports = class FormsGarcaController {
                 }));
             }
 
-            const form = await FormGarca.findByIdAndUpdate(req.params.id, updateData, { new: true });
+            const form = await FormGarca.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
             if (!form) {
                 return res.status(404).json({ message: 'Formulário não encontrado.' });
             }

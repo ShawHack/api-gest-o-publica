@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pesquisas — Turismo Garça</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;color:#10213f;background:#f4f7fb}
+    header,main{max-width:1100px;margin:auto;padding:22px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    a{color:#075d57;text-decoration:none}a:hover{text-decoration:underline}
+    h1{margin:0 0 8px;font-size:clamp(1.6rem,3vw,2.1rem)}
+    .lead{color:#52627a;margin:0 0 24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+    .card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 14px 40px #10213f14;display:flex;flex-direction:column}
+    .card img{width:100%;height:170px;object-fit:cover;background:#e2e8f0}
+    .card .body{padding:18px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .card h2{margin:0;font-size:1.1rem;line-height:1.3}
+    .meta{color:#64748b;font-size:.9rem}
+    .btn{display:inline-flex;align-items:center;justify-content:center;margin-top:auto;padding:10px 14px;border-radius:10px;background:#075d57;color:#fff;font-weight:700}
+    .empty,.error{padding:28px;background:#fff;border-radius:14px;color:#52627a}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/turismo/">← Turismo Garça</a>
+    <a href="/turismo/comtur">COMTUR</a>
+  </header>
+  <main>
+    <h1>Pesquisas</h1>
+    <p class="lead">Estudos e pesquisas publicados pelo turismo municipal.</p>
+    <div id="list" class="grid" aria-live="polite">Carregando…</div>
+  </main>
+  <script>
+  (async () => {
+    const box = document.getElementById('list');
+    try {
+      const res = await fetch('/api/comtur/content?type=research&limit=50');
+      if (!res.ok) throw new Error(res.status);
+      const { data = [] } = await res.json();
+      if (!data.length) {
+        box.className = 'empty';
+        box.textContent = 'Nenhuma pesquisa publicada no momento.';
+        return;
+      }
+      box.innerHTML = '';
+      data.forEach((item) => {
+        const meta = item.metadata || {};
+        const cover = (item.media || []).find((m) => m.kind === 'image')?.url || meta.coverUrl || '';
+        const start = item.startsAt || meta.startDate;
+        const end = item.endsAt || meta.endDate;
+        const period = (start || end)
+          ? `${start ? new Date(start).toLocaleDateString('pt-BR') : '?'}${end ? ' – ' + new Date(end).toLocaleDateString('pt-BR') : ''}`
+          : '';
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = `/turismo/pesquisas/${encodeURIComponent(item.slug)}`;
+        a.innerHTML = `
+          ${cover ? `<img src="${cover}" alt="">` : `<div style="height:170px;background:linear-gradient(135deg,#0f766e,#1e3a8a)"></div>`}
+          <div class="body">
+            <h2>${item.title || 'Pesquisa'}</h2>
+            ${period ? `<div class="meta">${period}</div>` : ''}
+            <p class="meta">${(meta.objective || item.summary || '').slice(0, 140)}</p>
+            <span class="btn">Ver pesquisa</span>
+          </div>`;
+        box.append(a);
+      });
+    } catch (e) {
+      box.className = 'error';
+      box.textContent = 'Não foi possível carregar as pesquisas agora.';
+    }
+  })();
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@
   const links = [
     ['/comtur-admin.html', 'Visão geral', '⌂'],
     ['/comtur-meetings-admin.html?v=7', 'Reuniões', '▣'],
-    ['/comtur-content-admin.html?v=14', 'Conteúdos e documentos', '≡'],
+    ['/comtur-content-admin.html?v=25', 'Conteúdos e documentos', '≡'],
     ['/comtur-branding-admin.html?v=11', 'Identidade visual', '◆'],
     ['/comtur-staff-admin.html', 'Equipe', '👤'],
     ['/turismo/', 'Portal público', '↗'],

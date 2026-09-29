@@ -27,6 +27,8 @@ const User = mongoose.model(
           'rotas_admin',
           'rotas_operador',
           'admin-votacao',
+          'admin_comtur',
+          'admin-comtur',
           'votacao_auditor',
           'sama',
           'secretario',

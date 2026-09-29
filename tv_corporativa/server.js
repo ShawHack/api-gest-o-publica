@@ -938,7 +938,75 @@ app.delete('/api/playlist/item/:id', (req, res) => {
     }
 });
 
-// Compatibilidade dos painéis Android e desktop com o NovoSGA.
+// Cache em memória para evitar sobrecarregar o NovoSGA PHP com logins repetidos
+const novosgaTokenCache = new Map(); // slug -> { token, expiresAt }
+let novosgaTokenInFlight = new Map(); // slug -> Promise
+const panelMetaCache = new Map(); // slug -> { services, expiresAt }
+let lastSuccessfulTicketsByUnit = new Map(); // unitId -> tickets[]
+
+async function getCachedNovoSgaToken(slug) {
+    const cached = novosgaTokenCache.get(slug);
+    if (cached && cached.expiresAt > Date.now() + 120_000) {
+        return cached.token;
+    }
+    if (novosgaTokenInFlight.has(slug)) {
+        return novosgaTokenInFlight.get(slug);
+    }
+    const promise = (async () => {
+        try {
+            const res = await fetch(`http://10.15.25.31:8088/api/panels/${encodeURIComponent(slug)}/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+                signal: AbortSignal.timeout(5000),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const token = String(data.accessToken || '');
+                const expSec = Number(data.expiresIn) || 3600;
+                if (token) {
+                    novosgaTokenCache.set(slug, {
+                        token,
+                        expiresAt: Date.now() + (expSec * 1000),
+                    });
+                    return token;
+                }
+            }
+        } catch (e) {
+            console.warn(`[getCachedNovoSgaToken] Falha ao renovar token para ${slug}:`, e.message);
+        } finally {
+            novosgaTokenInFlight.delete(slug);
+        }
+        return cached ? cached.token : '';
+    })();
+    novosgaTokenInFlight.set(slug, promise);
+    return promise;
+}
+
+async function getCachedServiceIds(slug, unitId) {
+    const cached = panelMetaCache.get(slug);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.services;
+    }
+    try {
+        const res = await fetch(`http://10.15.25.31:8088/api/panels/${encodeURIComponent(slug)}`, {
+            signal: AbortSignal.timeout(4000),
+        });
+        if (res.ok) {
+            const panel = await res.json();
+            const unit = Array.isArray(panel.units) ? panel.units.find((u) => Number(u.id) === unitId) : null;
+            const serviceIds = Array.isArray(unit?.serviceIds)
+                ? [...new Set(unit.serviceIds.map(Number).filter((id) => id > 0))]
+                : [];
+            const services = serviceIds.join(',');
+            panelMetaCache.set(slug, { services, expiresAt: Date.now() + 600_000 });
+            return services;
+        }
+    } catch (_e) {}
+    return cached ? cached.services : '';
+}
+
+// Compatibilidade dos painéis Android e desktop com o NovoSGA e Agenda Garça.
 // A rota fica neste serviço porque /tv/* é encaminhado para tv-semit pelo Nginx.
 app.get('/api/tickets', async (req, res) => {
     try {
@@ -947,76 +1015,89 @@ app.get('/api/tickets', async (req, res) => {
             return res.status(400).json({ message: 'unitId obrigatorio' });
         }
 
-        const slugByUnit = { 4: 'sedetur', 5: 'semads', 6: 'semit', 7: 'saae' };
+        const slugByUnit = { 2: 'farmacia', 3: 'semads', 4: 'sedetur', 5: 'saae', 6: 'semit', 7: 'saae' };
         const requestedSlug = String(req.query.slug || '').trim().toLowerCase();
         const slug = requestedSlug || slugByUnit[unitId] || 'semit';
-        let serviceIds = [];
 
-        const panelResponse = await fetch(
-            `http://10.15.25.31:8088/api/panels/${encodeURIComponent(slug)}`,
-            { signal: AbortSignal.timeout(8000) },
-        );
-        if (panelResponse.ok) {
-            const panel = await panelResponse.json();
-            const unit = Array.isArray(panel.units)
-                ? panel.units.find((candidate) => Number(candidate.id) === unitId)
-                : null;
-            serviceIds = Array.isArray(unit?.serviceIds)
-                ? [...new Set(unit.serviceIds.map(Number).filter((id) => id > 0))]
-                : [];
+        // 1. Buscar chamadas do NovoSGA (com token em cache, sem estresse ao PHP)
+        let novosgaList = [];
+        try {
+            const accessToken = await getCachedNovoSgaToken(slug);
+            const services = await getCachedServiceIds(slug, unitId);
+            if (accessToken) {
+                const sParam = services ? `?servicos=${encodeURIComponent(services)}` : '';
+                const novosgaUrl = `http://10.15.25.31/api/unidades/${unitId}/painel${sParam}`;
+                const nRes = await fetch(novosgaUrl, {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                    signal: AbortSignal.timeout(4000),
+                });
+                if (nRes.ok) {
+                    const data = await nRes.json();
+                    if (Array.isArray(data)) novosgaList = data;
+                }
+            }
+        } catch (nErr) {
+            console.warn('[api/tickets] Falha ao consultar NovoSGA:', nErr.message);
         }
 
-        const tokenResponse = await fetch(
-            `http://10.15.25.31:8088/api/panels/${encodeURIComponent(slug)}/token`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: '{}',
-                signal: AbortSignal.timeout(8000),
-            },
-        );
-        if (!tokenResponse.ok) {
-            console.error('[api/tickets] token status', tokenResponse.status, 'slug', slug);
-            return res.status(200).json([]);
-        }
-        const tokenData = await tokenResponse.json();
-        const accessToken = String(tokenData.accessToken || '');
-        if (!accessToken) return res.status(200).json([]);
+        // 2. Buscar chamadas da Agenda Garça (memória do painel Node, instantâneo)
+        let agendaList = [];
+        try {
+            const aRes = await fetch(`http://10.15.25.31:8088/api/panels/${encodeURIComponent(slug)}/calls`, {
+                signal: AbortSignal.timeout(2000),
+            });
+            if (aRes.ok) {
+                const aData = await aRes.json();
+                if (Array.isArray(aData)) agendaList = aData;
+            }
+        } catch (_aErr) {}
 
-        const services = serviceIds.join(',');
-        const novosgaResponse = await fetch(
-            `http://10.15.25.31/api/unidades/${unitId}/painel?servicos=${encodeURIComponent(services)}`,
-            {
-                headers: { Authorization: `Bearer ${accessToken}` },
-                signal: AbortSignal.timeout(8000),
-            },
-        );
-        if (!novosgaResponse.ok) {
-            console.error(
-                '[api/tickets] novosga status',
-                novosgaResponse.status,
-                'unit',
-                unitId,
-                'slug',
-                slug,
-            );
-            return res.status(200).json([]);
+        // 3. Mesclar de forma inteligente:
+        // Se a chamada mais recente da Agenda foi feita nos últimos 5 minutos, ela deve aparecer no topo
+        const now = Date.now();
+        const latestAgenda = agendaList.find((a) => {
+            const calledMs = Date.parse(a.calledAt || '') || (Number(a.id) > 1_000_000_000 ? Number(a.id) : 0);
+            return (now - calledMs) < 300_000;
+        });
+
+        let combined = [];
+        if (latestAgenda) {
+            // Agenda no topo seguida das chamadas do NovoSGA
+            combined = [latestAgenda, ...novosgaList, ...agendaList.filter((a) => a.id !== latestAgenda.id)];
+        } else {
+            // Chamadas do NovoSGA no topo seguidas do histórico da Agenda
+            combined = [...novosgaList, ...agendaList];
         }
 
-        const data = await novosgaResponse.json();
-        const list = Array.isArray(data) ? data : [];
-        return res.status(200).json(
-            list.map((item) => ({
-                ...item,
-                ...(item?.id !== undefined && item?.id !== null
-                    ? { id: String(item.id) }
-                    : {}),
-                local: item?.local || 'Guiche',
-            })),
-        );
+        const seenKeys = new Set();
+        const result = [];
+        for (const raw of combined) {
+            if (!raw || typeof raw !== 'object') continue;
+            const key = `${raw.senha || ''}_${raw.numeroLocal || ''}`;
+            if (seenKeys.has(key)) continue;
+            seenKeys.add(key);
+
+            result.push({
+                ...raw,
+                id: String(raw.id !== undefined && raw.id !== null ? raw.id : Date.now()),
+                local: raw.local || 'Guichê',
+                numeroLocal: Number(raw.numeroLocal) || 1,
+            });
+            if (result.length >= 10) break;
+        }
+
+        if (result.length > 0) {
+            lastSuccessfulTicketsByUnit.set(unitId, result);
+            return res.status(200).json(result);
+        }
+
+        // Fallback para último cache conhecido da unidade se tudo vier vazio temporariamente
+        const fallback = lastSuccessfulTicketsByUnit.get(unitId) || [];
+        return res.status(200).json(fallback);
     } catch (error) {
-        console.error('[api/tickets]', error.message);
-        return res.status(200).json([]);
+        console.error('[api/tickets] Erro interno:', error.message);
+        const fallback = lastSuccessfulTicketsByUnit.get(Number(req.query.unitId || 0)) || [];
+        return res.status(200).json(fallback);
     }
 });
 

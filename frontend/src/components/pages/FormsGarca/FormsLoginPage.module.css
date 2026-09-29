@@ -1,0 +1,422 @@
+/* ═══════════════════ FormsLoginPage — Modern Auth Portal ═══════════════════ */
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #0f1729 0%, #1a2744 35%, #243565 65%, #384d9c 100%);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  color: #e2e8f0;
+}
+
+/* ─── Top bar ─── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px max(5vw, 24px);
+  background: rgba(15, 23, 41, .55);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logoIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5069c8, #ee7070);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 18px rgba(80, 105, 200, .35);
+}
+.logoText {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: .02em;
+  color: #fff;
+}
+.logoSub {
+  display: block;
+  font-size: .68rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, .55);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+/* ─── Main area ─── */
+.pageBody {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+  padding: 50px max(5vw, 40px);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ─── Left hero content ─── */
+.heroSide {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.heroTitle {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  background: linear-gradient(135deg, #fff 30%, #a8bfff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+.heroDesc {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, .72);
+  max-width: 440px;
+  margin: 0;
+}
+.features {
+  display: grid;
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: .92rem;
+  color: rgba(255, 255, 255, .82);
+}
+.featureIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .08);
+  flex-shrink: 0;
+}
+
+/* ─── Card ─── */
+.card {
+  width: min(480px, 100%);
+  padding: 36px 32px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+.cardHeader {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.cardHeader h1 {
+  margin: 0 0 6px;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #fff;
+}
+.cardHeader p {
+  margin: 0;
+  color: rgba(255, 255, 255, .6);
+  font-size: .88rem;
+  line-height: 1.4;
+}
+
+/* ─── Tabs ─── */
+.modeTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 28px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .07);
+}
+.modeTab {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: .88rem;
+  cursor: pointer;
+  transition: all .2s ease;
+  background: transparent;
+  color: rgba(255, 255, 255, .5);
+}
+.modeTabActive {
+  composes: modeTab;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+/* ─── Form ─── */
+.form {
+  display: grid;
+  gap: 18px;
+}
+.field {
+  display: grid;
+  gap: 7px;
+}
+.fieldLabel {
+  font-weight: 650;
+  font-size: .84rem;
+  color: rgba(255, 255, 255, .78);
+  letter-spacing: .02em;
+}
+.fieldInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 11px;
+  padding: 13px 15px;
+  font: inherit;
+  font-size: .92rem;
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+  transition: border-color .2s, box-shadow .2s;
+}
+.fieldInput::placeholder {
+  color: rgba(255, 255, 255, .3);
+}
+.fieldInput:focus {
+  outline: none;
+  border-color: rgba(80, 105, 200, .7);
+  box-shadow: 0 0 0 3px rgba(80, 105, 200, .18);
+}
+.passwordWrap {
+  position: relative;
+}
+.passwordWrap .fieldInput {
+  padding-right: 48px;
+}
+.toggleEye {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, .5);
+  cursor: pointer;
+  transition: color .15s;
+}
+.toggleEye:hover {
+  color: rgba(255, 255, 255, .85);
+}
+
+/* ─── Strength ─── */
+.passwordHint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -6px;
+}
+.hintPill {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: .72rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, .06);
+  color: rgba(255, 255, 255, .35);
+  transition: background .2s, color .2s;
+}
+.hintPillOk {
+  composes: hintPill;
+  background: rgba(46, 172, 88, .18);
+  color: #6ceaaa;
+}
+
+/* ─── Terms ─── */
+.termsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.45;
+  font-size: .85rem;
+  color: rgba(255, 255, 255, .72);
+}
+.termsRow input[type= checkbox] {
+  margin-top: 3px;
+  accent-color: #5069c8;
+  width: 17px;
+  height: 17px;
+}
+.termsRow a {
+  color: #8da6ff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.termsRow a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Buttons ─── */
+.btnPrimary {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font: inherit;
+  font-weight: 800;
+  font-size: .95rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, #5069c8, #384d9c);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(56, 77, 156, .4);
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+.btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(56, 77, 156, .55);
+}
+.btnPrimary:active {
+  transform: translateY(0);
+}
+.btnPrimary:disabled {
+  opacity: .5;
+  cursor: wait;
+  transform: none;
+}
+.switchText {
+  text-align: center;
+  margin-top: 4px;
+  font-size: .85rem;
+  color: rgba(255, 255, 255, .55);
+}
+.switchText button {
+  border: 0;
+  background: transparent;
+  color: #8da6ff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.switchText button:hover {
+  color: #b5c8ff;
+}
+
+/* ─── Alerts ─── */
+.alert {
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: .88rem;
+  line-height: 1.5;
+  animation: fadeSlideUp .3s ease;
+}
+.alertError {
+  composes: alert;
+  background: rgba(239, 68, 68, .14);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, .2);
+}
+.alertSuccess {
+  composes: alert;
+  background: rgba(46, 172, 88, .14);
+  color: #86efac;
+  border: 1px solid rgba(46, 172, 88, .2);
+}
+.alertInfo {
+  composes: alert;
+  background: rgba(80, 105, 200, .14);
+  color: #93b5ff;
+  border: 1px solid rgba(80, 105, 200, .2);
+}
+
+/* ─── Spinner ─── */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, .25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* ─── Animations ─── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Forgot password ─── */
+.forgotLink {
+  text-align: right;
+  margin-top: -8px;
+}
+.forgotLink a {
+  font-size: .82rem;
+  color: rgba(255, 255, 255, .5);
+  text-decoration: none;
+}
+.forgotLink a:hover {
+  color: #8da6ff;
+  text-decoration: underline;
+}
+
+/* ─── Footer ─── */
+.footer {
+  text-align: center;
+  padding: 20px 16px;
+  font-size: .76rem;
+  color: rgba(255, 255, 255, .3);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .pageBody {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding: 36px max(4vw, 16px);
+  }
+  .heroSide {
+    text-align: center;
+    align-items: center;
+  }
+  .heroDesc {
+    max-width: 100%;
+  }
+  .card {
+    margin: 0 auto;
+  }
+}
+@media (max-width: 520px) {
+  .card {
+    padding: 28px 20px;
+    border-radius: 18px;
+  }
+  .heroTitle {
+    font-size: 1.7rem;
+  }
+  .features {
+    display: none;
+  }
+}

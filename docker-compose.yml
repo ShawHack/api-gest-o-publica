@@ -178,10 +178,11 @@ services:
     ports:
       - "80:80"
       - "443:443" # HTTPS
-      - "8080:8080"
-      - "8088:8088"
-      - "8082:8082"
-      - "8090:8090"
+      # CTIR #134353: 8080 removida da internet.
+      # CMS interno: http://10.15.25.29/  (sem porta publica)
+      # CTIR: 8088 removida (painel via /painel-senhas/)
+      # CTIR: 8082 removida (triagem via /triagem/)
+      # CTIR: 8090 removida (orfa)
     volumes:
       - ${FRONTEND_BUILD_DIR:-./frontend/build}:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro

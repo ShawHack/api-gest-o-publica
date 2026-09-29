@@ -43,6 +43,10 @@ import NotFoundPage from './components/pages/NotFound/NotFoundPage'
 import RuralAccessDeniedPage from './components/pages/RuralPortal/RuralAccessDeniedPage'
 import RuralOperatorLoginPage from './components/pages/RuralPortal/RuralOperatorLoginPage'
 import RuralVerifyEmailPage from './components/pages/RuralPortal/RuralVerifyEmailPage'
+import FormsGarcaPortal from './components/pages/FormsGarca/FormsGarcaPortal'
+import FormsAccessDeniedPage from './components/pages/FormsGarca/FormsAccessDeniedPage'
+import FormsLoginPage from './components/pages/FormsGarca/FormsLoginPage'
+import FormsVerifyEmailPage from './components/pages/FormsGarca/FormsVerifyEmailPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -98,6 +102,15 @@ function App() {
                     } />
                     <Route path="/rotas-rurais/admin" element={
                         <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
+                    } />
+                    {/* ==================== FORMULÁRIOS GARÇA (PORTAL INDEPENDENTE) ==================== */}
+                    <Route path="/formularios/login" element={<FormsLoginPage />} />
+                    <Route path="/formularios/verificar-email" element={<FormsVerifyEmailPage />} />
+                    <Route path="/formularios/*" element={
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                    } />
+                    <Route path="/formularios-react/*" element={
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin', 'semit', 'forms_admin']} fallback={<FormsAccessDeniedPage />}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
 
                     {/* ==================== BUSCA DE SEPULTURAS (layout próprio) ==================== */}

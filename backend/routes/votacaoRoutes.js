@@ -38,10 +38,12 @@ const voteLimiter = rateLimit({
 
 router.post('/auth/login', authLimiter, VotingAuthController.login)
 router.post('/auth/refresh', authLimiter, VotingAuthController.refresh)
+router.get('/auth/sugestoes-nome', authLimiter, VotingAuthController.suggestNames)
 
 router.get('/status', VotingEleitorController.publicStatus)
 
 router.get('/pleitos/:slug', VotingLandingController.publicLanding)
+router.get('/pleitos/:slug/sugestoes-nome', authLimiter, VotingLandingController.suggestNames)
 router.post('/pleitos/:slug/unlock', authLimiter, VotingLandingController.unlockWithCpf)
 
 router.get('/admin/me', verifyToken, requireVotingStaff, VotingAuditorController.me)

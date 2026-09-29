@@ -68,8 +68,10 @@ function resolveAuthClient(req) {
   const client = String(req.body?.client || '').trim().toLowerCase()
   if (client === 'garcapet') return 'garcapet'
   if (client === 'rotas-rurais') return 'rotas-rurais'
+  if (client === 'formularios') return 'formularios'
   const ref = String(req.headers.referer || req.headers.referrer || '').toLowerCase()
   if (ref.includes('/garcapet')) return 'garcapet'
+  if (ref.includes('/formularios')) return 'formularios'
   return ''
 }
 
@@ -77,6 +79,7 @@ function emailVerifyLinkPath(req) {
   const client = resolveAuthClient(req)
   if (client === 'garcapet') return '/garcapet/auth/verify-email'
   if (client === 'rotas-rurais') return '/rotas-rurais/verificar-email'
+  if (client === 'formularios') return '/formularios/verificar-email'
   return '/auth/verify-email'
 }
 
@@ -846,7 +849,7 @@ module.exports = class UserController {
         { $group: { _id: '$role', count: { $sum: 1 } } }
       ])
 
-      const counts = { total, usuario: 0, concessionario: 0, admin: 0, iluminacao_admin: 0, admin_votacao: 0, sama: 0 }
+      const counts = { total, usuario: 0, concessionario: 0, admin: 0, iluminacao_admin: 0, admin_votacao: 0, admin_comtur: 0, sama: 0 }
       roleCounts.forEach(({ _id, count }) => {
         if (_id === 'usuario') counts.usuario = count
         else if (_id === 'concessionario') counts.concessionario = count
@@ -920,7 +923,7 @@ module.exports = class UserController {
       const normalizedRole = String(req.body?.role || '').trim().toLowerCase()
 
       // Validar role
-      const validRoles = ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'sama']
+      const validRoles = ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'admin_comtur', 'admin-comtur', 'sama']
       if (!validRoles.includes(normalizedRole)) {
         return res.status(400).json({ message: 'Role inválido.' })
       }
@@ -1162,7 +1165,7 @@ module.exports = class UserController {
         phone,
         cpf,
         password: passwordHash,
-        role: ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'sama'].includes(normalizedRole)
+        role: ['usuario', 'concessionario', 'admin', 'iluminacao_admin', 'rotas_operador', 'rotas_admin', 'admin-votacao', 'admin_comtur', 'admin-comtur', 'sama'].includes(normalizedRole)
           ? normalizedRole
           : 'usuario',
         canManageTrees: normalizedRole === 'sama',

@@ -22,7 +22,7 @@
         <div><label for="location">Local</label><input id="location" maxlength="240" required></div>
         <div><label for="summary">Resumo</label><textarea id="summary" maxlength="2000" required></textarea></div>
         <div><label for="deliberations">Deliberações</label><textarea id="deliberations" placeholder="Uma deliberação por linha"></textarea></div>
-        <section class="documents-box" aria-labelledby="documents-title"><h3 id="documents-title">Arquivos da reunião</h3><div class="upload-grid"><div><label for="document-kind">Categoria</label><select id="document-kind"><option value="ata">Ata</option><option value="pauta">Pauta</option><option value="convocacao">Convocação</option><option value="lista_presenca">Lista de presença</option><option value="anexo">Anexo</option><option value="gravacao">Gravação</option></select></div><div><label for="document-file">Arquivo</label><input id="document-file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,audio/mpeg,video/mp4"></div></div><div class="actions"><button id="upload-document" type="button">Verificar e adicionar arquivo</button></div><div id="upload-progress" class="upload-progress" role="status" aria-live="polite"></div><div id="document-list" class="document-list"></div><p class="help">Ao escolher o arquivo ele já é enviado. Limite de 25 MB. Se o botão Salvar estiver cinza, atualize com Ctrl+F5.</p></section>
+        <section class="documents-box" aria-labelledby="documents-title"><h3 id="documents-title">Arquivos da reunião</h3><div class="upload-grid"><div><label for="document-kind">Categoria</label><select id="document-kind"><option value="ata">Ata</option><option value="pauta">Pauta</option><option value="convocacao">Convocação</option><option value="lista_presenca">Lista de presença</option><option value="anexo">Anexo</option><option value="gravacao">Gravação</option></select></div><div><label for="document-file">Arquivo</label><input id="document-file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,audio/mpeg,video/mp4"></div></div><div class="actions"><button id="upload-document" type="button">Verificar e adicionar arquivo</button></div><div id="upload-progress" class="upload-progress" role="status" aria-live="polite"></div><div id="document-list" class="document-list"></div><p class="help">PDF, imagens, áudio ou vídeo de até 25 MB. Todos os arquivos passam por validação de formato e antivírus antes de serem vinculados.</p></section>
         <div class="actions"><button id="save" type="submit">Salvar rascunho</button><button id="review" class="secondary" type="button">Enviar para revisão</button><button id="publish" type="button">Publicar</button><button id="return-review" class="secondary" type="button">Retornar à revisão</button><button id="archive" class="danger" type="button">Arquivar</button></div>
       </form>
     </section>
@@ -35,7 +35,7 @@
     const headers=()=>SemitSession.authHeaders({'Content-Type':'application/json','Accept':'application/json'});
     const list=document.getElementById('list'),form=document.getElementById('editor'),notice=document.getElementById('notice'); let items=[],documents=[];
     const labels={draft:'Rascunho',review:'Em revisão',published:'Publicado',archived:'Arquivado'};
-    function message(text,error=false){notice.textContent=text;notice.className='notice'+(error?' error':'');notice.style.display='block';if(!error)setTimeout(()=>notice.style.display='none',8000)}
+    function message(text,error=false){notice.textContent=text;notice.className='notice'+(error?' error':'');notice.style.display='block';setTimeout(()=>notice.style.display='none',5000)}
     function dateInput(value){if(!value)return '';const d=new Date(value);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
     function meetingSlug(){const n=String(document.getElementById('number').value||'').replace(/\D/g,'');const y=document.getElementById('year').value;if(!n||!y)return '';return 'reuniao-'+String(Number(n)).padStart(2,'0')+'-'+y}
     function syncSlug(){const slug=document.getElementById('slug');if(slug.dataset.manual==='1')return;slug.value=meetingSlug()}
@@ -48,58 +48,7 @@
     async function saveMeeting(){const id=document.getElementById('id').value;const slug=(document.getElementById('slug').value.trim().toLowerCase()||meetingSlug());if(!slug)throw new Error('Informe o número e o ano da reunião.');const body={number:Number(document.getElementById('number').value),year:Number(document.getElementById('year').value),type:document.getElementById('type').value,startsAt:new Date(document.getElementById('startsAt').value).toISOString(),slug,location:document.getElementById('location').value.trim(),summary:document.getElementById('summary').value.trim(),deliberations:document.getElementById('deliberations').value.split('\n').map(v=>v.trim()).filter(Boolean),documents};const data=await request(id?'/api/comtur/admin/meetings/'+id:'/api/comtur/admin/meetings',{method:id?'PUT':'POST',body:JSON.stringify(body)});edit(data.data);await load();return data.data}
     form.addEventListener('submit',async event=>{event.preventDefault();try{await saveMeeting();message(document.getElementById('current-status').value==='published'?'Reunião atualizada no portal.':'Rascunho salvo. Clique em Publicar para aparecer no portal.')}catch(error){message(error.message,true)}});
     async function transition(status){const id=document.getElementById('id').value;if(!id)return message('Selecione ou salve uma reunião primeiro.',true);try{const data=await request(`/api/comtur/admin/meetings/${id}/transition`,{method:'POST',body:JSON.stringify({status})});message('Estado alterado para '+(labels[status]||status)+'.');edit(data.data);await load()}catch(error){message(error.message,true)}}
-    const kindLabels={ata:'Ata',pauta:'Pauta',convocacao:'Convocação',lista_presenca:'Lista de presença',anexo:'Anexo',gravacao:'Gravação'};
-    function formatSize(bytes){if(!Number.isFinite(Number(bytes)))return 'tamanho não informado';if(bytes<1024)return bytes+' B';if(bytes<1048576)return(bytes/1024).toFixed(1)+' KB';return(bytes/1048576).toFixed(1)+' MB'}
-    let uploading=false
-    async function addDocument(){
-      if(uploading)return
-      const input=document.getElementById('document-file');
-      const file=input.files[0];
-      const progress=document.getElementById('upload-progress');
-      const button=document.getElementById('upload-document');
-      if(!file)return message('Selecione um arquivo para enviar.',true);
-      if(file.size>25*1024*1024)return message('O arquivo passa de 25 MB. Envie um PDF ou imagem menor.',true);
-      uploading=true
-      button.disabled=true
-      progress.textContent='Enviando '+file.name+'…';
-      const data=new FormData();
-      data.append('file',file);
-      try{
-        const send=window.SemitSession&&SemitSession.fetchAuth?SemitSession.fetchAuth.bind(SemitSession):fetch;
-        const response=await send('/api/comtur/admin/media',{method:'POST',headers:{Accept:'application/json'},body:data});
-        const payload=await response.json().catch(()=>({}));
-        if(!response.ok)throw Error(payload.error||payload.message||('Falha ao enviar arquivo ('+response.status+').'));
-        if(!payload.data||!payload.data.url)throw Error('O servidor não devolveu o endereço do arquivo.');
-        documents.push({kind:document.getElementById('document-kind').value,title:payload.data.originalName||file.name,url:payload.data.url,mimeType:payload.data.mimeType,sizeBytes:payload.data.sizeBytes,isAccessible:false});
-        renderDocuments();
-        input.value='';
-        if(document.getElementById('id').value){
-          progress.textContent='Arquivo recebido. Gravando na reunião…';
-          await saveMeeting();
-          progress.textContent='Arquivo na reunião e no portal.';
-          message('Arquivo vinculado e visível no portal.');
-        }else{
-          progress.textContent='Arquivo na lista. Salve o rascunho e publique para aparecer no portal.';
-        }
-      }catch(error){
-        progress.textContent=error.message||'Não foi possível enviar o arquivo.';
-        message(error.message,true);
-      }finally{
-        uploading=false
-        button.disabled=false
-      }
-    }
-    document.getElementById('upload-document').onclick=addDocument;
-    document.getElementById('document-file').addEventListener('change',function(){if(this.files[0])addDocument()});
-    document.getElementById('new').addEventListener('click',reset);
-    document.getElementById('review').addEventListener('click',()=>transition('review'));
-    document.getElementById('publish').addEventListener('click',()=>transition('published'));
-    document.getElementById('return-review').addEventListener('click',()=>transition('review'));
-    document.getElementById('archive').addEventListener('click',()=>{if(confirm('Arquivar esta reunião?'))transition('archived')});
-    ['number','year'].forEach(id=>document.getElementById(id).addEventListener('input',syncSlug));
-    document.getElementById('slug').addEventListener('input',()=>{document.getElementById('slug').dataset.manual='1'});
-    reset();load();
+    const kindLabels={ata:'Ata',pauta:'Pauta',convocacao:'Convocação',lista_presenca:'Lista de presença',anexo:'Anexo',gravacao:'Gravação'};function formatSize(bytes){if(!Number.isFinite(Number(bytes)))return 'tamanho não informado';if(bytes<1024)return bytes+' B';if(bytes<1048576)return(bytes/1024).toFixed(1)+' KB';return(bytes/1048576).toFixed(1)+' MB'}document.getElementById('upload-document').onclick=async()=>{const file=document.getElementById('document-file').files[0],progress=document.getElementById('upload-progress');if(!file)return message('Selecione um arquivo para enviar.',true);progress.textContent='Validando e verificando o arquivo…';const data=new FormData();data.append('file',file);try{const response=await SemitSession.fetchAuth('/api/comtur/admin/media',{method:'POST',headers:{Accept:'application/json'},body:data}),payload=await response.json().catch(()=>({}));if(!response.ok)throw Error(payload.error||'Falha ao enviar arquivo.');documents.push({kind:document.getElementById('document-kind').value,title:payload.data.originalName||file.name,url:payload.data.url,mimeType:payload.data.mimeType,sizeBytes:payload.data.sizeBytes,isAccessible:false});renderDocuments();document.getElementById('document-file').value='';if(document.getElementById('id').value){progress.textContent='Arquivo verificado. Gravando na reunião…';await saveMeeting();progress.textContent='Arquivo publicado na reunião.';message('Arquivo vinculado e visível no portal.')}else{progress.textContent='Arquivo adicionado. Salve o rascunho e publique para aparecer no portal.'}}catch(error){progress.textContent='';message(error.message,true)}};document.getElementById('new').addEventListener('click',reset);document.getElementById('review').addEventListener('click',()=>transition('review'));document.getElementById('publish').addEventListener('click',()=>transition('published'));document.getElementById('return-review').addEventListener('click',()=>transition('review'));document.getElementById('archive').addEventListener('click',()=>{if(confirm('Arquivar esta reunião?'))transition('archived')});['number','year'].forEach(id=>document.getElementById(id).addEventListener('input',syncSlug));document.getElementById('slug').addEventListener('input',()=>{document.getElementById('slug').dataset.manual='1'});reset();load();
   </script>
   <script src="/comtur-admin-nav.js?v=4"></script>
 </body></html>
-

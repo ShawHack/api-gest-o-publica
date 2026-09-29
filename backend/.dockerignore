@@ -6,6 +6,8 @@ npm-debug.log
 coverage
 .nyc_output
 __tests__
+public
+private
 **/*.bak*
 **/*.bak-*
 **/*.before-*

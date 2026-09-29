@@ -977,6 +977,23 @@
     // ==========================================
     // MODULE: POSTS (EVENTS/NEWS)
     // ==========================================
+    
+    // Parse YYYY-MM-DD as local calendar date (avoid UTC midnight → dia anterior no BR)
+    function parseLocalDate(value) {
+      if (!value) return null;
+      if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+      const s = String(value).trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function formatLocalDate(value, opts) {
+      const d = parseLocalDate(value);
+      if (!d) return '—';
+      return d.toLocaleDateString('pt-BR', opts || undefined);
+    }
+
     async function loadPosts() {
       const list = document.getElementById('postList');
       try {
@@ -1020,7 +1037,7 @@
                 <div class="item-meta">
                   ${formatoBadges}
                   <span class="badge" style="background-color:${catColor}20; color:${catColor}; border:1px solid ${catColor}40;">${post.tipo}</span>
-                  <span><i data-lucide="clock" style="width:12px;height:12px;"></i> Criado em: ${new Date(post.dataCriacao).toLocaleDateString('pt-BR')}</span>
+                  <span><i data-lucide="clock" style="width:12px;height:12px;"></i> Criado em: ${formatLocalDate(post.createdAt || post.publishedAt || post.dataCriacao)}</span>
                   ${sessText}
                 </div>
               </div>

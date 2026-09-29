@@ -73,6 +73,40 @@ function computeCpfHash(cpf) {
   return crypto.createHmac('sha256', votingPepper('cpf')).update(cpfClean).digest('hex')
 }
 
+/**
+ * Hash de login quando o eleitor usa nome no lugar do CPF.
+ * Estável e irreversível — mesmo pepper do cpfHash.
+ */
+function computeNomeLoginHash(nome) {
+  const nomeNorm = normalizeNomeForLogin(nome)
+  if (!nomeNorm) return ''
+  return crypto.createHmac('sha256', votingPepper('cpf')).update(`nome:${nomeNorm}`).digest('hex')
+}
+
+/** Matrícula sintética estável (N-XXXXXXXXXX) a partir do nome (+ telefone quando houver). */
+function syntheticMatriculaFromNome(nome, telefone = '') {
+  const nomeNorm = normalizeNomeForLogin(nome)
+  const phone = onlyDigits(telefone)
+  const key = phone ? `${nomeNorm}|${phone}` : nomeNorm
+  const h = crypto
+    .createHmac('sha256', votingPepper('matricula'))
+    .update(`mat-nome:${key}`)
+    .digest('hex')
+    .slice(0, 10)
+    .toUpperCase()
+  return `N-${h}`
+}
+
+function computeNomeIdentityHash(nome, telefone = '') {
+  const nomeNorm = normalizeNomeForLogin(nome)
+  const phone = onlyDigits(telefone)
+  const mat = syntheticMatriculaFromNome(nome, telefone)
+  return crypto
+    .createHmac('sha256', votingPepper('matricula'))
+    .update(`nome:${nomeNorm}|tel:${phone}|${mat}`)
+    .digest('hex')
+}
+
 function cpfLast4(cpf) {
   const d = onlyDigits(cpf)
   return d.length >= 4 ? d.slice(-4) : ''
@@ -90,6 +124,15 @@ async function findServidorByCpf(VotingServidor, cpfClean) {
   })
 }
 
+async function findServidorByNomeLogin(VotingServidor, nome) {
+  const cpfHash = computeNomeLoginHash(nome)
+  if (!cpfHash) return null
+  return VotingServidor.findOne({
+    cpfHash,
+    active: { $ne: false },
+  })
+}
+
 module.exports = {
   onlyDigits,
   normalizeMatricula,
@@ -97,7 +140,11 @@ module.exports = {
   matriculaLookupValues,
   computeServidorIdentityHash,
   computeCpfHash,
+  computeNomeLoginHash,
+  syntheticMatriculaFromNome,
+  computeNomeIdentityHash,
   cpfLast4,
   maskCpfDisplay,
   findServidorByCpf,
+  findServidorByNomeLogin,
 }

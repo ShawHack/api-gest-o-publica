@@ -16,9 +16,86 @@ const {
   timeToMinutes,
 } = require('../helpers/agenda-time')
 const { recordAudit } = require('../helpers/audit-service')
+const {
+  sendAgendaVoucher,
+  sendAgendaReschedule,
+  sendAgendaCancellation,
+} = require('../helpers/agenda-voucher')
+const { agendaBannerPublicUrl } = require('../helpers/agenda-upload')
+const { listAvailablePanels, publishCallToPanel } = require('../helpers/panel-service')
+const { pushRecentPanelCall, getRecentPanelCalls, nextAgendaTicketNumber } = require('../helpers/panel-calls-store')
+const {
+  filterCallsForPanel,
+  slugForNovosgaUnitId,
+  resolvePanelTargets,
+} = require('../helpers/panel-resolver')
+
+function queueVoucher(appointment, service, unit, user) {
+  void sendAgendaVoucher({
+    to: user?.email || appointment?.identitySnapshot?.email,
+    phone: user?.phone || appointment?.identitySnapshot?.phone,
+    name: user?.name || appointment?.identitySnapshot?.name,
+    serviceName: service?.name,
+    unitName: unit?.name || service?.unitId?.name,
+    address: service?.landingAddress || unit?.address || service?.unitId?.address,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt,
+    protocol: appointment.protocol,
+    panelTicket: appointment.panelTicket || '',
+  })
+}
+
+function queueRescheduleEmail(appointment, service, unit, previousStartsAt) {
+  void sendAgendaReschedule({
+    to: appointment?.identitySnapshot?.email,
+    phone: appointment?.identitySnapshot?.phone,
+    name: appointment?.identitySnapshot?.name,
+    serviceName: service?.name,
+    unitName: unit?.name || service?.unitId?.name,
+    address: service?.landingAddress || unit?.address || service?.unitId?.address,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt,
+    previousStartsAt,
+    protocol: appointment.protocol,
+  })
+}
+
+function queueCancellationEmail(appointment, service, unit, reason = '') {
+  void sendAgendaCancellation({
+    to: appointment?.identitySnapshot?.email,
+    phone: appointment?.identitySnapshot?.phone,
+    name: appointment?.identitySnapshot?.name,
+    serviceName: service?.name || appointment?.serviceId?.name,
+    unitName: unit?.name || appointment?.unitId?.name,
+    address: service?.landingAddress || unit?.address || appointment?.unitId?.address,
+    startsAt: appointment.startsAt,
+    protocol: appointment.protocol,
+    reason: reason || appointment.cancellationReason,
+  })
+}
 
 function actorId(req) {
   return req.user?._id || req.user?.id
+}
+
+function agendaHasAllUnits(req) {
+  return Boolean(req.agenda?.isGlobalAdmin || req.user?.isAdmin || req.user?.role === 'admin')
+}
+
+function allowedUnitIds(req) {
+  if (agendaHasAllUnits(req)) return []
+  return (req.agenda?.assignments || []).map((a) => String(a.unitId?._id || a.unitId)).filter(Boolean)
+}
+
+function operatorUnitAllowed(req, unitId) {
+  if (agendaHasAllUnits(req)) return true
+  if (!unitId) return true
+  const allowed = allowedUnitIds(req)
+  return allowed.includes(String(unitId?._id || unitId))
+}
+
+function unitAllowed(req, unitId) {
+  return operatorUnitAllowed(req, unitId)
 }
 
 function normalizeSlug(value) {
@@ -105,6 +182,26 @@ function safeAppointment(appointment) {
   return result
 }
 
+async function assignPanelTicketToAppointment(appointment, service, unit) {
+  if (appointment.panelTicket) {
+    return {
+      ticketCode: appointment.panelTicket,
+      prefix: appointment.panelTicketPrefix || String(service?.panelPrefix || 'AG').trim() || 'AG',
+      ticketNumber: appointment.panelTicketNumber || 0,
+    }
+  }
+  const timezone = unit?.timezone || 'America/Sao_Paulo'
+  const dateKey = zonedDateKey(appointment.startsAt, timezone)
+  const prefix = String(service?.panelPrefix || 'AG').trim() || 'AG'
+  const ticketNumber = await nextAgendaTicketNumber(String(unit._id || unit), String(service._id || service), dateKey)
+  const ticketCode = `${prefix}${String(ticketNumber).padStart(2, '0')}`
+  appointment.panelTicket = ticketCode
+  appointment.panelTicketPrefix = prefix
+  appointment.panelTicketNumber = ticketNumber
+  await appointment.save()
+  return { ticketCode, prefix, ticketNumber }
+}
+
 async function availabilityOverride(service, startsAt) {
   const timezone = service.unitId.timezone || 'America/Sao_Paulo'
   const date = zonedDateKey(startsAt, timezone)
@@ -189,10 +286,22 @@ function validRangeDate(value) {
   return date && !Number.isNaN(date.getTime()) ? date : null
 }
 
+function sanitizeBannerUrl(value) {
+  const url = String(value || '').trim()
+  if (!url) return ''
+  if (url.startsWith('/images/agenda/') || url.startsWith('/') || /^https?:\/\//i.test(url)) {
+    return url.slice(0, 500)
+  }
+  return null
+}
+
 module.exports = class AgendaController {
   static async me(req, res) {
-    const user = await User.findById(actorId(req)).select('_id name email phone role emailVerified').lean()
+    const user = await User.findById(actorId(req)).select('_id name email phone role image emailVerified').lean()
     if (!user) return res.status(401).json({ message: 'Usuário central não encontrado.' })
+    if (user.image && !user.image.startsWith('http') && !user.image.startsWith('/')) {
+      user.image = `/images/users/${user.image}`
+    }
     return res.status(200).json({
       user,
       agenda: {
@@ -205,12 +314,41 @@ module.exports = class AgendaController {
 
   static async listServices(_req, res) {
     const services = await AgendaService.find({ active: true })
-      .select('unitId name slug description durationMinutes bufferBeforeMinutes bufferAfterMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability')
+      .select('unitId name slug description durationMinutes bufferBeforeMinutes bufferAfterMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability landingBannerUrl landingAddress bookingFrom bookingUntil panelSlug panelPrefix panelLocationType panelNovosgaUnitId panelNovosgaServiceId')
       .populate('resourceIds', 'name type active')
-      .populate('unitId', 'name slug timezone address')
+      .populate('unitId', 'name slug timezone address novosgaUnitId')
       .sort({ name: 1 })
       .lean()
     return res.status(200).json({ items: services })
+  }
+
+  static async resolvePublicService(unitSlug, serviceSlug) {
+    const unit = await AgendaUnit.findOne({ slug: String(unitSlug || '').trim().toLowerCase(), active: true })
+    if (!unit) return null
+    const service = await AgendaService.findOne({ unitId: unit._id, slug: String(serviceSlug || '').trim().toLowerCase(), active: true })
+      .select('unitId name slug description durationMinutes bufferBeforeMinutes bufferAfterMinutes slotIntervalMinutes capacity resourceRequired resourceIds minimumNoticeMinutes bookingWindowDays cancellationNoticeMinutes weeklyAvailability landingBannerUrl landingAddress bookingFrom bookingUntil panelSlug panelPrefix panelLocationType panelNovosgaUnitId panelNovosgaServiceId')
+      .populate('resourceIds', 'name type active')
+    if (!service) return null
+    return { unit, service }
+  }
+
+  static async publicService(req, res) {
+    const found = await AgendaController.resolvePublicService(req.params.unitSlug, req.params.serviceSlug)
+    if (!found) return res.status(404).json({ message: 'Esta página de agendamento não está disponível.' })
+    const { unit, service } = found
+    return res.status(200).json({
+      unit: { name: unit.name, slug: unit.slug, address: unit.address || '', timezone: unit.timezone || 'America/Sao_Paulo' },
+      service,
+      address: service.landingAddress || unit.address || '',
+      sharePath: `/agendamentos/#/p/${unit.slug}/${service.slug}`,
+    })
+  }
+
+  static async publicAvailability(req, res) {
+    const found = await AgendaController.resolvePublicService(req.params.unitSlug, req.params.serviceSlug)
+    if (!found) return res.status(404).json({ message: 'Esta página de agendamento não está disponível.' })
+    req.params.id = String(found.service._id)
+    return AgendaController.availability(req, res)
   }
 
   static async availability(req, res) {
@@ -257,7 +395,7 @@ module.exports = class AgendaController {
         }).select('occupiesFrom occupiesUntil').lean()
         : []
       const activeResources = service.resourceRequired
-        ? await AgendaResource.find({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true }).select('_id').lean()
+        ? await AgendaResource.find({ _id: { $in: service.resourceIds }, unitId: service.unitId._id, active: true }).select('_id type').lean()
         : []
       const blocks = candidates.length ? await AgendaScheduleBlock.find({
         unitId: service.unitId._id, active: true,
@@ -274,9 +412,23 @@ module.exports = class AgendaController {
           const overlappingBlocks = blocks.filter((block) => block.startsAt < window.until && block.endsAt > window.from)
           const unitBlocked = overlappingBlocks.some((block) => block.scope === 'unit')
           const blockedResources = new Set(overlappingBlocks.filter((block) => block.scope === 'resource').map((block) => String(block.resourceId)))
-          const totalCapacity = unitBlocked ? 0 : service.capacity * (service.resourceRequired
-            ? activeResources.filter((resource) => !blockedResources.has(String(resource._id))).length
-            : 1)
+          
+          const availableAttendants = activeResources.filter((r) => r.type === 'attendant' && !blockedResources.has(String(r._id)))
+          const otherResources = activeResources.filter((r) => r.type !== 'attendant' && !blockedResources.has(String(r._id)))
+
+          let totalCapacity = 0
+          if (unitBlocked) {
+            totalCapacity = 0
+          } else if (!service.resourceRequired) {
+            totalCapacity = service.capacity
+          } else if (availableAttendants.length > 0) {
+            totalCapacity = Math.min(service.capacity, availableAttendants.length)
+          } else if (otherResources.length > 0) {
+            totalCapacity = service.capacity * otherResources.length
+          } else {
+            totalCapacity = 0
+          }
+
           const occupiedCount = occupied.filter((item) => (
             item.occupiesFrom < occupiedWindow(service, slot.startsAt).until
             && item.occupiesUntil > occupiedWindow(service, slot.startsAt).from
@@ -291,6 +443,92 @@ module.exports = class AgendaController {
       })
     } catch (error) {
       return res.status(500).json({ message: 'Não foi possível consultar a disponibilidade.' })
+    }
+  }
+
+  static async novosgaProxyPainel(req, res) {
+    try {
+      const unitId = Number(req.params.unitId || req.params.id || 6)
+      const servicos = req.query.servicos || ''
+      const query = servicos ? `?servicos=${encodeURIComponent(servicos)}` : ''
+
+      // 1. Obter token do painel (usa o token enviado pela TV ou busca via painel)
+      let token = ''
+      const incomingAuth = req.headers.authorization || req.headers.Authorization
+      if (incomingAuth) {
+        token = incomingAuth.replace(/^Bearer\s+/i, '').trim()
+      }
+      if (!token) {
+        try {
+          const slug = slugForNovosgaUnitId(unitId)
+          const tokenRes = await fetch(`http://10.15.25.31:8088/api/panels/${slug}/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: AbortSignal.timeout(3000),
+          })
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json()
+            token = tokenData.accessToken || ''
+          }
+        } catch (_e) {}
+      }
+
+      // 2. Buscar chamadas reais do NovoSGA direto no upstream 10.15.25.31
+      let novosgaCalls = []
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const novosgaRes = await fetch(`http://10.15.25.31:80/api/unidades/${unitId}/painel${query}`, {
+          headers,
+          signal: AbortSignal.timeout(4000),
+        })
+        if (novosgaRes.ok) {
+          const data = await novosgaRes.json()
+          if (Array.isArray(data)) novosgaCalls = data
+        }
+      } catch (_e) {}
+
+      // 3. Chamadas recentes da Agenda (Redis) — filtradas por painel
+      const requestPanelSlug = slugForNovosgaUnitId(unitId)
+      const recentCalls = filterCallsForPanel(await getRecentPanelCalls(), requestPanelSlug)
+      const agendaTtlMs = 180_000
+      const nowMs = Date.now()
+      const panelCtx = resolvePanelTargets({ panelSlug: requestPanelSlug })
+      const agendaCalls = recentCalls
+        .filter((c) => {
+          const calledMs = Date.parse(c.calledAt || '') || (Number(c.id) > 1_000_000_000 ? Number(c.id) : NaN)
+          return Number.isFinite(calledMs) && (nowMs - calledMs) < agendaTtlMs
+        })
+        .slice(0, 10)
+        .map((c) => ({
+          id: Number(c.id) || Date.now(),
+          senha: String(c.senha || 'AG01'),
+          siglaSenha: String(c.siglaSenha || 'AG'),
+          numeroSenha: Number(c.numeroSenha) || 1,
+          local: String(c.local || 'Guichê'),
+          numeroLocal: Number(c.numeroLocal) || 1,
+          peso: 1,
+          prioridade: 'Agendamento Web',
+          corPrioridade: '#059669',
+          nomeCliente: c.nomeCliente ? String(c.nomeCliente) : null,
+          documentoCliente: c.documentoCliente ? String(c.documentoCliente) : null,
+          calledAt: c.calledAt || new Date().toISOString(),
+          servico: {
+            id: Number(c.servico?.id) || panelCtx.novosgaServiceId || 82,
+            nome: String(c.servico?.nome || 'Agendamento'),
+          },
+        }))
+
+      // 4. Mesclar por data de chamada (mais recente primeiro)
+      const merged = [...agendaCalls, ...novosgaCalls].sort((a, b) => {
+        const ta = Date.parse(a.calledAt || '') || Number(a.id) || 0
+        const tb = Date.parse(b.calledAt || '') || Number(b.id) || 0
+        return tb - ta
+      })
+      return res.status(200).json(merged)
+    } catch (error) {
+      console.error('[novosgaProxyPainel] Erro:', error.message)
+      return res.status(200).json([])
     }
   }
 
@@ -337,11 +575,37 @@ module.exports = class AgendaController {
 
       const user = await User.findById(actorId(req)).select('_id name email phone emailVerified').lean()
       if (!user) return res.status(401).json({ message: 'Usuário central não encontrado.' })
-      if (!user.emailVerified) return res.status(403).json({ message: 'Confirme seu e-mail antes de agendar.' })
 
       let appointment
       const resources = await bookingResources(service, req.body?.resourceId, startsAt)
       if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
+
+      const window = occupiedWindow(service, startsAt)
+      const currentOccupied = await AgendaAppointment.find({
+        serviceId: service._id,
+        status: { $in: ['booked', 'confirmed'] },
+        occupiesFrom: { $lt: window.until },
+        occupiesUntil: { $gt: window.from },
+      }).select('resourceId capacityLane').lean()
+
+      const availableAttendants = resources.filter((r) => r && r.type === 'attendant')
+      const otherResources = resources.filter((r) => r && r.type !== 'attendant')
+
+      let allowedCapacity = 0
+      if (!service.resourceRequired) {
+        allowedCapacity = service.capacity
+      } else if (availableAttendants.length > 0) {
+        allowedCapacity = Math.min(service.capacity, availableAttendants.length)
+      } else if (otherResources.length > 0) {
+        allowedCapacity = service.capacity * otherResources.length
+      }
+
+      if (currentOccupied.length >= allowedCapacity) {
+        const conflict = new Error('capacity_conflict')
+        conflict.code = 11000
+        throw conflict
+      }
+
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
         const resourceId = resource?._id
         try {
@@ -373,6 +637,7 @@ module.exports = class AgendaController {
         conflict.code = 11000
         throw conflict
       }
+      await assignPanelTicketToAppointment(appointment, service, service.unitId)
       void recordAudit(req, {
         action: 'agenda.appointment.create',
         resourceType: 'agenda_appointment',
@@ -381,6 +646,7 @@ module.exports = class AgendaController {
         eventType: 'CREATE',
         metadata: { serviceId: String(service._id), unitId: String(service.unitId._id), source: appointment.source },
       })
+      queueVoucher(appointment, service, service.unitId, user)
       return res.status(201).json({ appointment: safeAppointment(appointment) })
     } catch (error) {
       if (error?.code === 11000) {
@@ -446,6 +712,32 @@ module.exports = class AgendaController {
       let updated
       const resources = await bookingResources(service, req.body?.resourceId, startsAt)
       if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
+
+      const window = occupiedWindow(service, startsAt)
+      const currentOccupied = await AgendaAppointment.find({
+        serviceId: service._id,
+        _id: { $ne: appointment._id },
+        status: { $in: ['booked', 'confirmed'] },
+        occupiesFrom: { $lt: window.until },
+        occupiesUntil: { $gt: window.from },
+      }).select('resourceId capacityLane').lean()
+
+      const availableAttendants = resources.filter((r) => r && r.type === 'attendant')
+      const otherResources = resources.filter((r) => r && r.type !== 'attendant')
+
+      let allowedCapacity = 0
+      if (!service.resourceRequired) {
+        allowedCapacity = service.capacity
+      } else if (availableAttendants.length > 0) {
+        allowedCapacity = Math.min(service.capacity, availableAttendants.length)
+      } else if (otherResources.length > 0) {
+        allowedCapacity = service.capacity * otherResources.length
+      }
+
+      if (currentOccupied.length >= allowedCapacity) {
+        return res.status(409).json({ message: 'Este horário atingiu a capacidade.' })
+      }
+
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !updated; capacityLane += 1) {
         const resourceId = resource?._id
         try {
@@ -476,6 +768,7 @@ module.exports = class AgendaController {
         eventType: 'UPDATE',
         metadata: { previousServiceId: previous.serviceId, previousStartsAt: previous.startsAt, serviceId, startsAt },
       })
+      queueRescheduleEmail(updated, service, service.unitId, previous.startsAt)
       return res.status(200).json({ appointment: safeAppointment(updated) })
     } catch (error) {
       if (error?.code === 11000) return res.status(409).json({ message: 'Este horário acabou de ser reservado. Escolha outro.' })
@@ -486,18 +779,20 @@ module.exports = class AgendaController {
 
   static async cancelMine(req, res) {
     try {
-      const appointment = await AgendaAppointment.findOne({ _id: req.params.id, userId: actorId(req) }).populate('serviceId')
+      const appointment = await AgendaAppointment.findOne({ _id: req.params.id, userId: actorId(req) })
+        .populate('serviceId')
+        .populate('unitId')
       if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
       if (appointment.status === 'cancelled') return res.status(200).json({ appointment: safeAppointment(appointment) })
       if (!['booked', 'confirmed'].includes(appointment.status)) return res.status(409).json({ message: 'Este agendamento não pode mais ser cancelado.' })
-      const cancellationLimit = Date.now() + appointment.serviceId.cancellationNoticeMinutes * 60000
+      const cancellationLimit = Date.now() + (appointment.serviceId?.cancellationNoticeMinutes || 0) * 60000
       if (appointment.startsAt.getTime() < cancellationLimit) {
         return res.status(422).json({ message: 'O prazo para cancelamento online foi encerrado.' })
       }
       appointment.status = 'cancelled'
       appointment.cancelledAt = new Date()
       appointment.cancelledBy = actorId(req)
-      appointment.cancellationReason = String(req.body?.reason || '').trim()
+      appointment.cancellationReason = String(req.body?.reason || 'Cancelado pelo cidadão').trim()
       appointment.reservationKey = undefined
       appointment.reservationKeys = undefined
       await appointment.save()
@@ -508,6 +803,7 @@ module.exports = class AgendaController {
         module: 'agenda-garca',
         eventType: 'UPDATE',
       })
+      queueCancellationEmail(appointment, appointment.serviceId, appointment.unitId, appointment.cancellationReason)
       return res.status(200).json({ appointment: safeAppointment(appointment) })
     } catch (error) {
       if (error?.name === 'CastError') return res.status(404).json({ message: 'Agendamento não encontrado.' })
@@ -576,6 +872,33 @@ module.exports = class AgendaController {
     }
   }
 
+  static async deleteUnit(req, res) {
+    try {
+      const unitId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+
+      const serviceCount = await AgendaService.countDocuments({ unitId, active: true })
+      if (serviceCount > 0) {
+        return res.status(409).json({ message: `Não é possível excluir: existem ${serviceCount} serviço(s) ativos vinculados a esta unidade. Remova ou desative os serviços primeiro.` })
+      }
+
+      const unit = await AgendaUnit.findByIdAndDelete(unitId)
+      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
+
+      await AgendaUserAssignment.updateMany({ unitId }, { $set: { active: false, revokedAt: new Date(), revokedBy: actorId(req) } })
+      await AgendaResource.updateMany({ unitId }, { $set: { active: false } })
+
+      void recordAudit(req, {
+        action: 'agenda.unit.delete', resourceType: 'agenda_unit', resourceId: unitId,
+        module: 'agenda-garca', eventType: 'DELETE', metadata: { unitName: unit.name },
+      })
+      return res.status(200).json({ message: 'Unidade excluída com sucesso.', unit })
+    } catch (error) {
+      return res.status(500).json({ message: 'Não foi possível excluir a unidade.' })
+    }
+  }
+
   static async adminListServices(req, res) {
     const filter = serviceUnitFilter(req)
     if (req.query?.unitId) {
@@ -595,7 +918,7 @@ module.exports = class AgendaController {
     if (req.query?.unitId) {
       const unitId = String(req.query.unitId)
       if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
-      if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      if (!operatorUnitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
       filter.unitId = unitId
     }
     if (req.query?.type) {
@@ -608,25 +931,85 @@ module.exports = class AgendaController {
     return res.status(200).json({ items })
   }
 
+  static async lookupUserByEmail(req, res) {
+    try {
+      const email = String(req.query?.email || '').trim().toLowerCase()
+      if (!email || !email.includes('@')) {
+        return res.status(422).json({ message: 'Informe um e-mail válido para localizar a conta.' })
+      }
+      const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const user = await User.findOne({ email: new RegExp(`^${escaped}$`, 'i') })
+        .select('_id name email role active')
+        .lean()
+      if (!user) {
+        return res.status(404).json({ message: 'Nenhuma conta encontrada com este e-mail no SEMIT.' })
+      }
+      return res.status(200).json({
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: String(user.email || '').trim().toLowerCase(),
+          role: user.role,
+          active: user.active !== false,
+        },
+      })
+    } catch (_error) {
+      return res.status(500).json({ message: 'Não foi possível localizar o e-mail.' })
+    }
+  }
+
   static async createResource(req, res) {
     try {
       const unitId = String(req.body?.unitId || '')
       const name = String(req.body?.name || '').trim()
       const slug = normalizeSlug(req.body?.slug || name)
       const type = String(req.body?.type || '')
+      const email = String(req.body?.email || '').trim().toLowerCase()
       if (!mongoose.Types.ObjectId.isValid(unitId) || !name || !slug || !['attendant', 'room', 'equipment'].includes(type)) {
         return res.status(422).json({ message: 'Unidade, nome e tipo de recurso são obrigatórios.' })
       }
       if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
       if (!(await AgendaUnit.exists({ _id: unitId, active: true }))) return res.status(404).json({ message: 'Unidade não encontrada.' })
+
+      let userId = null
+      if (email) {
+        const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const user = await User.findOne({ email: new RegExp('^' + escaped + '$', 'i') }).select('_id name email').lean()
+        if (user) {
+          userId = user._id
+          await AgendaUserAssignment.findOneAndUpdate(
+            { userId: user._id, unitId, role: 'agenda_attendant' },
+            { $set: { active: true, grantedBy: actorId(req) }, $setOnInsert: { userId: user._id, unitId, role: 'agenda_attendant' } },
+            { upsert: true, new: true },
+          )
+        }
+      }
+
+      const existing = await AgendaResource.findOne({ unitId, slug })
+      if (existing) {
+        existing.name = name
+        existing.type = type
+        existing.email = email
+        existing.userId = userId
+        existing.active = true
+        if (req.body?.description !== undefined) existing.description = String(req.body.description).trim()
+        existing.updatedBy = actorId(req)
+        await existing.save()
+        void recordAudit(req, {
+          action: 'agenda.resource.update', resourceType: 'agenda_resource', resourceId: existing._id,
+          module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId, type, email, reactivated: true },
+        })
+        return res.status(200).json({ resource: existing })
+      }
+
       const resource = await AgendaResource.create({
-        unitId, name, slug, type,
+        unitId, name, slug, type, email, userId,
         description: String(req.body?.description || '').trim(),
         createdBy: actorId(req),
       })
       void recordAudit(req, {
         action: 'agenda.resource.create', resourceType: 'agenda_resource', resourceId: resource._id,
-        module: 'agenda-garca', eventType: 'CREATE', metadata: { unitId, type },
+        module: 'agenda-garca', eventType: 'CREATE', metadata: { unitId, type, email },
       })
       return res.status(201).json({ resource })
     } catch (error) {
@@ -652,6 +1035,26 @@ module.exports = class AgendaController {
         if (!['attendant', 'room', 'equipment'].includes(String(req.body.type))) return res.status(422).json({ message: 'Tipo de recurso inválido.' })
         update.type = String(req.body.type)
       }
+      if (req.body?.email !== undefined) {
+        const email = String(req.body.email).trim().toLowerCase()
+        update.email = email
+        if (email) {
+          const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          const user = await User.findOne({ email: new RegExp('^' + escaped + '$', 'i') }).select('_id name email').lean()
+          if (user) {
+            update.userId = user._id
+            await AgendaUserAssignment.findOneAndUpdate(
+              { userId: user._id, unitId: current.unitId, role: 'agenda_attendant' },
+              { $set: { active: true, grantedBy: actorId(req) }, $setOnInsert: { userId: user._id, unitId: current.unitId, role: 'agenda_attendant' } },
+              { upsert: true, new: true },
+            )
+          } else {
+            update.userId = null
+          }
+        } else {
+          update.userId = null
+        }
+      }
       if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
       const resource = await AgendaResource.findByIdAndUpdate(resourceId, { $set: update }, { new: true, runValidators: true })
       void recordAudit(req, {
@@ -663,6 +1066,40 @@ module.exports = class AgendaController {
       if (error?.code === 11000) return res.status(409).json({ message: 'Já existe esse recurso na unidade.' })
       if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Dados do recurso inválidos.' })
       return res.status(500).json({ message: 'Não foi possível atualizar o recurso.' })
+    }
+  }
+
+  static async deleteResource(req, res) {
+    try {
+      const resourceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(resourceId)) return res.status(422).json({ message: 'Recurso inválido.' })
+      const current = await AgendaResource.findById(resourceId).lean()
+      if (!current) return res.status(404).json({ message: 'Recurso não encontrado.' })
+      if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+
+      await AgendaService.updateMany(
+        { unitId: current.unitId, resourceIds: current._id },
+        { $pull: { resourceIds: current._id } },
+      )
+
+      const hasPending = await AgendaAppointment.exists({
+        resourceId: current._id,
+        status: { $in: ['booked', 'confirmed'] },
+      })
+
+      if (hasPending) {
+        await AgendaResource.findByIdAndUpdate(resourceId, { $set: { active: false, updatedBy: actorId(req) } })
+      } else {
+        await AgendaResource.findByIdAndDelete(resourceId)
+      }
+
+      void recordAudit(req, {
+        action: 'agenda.resource.delete', resourceType: 'agenda_resource', resourceId: current._id,
+        module: 'agenda-garca', eventType: 'DELETE', metadata: { unitId: String(current.unitId), name: current.name },
+      })
+      return res.status(200).json({ message: 'Atendente removido com sucesso.' })
+    } catch (error) {
+      return res.status(500).json({ message: 'Não foi possível remover o atendente.' })
     }
   }
 
@@ -731,32 +1168,48 @@ module.exports = class AgendaController {
       const unitId = String(req.body?.unitId || '')
       const name = String(req.body?.name || '').trim()
       const slug = normalizeSlug(req.body?.slug || name)
-      if (!mongoose.Types.ObjectId.isValid(unitId) || !name || !slug) return res.status(422).json({ message: 'Unidade e serviço são obrigatórios.' })
+      const durationMinutes = Number(req.body?.durationMinutes)
+      const slotIntervalMinutes = Number(req.body?.slotIntervalMinutes)
+      const capacity = Number(req.body?.capacity || 1)
+      const resourceRequired = req.body?.resourceRequired === true
+      const resourceIds = Array.isArray(req.body?.resourceIds) ? req.body.resourceIds : []
+      const weeklyAvailability = req.body?.weeklyAvailability
+
+      if (!mongoose.Types.ObjectId.isValid(unitId) || !name || !slug || !durationMinutes || !slotIntervalMinutes || !weeklyAvailability) {
+        return res.status(422).json({ message: 'Dados do serviço incompletos.' })
+      }
       if (!unitAllowed(req, unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
-      if (!validAvailability(req.body?.weeklyAvailability)) return res.status(422).json({ message: 'A disponibilidade semanal é inválida.' })
-      const unit = await AgendaUnit.findOne({ _id: unitId, active: true })
-      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
-      const resourceIds = Array.isArray(req.body?.resourceIds) ? [...new Set(req.body.resourceIds.map(String))] : []
-      if (resourceIds.some((id) => !mongoose.Types.ObjectId.isValid(id))) return res.status(422).json({ message: 'Lista de recursos inválida.' })
-      const validResourceCount = await AgendaResource.countDocuments({ _id: { $in: resourceIds }, unitId, active: true })
-      if (validResourceCount !== resourceIds.length) return res.status(422).json({ message: 'Há recurso inativo ou pertencente a outra unidade.' })
-      if (req.body?.resourceRequired === true && !resourceIds.length) return res.status(422).json({ message: 'Serviço com recurso obrigatório precisa de ao menos um recurso ativo.' })
+      if (!(await AgendaUnit.exists({ _id: unitId, active: true }))) return res.status(404).json({ message: 'Unidade não encontrada.' })
+      if (!validAvailability(weeklyAvailability)) return res.status(422).json({ message: 'A disponibilidade semanal é inválida.' })
+
+      if (resourceIds.some((id) => !mongoose.Types.ObjectId.isValid(String(id)))) {
+        return res.status(422).json({ message: 'Lista de recursos inválida.' })
+      }
+      const distinctIds = [...new Set(resourceIds.map(String))]
+      const validCount = await AgendaResource.countDocuments({ _id: { $in: distinctIds }, unitId, active: true })
+      if (validCount !== distinctIds.length) return res.status(422).json({ message: 'Há recurso inativo ou pertencente a outra unidade.' })
+      if (resourceRequired && !distinctIds.length) return res.status(422).json({ message: 'Serviço com recurso obrigatório precisa de ao menos um recurso ativo.' })
+
+      const panelSlug = String(req.body?.panelSlug || '').trim()
+      const panelPrefix = String(req.body?.panelPrefix || 'AG').trim() || 'AG'
+      const panelLocationType = String(req.body?.panelLocationType || 'Guichê').trim() || 'Guichê'
+      const panelNovosgaUnitId = req.body?.panelNovosgaUnitId ? Number(req.body.panelNovosgaUnitId) : null
+      const panelNovosgaServiceId = req.body?.panelNovosgaServiceId ? Number(req.body.panelNovosgaServiceId) : null
+
       const service = await AgendaService.create({
-        unitId,
-        name,
-        slug,
+        unitId, name, slug, durationMinutes, slotIntervalMinutes, capacity, resourceRequired,
+        resourceIds: distinctIds,
+        weeklyAvailability,
         description: String(req.body?.description || '').trim(),
-        durationMinutes: req.body?.durationMinutes,
-        bufferBeforeMinutes: req.body?.bufferBeforeMinutes,
-        bufferAfterMinutes: req.body?.bufferAfterMinutes,
-        slotIntervalMinutes: req.body?.slotIntervalMinutes,
-        minimumNoticeMinutes: req.body?.minimumNoticeMinutes,
-        bookingWindowDays: req.body?.bookingWindowDays,
-        cancellationNoticeMinutes: req.body?.cancellationNoticeMinutes,
-        capacity: req.body?.capacity,
-        resourceRequired: req.body?.resourceRequired === true,
-        resourceIds,
-        weeklyAvailability: req.body.weeklyAvailability,
+        landingBannerUrl: sanitizeBannerUrl(req.body?.landingBannerUrl) || '',
+        landingAddress: String(req.body?.landingAddress || '').trim(),
+        bookingFrom: String(req.body?.bookingFrom || '').trim(),
+        bookingUntil: String(req.body?.bookingUntil || '').trim(),
+        panelSlug,
+        panelPrefix,
+        panelLocationType,
+        panelNovosgaUnitId,
+        panelNovosgaServiceId,
         createdBy: actorId(req),
       })
       void recordAudit(req, {
@@ -777,10 +1230,24 @@ module.exports = class AgendaController {
       if (!mongoose.Types.ObjectId.isValid(serviceId)) return res.status(422).json({ message: 'Serviço inválido.' })
       const current = await AgendaService.findById(serviceId).lean()
       if (!current) return res.status(404).json({ message: 'Serviço não encontrado.' })
-      if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
       const update = { updatedBy: actorId(req) }
+      if (req.body?.unitId !== undefined && mongoose.Types.ObjectId.isValid(String(req.body.unitId))) {
+        const nextUnitId = String(req.body.unitId)
+        if (!unitAllowed(req, nextUnitId)) return res.status(403).json({ message: 'Sem permissão para a nova unidade.' })
+        if (!(await AgendaUnit.exists({ _id: nextUnitId, active: true }))) return res.status(404).json({ message: 'Nova unidade não encontrada.' })
+        update.unitId = nextUnitId
+      }
       for (const field of ['durationMinutes', 'bufferBeforeMinutes', 'bufferAfterMinutes', 'slotIntervalMinutes', 'capacity', 'minimumNoticeMinutes', 'bookingWindowDays', 'cancellationNoticeMinutes']) {
         if (req.body?.[field] !== undefined) update[field] = req.body[field]
+      }
+      if (req.body?.panelSlug !== undefined) update.panelSlug = String(req.body.panelSlug).trim()
+      if (req.body?.panelPrefix !== undefined) update.panelPrefix = String(req.body.panelPrefix).trim() || 'AG'
+      if (req.body?.panelLocationType !== undefined) update.panelLocationType = String(req.body.panelLocationType).trim() || 'Guichê'
+      if (req.body?.panelNovosgaUnitId !== undefined) {
+        update.panelNovosgaUnitId = req.body.panelNovosgaUnitId ? Number(req.body.panelNovosgaUnitId) : null
+      }
+      if (req.body?.panelNovosgaServiceId !== undefined) {
+        update.panelNovosgaServiceId = req.body.panelNovosgaServiceId ? Number(req.body.panelNovosgaServiceId) : null
       }
       if (req.body?.resourceIds !== undefined || req.body?.resourceRequired !== undefined) {
         const resourceIds = req.body?.resourceIds !== undefined ? req.body.resourceIds : current.resourceIds
@@ -789,7 +1256,8 @@ module.exports = class AgendaController {
           return res.status(422).json({ message: 'Lista de recursos inválida.' })
         }
         const distinctIds = [...new Set(resourceIds.map(String))]
-        const validCount = await AgendaResource.countDocuments({ _id: { $in: distinctIds }, unitId: current.unitId, active: true })
+        const targetUnitId = update.unitId || current.unitId
+        const validCount = await AgendaResource.countDocuments({ _id: { $in: distinctIds }, unitId: targetUnitId, active: true })
         if (validCount !== distinctIds.length) return res.status(422).json({ message: 'Há recurso inativo ou pertencente a outra unidade.' })
         if (resourceRequired && !distinctIds.length) return res.status(422).json({ message: 'Serviço com recurso obrigatório precisa de ao menos um recurso ativo.' })
         update.resourceIds = distinctIds
@@ -798,6 +1266,13 @@ module.exports = class AgendaController {
       if (req.body?.name !== undefined) update.name = String(req.body.name).trim()
       if (req.body?.slug !== undefined) update.slug = normalizeSlug(req.body.slug)
       if (req.body?.description !== undefined) update.description = String(req.body.description).trim()
+      if (req.body?.landingBannerUrl !== undefined) {
+        const banner = sanitizeBannerUrl(req.body.landingBannerUrl)
+        if (banner !== null) update.landingBannerUrl = banner
+      }
+      if (req.body?.landingAddress !== undefined) update.landingAddress = String(req.body.landingAddress).trim()
+      if (req.body?.bookingFrom !== undefined) update.bookingFrom = String(req.body.bookingFrom).trim()
+      if (req.body?.bookingUntil !== undefined) update.bookingUntil = String(req.body.bookingUntil).trim()
       if (req.body?.active !== undefined) update.active = req.body.active === true
       if (req.body?.weeklyAvailability !== undefined) {
         if (!validAvailability(req.body.weeklyAvailability)) return res.status(422).json({ message: 'A disponibilidade semanal é inválida.' })
@@ -805,6 +1280,9 @@ module.exports = class AgendaController {
       }
       if (update.name === '' || update.slug === '') return res.status(422).json({ message: 'Nome e identificador não podem ficar vazios.' })
       const service = await AgendaService.findOneAndUpdate({ _id: serviceId }, { $set: update }, { new: true, runValidators: true })
+      if (update.unitId && String(update.unitId) !== String(current.unitId)) {
+        await AgendaAppointment.updateMany({ serviceId: service._id }, { $set: { unitId: update.unitId } })
+      }
       void recordAudit(req, {
         action: 'agenda.service.update', resourceType: 'agenda_service', resourceId: service._id,
         module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId), fields: Object.keys(update) },
@@ -814,6 +1292,30 @@ module.exports = class AgendaController {
       if (error?.code === 11000) return res.status(409).json({ message: 'Já existe esse serviço na unidade.' })
       if (error?.name === 'ValidationError') return res.status(422).json({ message: 'Configuração do serviço inválida.' })
       return res.status(500).json({ message: 'Não foi possível atualizar o serviço.' })
+    }
+  }
+
+  static async uploadBanner(req, res) {
+    try {
+      const serviceId = String(req.params.id || '')
+      if (!mongoose.Types.ObjectId.isValid(serviceId)) return res.status(422).json({ message: 'Serviço inválido.' })
+      if (!req.file?.filename) return res.status(422).json({ message: 'Envie o arquivo de imagem do banner.' })
+      const current = await AgendaService.findById(serviceId).lean()
+      if (!current) return res.status(404).json({ message: 'Serviço não encontrado.' })
+      if (!unitAllowed(req, current.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      const landingBannerUrl = agendaBannerPublicUrl(req.file.filename)
+      const service = await AgendaService.findOneAndUpdate(
+        { _id: serviceId },
+        { $set: { landingBannerUrl, updatedBy: actorId(req) } },
+        { new: true, runValidators: true },
+      )
+      void recordAudit(req, {
+        action: 'agenda.service.banner_upload', resourceType: 'agenda_service', resourceId: service._id,
+        module: 'agenda-garca', eventType: 'UPDATE', metadata: { unitId: String(current.unitId) },
+      })
+      return res.status(200).json({ service, landingBannerUrl })
+    } catch (_error) {
+      return res.status(500).json({ message: 'Não foi possível gravar o banner.' })
     }
   }
 
@@ -888,34 +1390,127 @@ module.exports = class AgendaController {
 
   static async adminListAppointments(req, res) {
     const page = Math.max(1, Math.min(Number(req.query?.page) || 1, 100000))
-    const limit = Math.max(1, Math.min(Number(req.query?.limit) || 50, 200))
-    const filter = agendaHasAllUnits(req) ? {} : { unitId: { $in: allowedUnitIds(req) } }
-    for (const field of ['unitId', 'serviceId', 'userId']) {
-      if (req.query?.[field]) {
-        if (!mongoose.Types.ObjectId.isValid(String(req.query[field]))) return res.status(422).json({ message: `${field} inválido.` })
-        filter[field] = String(req.query[field])
+    const limit = Math.max(1, Math.min(Number(req.query?.limit) || 50, 500))
+    const filter = {}
+
+    // Escopo de unidades do operador/atendente
+    if (!agendaHasAllUnits(req)) {
+      const allowed = allowedUnitIds(req)
+      if (!allowed.length) {
+        return res.status(200).json({ items: [], pagination: { page: 1, limit, total: 0, pages: 0 } })
       }
+      filter.unitId = { $in: allowed.map((id) => new mongoose.Types.ObjectId(String(id))) }
     }
-    if (req.query?.unitId && !operatorUnitAllowed(req, req.query.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+
+    // Se o usuário filtrou explicitamente por uma unidade
+    if (req.query?.unitId) {
+      const uId = String(req.query.unitId)
+      if (!mongoose.Types.ObjectId.isValid(uId)) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!operatorUnitAllowed(req, uId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      filter.unitId = new mongoose.Types.ObjectId(uId)
+    }
+
+    if (req.query?.serviceId) {
+      if (!mongoose.Types.ObjectId.isValid(String(req.query.serviceId))) return res.status(422).json({ message: 'Serviço inválido.' })
+      filter.serviceId = new mongoose.Types.ObjectId(String(req.query.serviceId))
+    }
+
+    if (req.query?.userId) {
+      if (!mongoose.Types.ObjectId.isValid(String(req.query.userId))) return res.status(422).json({ message: 'Usuário inválido.' })
+      filter.userId = new mongoose.Types.ObjectId(String(req.query.userId))
+    }
+
     if (req.query?.status) {
       const statuses = String(req.query.status).split(',').filter((status) => ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'].includes(status))
       if (!statuses.length) return res.status(422).json({ message: 'Status inválido.' })
       filter.status = { $in: statuses }
     }
+
     const dateFrom = validRangeDate(req.query?.dateFrom)
     const dateTo = validRangeDate(req.query?.dateTo)
     if (req.query?.dateFrom && !dateFrom || req.query?.dateTo && !dateTo) return res.status(422).json({ message: 'Período inválido.' })
     if (dateFrom || dateTo) filter.startsAt = { ...(dateFrom ? { $gte: dateFrom } : {}), ...(dateTo ? { $lte: dateTo } : {}) }
+
+    // Busca por texto (protocolo, nome, email, telefone, senha de painel)
+    if (req.query?.search) {
+      const s = String(req.query.search).trim()
+      filter.$or = [
+        { protocol: { $regex: s, $options: 'i' } },
+        { panelTicket: { $regex: s, $options: 'i' } },
+        { 'identitySnapshot.name': { $regex: s, $options: 'i' } },
+        { 'identitySnapshot.email': { $regex: s, $options: 'i' } },
+        { 'identitySnapshot.phone': { $regex: s, $options: 'i' } },
+      ]
+    }
+
+    // Filtro por atendente / operador
+    if (req.query?.attendantId && mongoose.Types.ObjectId.isValid(String(req.query.attendantId))) {
+      filter.$or = [
+        { statusUpdatedBy: req.query.attendantId },
+        { 'statusHistory.by': req.query.attendantId },
+      ]
+    }
+
+    const sortOrder = req.query?.sort === 'asc' ? 1 : -1
     const [items, total] = await Promise.all([
       AgendaAppointment.find(filter)
         .select('-reservationKey -reservationKeys -idempotencyKey -idempotencyFingerprint -lastMutationKey -lastMutationFingerprint')
         .populate('userId', 'name email phone active')
         .populate('unitId', 'name slug timezone')
         .populate('serviceId', 'name slug durationMinutes')
-        .sort({ startsAt: 1 }).skip((page - 1) * limit).limit(limit).lean(),
+        .populate('resourceId', 'name type')
+        .populate('statusUpdatedBy', 'name email')
+        .populate('statusHistory.by', 'name email')
+        .sort({ startsAt: sortOrder }).skip((page - 1) * limit).limit(limit).lean(),
       AgendaAppointment.countDocuments(filter),
     ])
     return res.status(200).json({ items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
+  }
+
+  static async adminCalendar(req, res) {
+    const month = String(req.query?.month || '')
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return res.status(422).json({ message: 'Mês inválido.' })
+    const [year, mon] = month.split('-').map(Number)
+    const lastDay = new Date(year, mon, 0).getDate()
+    const from = validRangeDate(`${month}-01T00:00:00.000-03:00`)
+    const to = validRangeDate(`${month}-${String(lastDay).padStart(2, '0')}T23:59:59.999-03:00`)
+    const match = agendaHasAllUnits(req)
+      ? {}
+      : { unitId: { $in: allowedUnitIds(req).map((id) => new mongoose.Types.ObjectId(String(id))) } }
+    if (req.query?.unitId) {
+      if (!mongoose.Types.ObjectId.isValid(String(req.query.unitId))) return res.status(422).json({ message: 'Unidade inválida.' })
+      if (!operatorUnitAllowed(req, req.query.unitId)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
+      match.unitId = new mongoose.Types.ObjectId(String(req.query.unitId))
+    }
+    if (req.query?.serviceId) {
+      if (!mongoose.Types.ObjectId.isValid(String(req.query.serviceId))) return res.status(422).json({ message: 'Serviço inválido.' })
+      match.serviceId = new mongoose.Types.ObjectId(String(req.query.serviceId))
+    }
+    match.startsAt = { $gte: from, $lte: to }
+    const grouped = await AgendaAppointment.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$startsAt', timezone: 'America/Sao_Paulo' } },
+          total: { $sum: 1 },
+          booked: { $sum: { $cond: [{ $eq: ['$status', 'booked'] }, 1, 0] } },
+          confirmed: { $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] } },
+          completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
+          no_show: { $sum: { $cond: [{ $eq: ['$status', 'no_show'] }, 1, 0] } },
+          cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+        },
+      },
+    ])
+    const days = Object.fromEntries(grouped.map((row) => [row._id, {
+      total: row.total,
+      pending: row.booked + row.confirmed,
+      booked: row.booked,
+      confirmed: row.confirmed,
+      completed: row.completed,
+      no_show: row.no_show,
+      cancelled: row.cancelled,
+    }]))
+    return res.status(200).json({ month, timezone: 'America/Sao_Paulo', days })
   }
 
   static async createManualAppointment(req, res) {
@@ -949,6 +1544,33 @@ module.exports = class AgendaController {
       let appointment
       const resources = await bookingResources(service, req.body?.resourceId, startsAt)
       if (!resources.length) return res.status(422).json({ message: 'Unidade ou recursos bloqueados nesse intervalo.' })
+
+      const window = occupiedWindow(service, startsAt)
+      const currentOccupied = await AgendaAppointment.find({
+        serviceId: service._id,
+        status: { $in: ['booked', 'confirmed'] },
+        occupiesFrom: { $lt: window.until },
+        occupiesUntil: { $gt: window.from },
+      }).select('resourceId capacityLane').lean()
+
+      const availableAttendants = resources.filter((r) => r && r.type === 'attendant')
+      const otherResources = resources.filter((r) => r && r.type !== 'attendant')
+
+      let allowedCapacity = 0
+      if (!service.resourceRequired) {
+        allowedCapacity = service.capacity
+      } else if (availableAttendants.length > 0) {
+        allowedCapacity = Math.min(service.capacity, availableAttendants.length)
+      } else if (otherResources.length > 0) {
+        allowedCapacity = service.capacity * otherResources.length
+      }
+
+      if (currentOccupied.length >= allowedCapacity) {
+        const conflict = new Error('capacity_conflict')
+        conflict.code = 11000
+        throw conflict
+      }
+
       for (const resource of resources) for (let capacityLane = 0; capacityLane < service.capacity && !appointment; capacityLane += 1) {
         const resourceId = resource?._id
         try {
@@ -981,11 +1603,13 @@ module.exports = class AgendaController {
         conflict.code = 11000
         throw conflict
       }
+      await assignPanelTicketToAppointment(appointment, service, service.unitId)
       void recordAudit(req, {
         action: 'agenda.appointment.manual_create', resourceType: 'agenda_appointment', resourceId: appointment._id,
         module: 'agenda-garca', eventType: 'CREATE',
         metadata: { userId, serviceId, unitId: String(service.unitId._id) },
       })
+      queueVoucher(appointment, service, service.unitId, user)
       return res.status(201).json({ appointment: safeAppointment(appointment) })
     } catch (error) {
       if (error?.code === 11000) return res.status(409).json({ message: 'Horário ocupado ou operação já registrada.' })
@@ -1007,7 +1631,9 @@ module.exports = class AgendaController {
       const transitions = {
         booked: ['confirmed', 'cancelled'],
         confirmed: ['cancelled', 'completed', 'no_show'],
-        cancelled: [], completed: [], no_show: [],
+        cancelled: ['confirmed'],
+        completed: ['confirmed'],
+        no_show: ['confirmed'],
       }
       if (!transitions[appointment.status].includes(nextStatus)) return res.status(409).json({ message: 'Transição de status não permitida.' })
       const now = new Date()
@@ -1020,9 +1646,13 @@ module.exports = class AgendaController {
       if (nextStatus === 'cancelled') {
         appointment.cancelledAt = now
         appointment.cancelledBy = actorId(req)
-        appointment.cancellationReason = String(req.body?.reason || '').trim()
+        appointment.cancellationReason = String(req.body?.reason || 'Cancelado pela administração').trim()
         appointment.reservationKey = undefined
         appointment.reservationKeys = undefined
+        const full = await AgendaAppointment.findById(appointment._id).populate('serviceId').populate('unitId').lean()
+        if (full) {
+          queueCancellationEmail(full, full.serviceId, full.unitId, appointment.cancellationReason)
+        }
       }
       await appointment.save()
       void recordAudit(req, {
@@ -1095,83 +1725,46 @@ module.exports = class AgendaController {
     }
   }
 
-  static async adminCalendar(req, res) {
+  static async listPanels(_req, res) {
     try {
-      const monthStr = String(req.query?.month || '').trim() || new Date().toISOString().slice(0, 7)
-      const match = monthStr.match(/^(\d{4})-(\d{2})$/)
-      if (!match) return res.status(422).json({ message: 'Mês inválido. Formato esperado: AAAA-MM' })
-      const year = parseInt(match[1], 10)
-      const monthNum = parseInt(match[2], 10)
-      const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0))
-      const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
-
-      const filter = {
-        startsAt: { $gte: startDate, $lte: endDate },
-      }
-      if (!agendaHasAllUnits(req)) {
-        filter.unitId = { $in: allowedUnitIds(req).map((id) => new mongoose.Types.ObjectId(id)) }
-      }
-      if (req.query?.unitId) {
-        if (!mongoose.Types.ObjectId.isValid(String(req.query.unitId))) return res.status(422).json({ message: 'Unidade inválida.' })
-        filter.unitId = new mongoose.Types.ObjectId(String(req.query.unitId))
-      }
-      if (req.query?.serviceId) {
-        if (!mongoose.Types.ObjectId.isValid(String(req.query.serviceId))) return res.status(422).json({ message: 'Serviço inválido.' })
-        filter.serviceId = new mongoose.Types.ObjectId(String(req.query.serviceId))
-      }
-      if (req.query?.resourceId) {
-        if (!mongoose.Types.ObjectId.isValid(String(req.query.resourceId))) return res.status(422).json({ message: 'Atendente inválido.' })
-        filter.resourceId = new mongoose.Types.ObjectId(String(req.query.resourceId))
-      }
-
-      const appointments = await AgendaAppointment.find(filter)
-        .select('startsAt status unitId serviceId resourceId')
-        .lean()
-
-      const days = {}
-      for (const app of appointments) {
-        const dateKey = zonedDateKey(app.startsAt, 'America/Sao_Paulo')
-        if (!days[dateKey]) {
-          days[dateKey] = {
-            total: 0,
-            booked: 0,
-            confirmed: 0,
-            completed: 0,
-            noShow: 0,
-            cancelled: 0,
-            pending: 0,
-          }
-        }
-        days[dateKey].total++
-        if (app.status === 'booked') {
-          days[dateKey].booked++
-          days[dateKey].pending++
-        } else if (app.status === 'confirmed') {
-          days[dateKey].confirmed++
-          days[dateKey].pending++
-        } else if (app.status === 'completed') {
-          days[dateKey].completed++
-        } else if (app.status === 'no_show') {
-          days[dateKey].noShow++
-        } else if (app.status === 'cancelled') {
-          days[dateKey].cancelled++
-        }
-      }
-
-      return res.status(200).json({ month: monthStr, days })
+      const panels = await listAvailablePanels()
+      return res.status(200).json({ items: panels })
     } catch (error) {
-      console.error('adminCalendar error:', error)
-      return res.status(500).json({ message: 'Erro ao carregar calendário de atendimentos.' })
+      return res.status(500).json({ message: 'Não foi possível carregar os painéis.' })
     }
   }
 
-  static async listPanels(_req, res) {
-    const items = [
-      { _id: 'panel-semit', name: 'Painel Geral SEMIT', slug: 'semit', active: true },
-      { _id: 'panel-sedetur', name: 'Painel SEDETUR', slug: 'sedetur', active: true },
-      { _id: 'panel-semads', name: 'Painel SEMADS', slug: 'semads', active: true },
-      { _id: 'panel-saae', name: 'Painel SAAE', slug: 'saae', active: true },
-    ]
+  static async panelEventsStream(req, res) {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+    })
+    res.write(`data: ${JSON.stringify({ type: 'connected', time: Date.now() })}\n\n`)
+    
+    const ssePanelClients = globalThis.__ssePanelClients || (globalThis.__ssePanelClients = new Set())
+    ssePanelClients.add(res)
+    
+    const keepAlive = setInterval(() => {
+      try {
+        res.write(': keepalive\n\n')
+      } catch (_e) {
+        clearInterval(keepAlive)
+        ssePanelClients.delete(res)
+      }
+    }, 15000)
+
+    req.on('close', () => {
+      clearInterval(keepAlive)
+      ssePanelClients.delete(res)
+    })
+  }
+
+  static async panelRecentCalls(req, res) {
+    const slug = String(req.query.slug || req.query.panel || '').trim()
+    const recentPanelCalls = await getRecentPanelCalls()
+    const items = slug ? filterCallsForPanel(recentPanelCalls, slug) : recentPanelCalls
     return res.status(200).json({ items })
   }
 
@@ -1182,129 +1775,98 @@ module.exports = class AgendaController {
       const appointment = await AgendaAppointment.findById(appointmentId)
         .populate('serviceId')
         .populate('unitId')
-        .populate('userId', 'name email phone')
+        .populate('userId', 'name cpf email phone')
       if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado.' })
+      if (!operatorUnitAllowed(req, appointment.unitId?._id)) return res.status(403).json({ message: 'Sem permissão para esta unidade.' })
 
-      const localName = String(req.body?.localName || 'Guichê').trim()
+      const service = appointment.serviceId
+      const unit = appointment.unitId
+      const clientName = appointment.identitySnapshot?.name || appointment.userId?.name || 'Cidadão'
+      const clientDoc = appointment.identitySnapshot?.cpf || appointment.userId?.cpf || ''
+
+      const localName = String(req.body?.localName || service?.panelLocationType || 'Guichê').trim()
       const localNumber = Number(req.body?.localNumber) || 1
-      const citizenName = appointment.identitySnapshot?.name || appointment.userId?.name || 'Cidadão'
+      const panelSlug = String(req.body?.panelSlug || service?.panelSlug || '').trim()
+      const prefix = String(req.body?.panelPrefix || service?.panelPrefix || 'AG').trim() || 'AG'
+      const panelCtx = resolvePanelTargets({ unit, service, panelSlug })
+
+      // Se status era booked, atualiza para confirmed
+      if (appointment.status === 'booked') {
+        appointment.status = 'confirmed'
+        await appointment.save()
+      }
+
+      // 1. Usar senha reservada no agendamento (ou gerar para registros antigos)
+      const assigned = await assignPanelTicketToAppointment(appointment, service, unit)
+      const ticketCode = assigned.ticketCode
+      const ticketNumber = assigned.ticketNumber
+      const callPayload = {
+        id: Date.now(),
+        senha: ticketCode,
+        siglaSenha: assigned.prefix,
+        numeroSenha: ticketNumber,
+        local: localName,
+        numeroLocal: localNumber,
+        servico: {
+          id: panelCtx.novosgaServiceId || 82,
+          nome: service?.name || 'Agendamento',
+        },
+        prioridade: 'Agendamento Web',
+        peso: 1,
+        corPrioridade: '#059669',
+        nomeCliente: clientName,
+        documentoCliente: clientDoc,
+        panelSlug: panelCtx.panelSlug,
+        novosgaUnitId: panelCtx.novosgaUnitId,
+        calledAt: new Date().toISOString(),
+      }
+
+      // 2. Publicar nos painéis externos e Mercure Hub
+      void publishCallToPanel({
+        panelSlug: panelCtx.panelSlug,
+        unitId: panelCtx.novosgaUnitId,
+        novosgaServiceId: panelCtx.novosgaServiceId,
+        ticket: ticketCode,
+        prefix: assigned.prefix,
+        number: ticketNumber,
+        localName,
+        localNumber,
+        serviceName: service?.name || 'Agendamento',
+        serviceId: panelCtx.novosgaServiceId,
+        clientName,
+        document: clientDoc,
+      })
+
+      // 3. Salvar na fila de chamadas (Redis + memória) para o proxy da TV oficial
+      await pushRecentPanelCall(callPayload)
+
+      // 4. Broadcast imediato SSE
+      const ssePanelClients = globalThis.__ssePanelClients || (globalThis.__ssePanelClients = new Set())
+      for (const clientRes of ssePanelClients) {
+        try {
+          clientRes.write(`data: ${JSON.stringify(callPayload)}\n\n`)
+        } catch (_e) {
+          ssePanelClients.delete(clientRes)
+        }
+      }
 
       void recordAudit(req, {
         action: 'agenda.appointment.call',
         resourceType: 'agenda_appointment',
         resourceId: appointment._id,
         module: 'agenda-garca',
-        eventType: 'CALL',
-        metadata: { localName, localNumber, citizenName, unitId: String(appointment.unitId?._id || appointment.unitId) },
+        eventType: 'UPDATE',
+        metadata: { unitId: String(unit?._id), serviceId: String(service?._id), panelSlug, localName, localNumber },
       })
 
       return res.status(200).json({
-        success: true,
-        call: {
-          senha: appointment.protocol || 'AGD-01',
-          localName,
-          localNumber,
-          citizenName,
-          calledAt: new Date(),
-        },
-        service: appointment.serviceId,
+        message: `Chamada enviada para o painel com sucesso!`,
+        call: callPayload,
+        appointment: safeAppointment(appointment),
       })
     } catch (error) {
-      console.error('callAppointment error:', error)
-      return res.status(500).json({ message: 'Erro ao chamar atendimento.' })
-    }
-  }
-
-  static async deleteUnit(req, res) {
-    try {
-      const unitId = String(req.params.id || '')
-      if (!mongoose.Types.ObjectId.isValid(unitId)) return res.status(422).json({ message: 'Unidade inválida.' })
-      const unit = await AgendaUnit.findById(unitId)
-      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
-      unit.active = false
-      await unit.save()
-      void recordAudit(req, {
-        action: 'agenda.unit.delete',
-        resourceType: 'agenda_unit',
-        resourceId: unit._id,
-        module: 'agenda-garca',
-        eventType: 'DELETE',
-      })
-      return res.status(200).json({ message: 'Unidade desativada com sucesso.', unit })
-    } catch (error) {
-      return res.status(500).json({ message: 'Erro ao excluir unidade.' })
-    }
-  }
-
-  static async deleteResource(req, res) {
-    try {
-      const resourceId = String(req.params.id || '')
-      if (!mongoose.Types.ObjectId.isValid(resourceId)) return res.status(422).json({ message: 'Recurso/Atendente inválido.' })
-      const resource = await AgendaResource.findById(resourceId)
-      if (!resource) return res.status(404).json({ message: 'Recurso não encontrado.' })
-      resource.active = false
-      await resource.save()
-      void recordAudit(req, {
-        action: 'agenda.resource.delete',
-        resourceType: 'agenda_resource',
-        resourceId: resource._id,
-        module: 'agenda-garca',
-        eventType: 'DELETE',
-      })
-      return res.status(200).json({ message: 'Atendente removido com sucesso.', resource })
-    } catch (error) {
-      return res.status(500).json({ message: 'Erro ao remover atendente.' })
-    }
-  }
-
-  static async uploadServiceBanner(req, res) {
-    try {
-      const serviceId = String(req.params.id || '')
-      if (!mongoose.Types.ObjectId.isValid(serviceId)) return res.status(422).json({ message: 'Serviço inválido.' })
-      const service = await AgendaService.findById(serviceId)
-      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
-      const bannerUrl = req.file ? `/uploads/agenda/${req.file.filename}` : service.landingBannerUrl || '/agendamentos/logos/logo_agenda-fundoclaro.png'
-      service.landingBannerUrl = bannerUrl
-      await service.save()
-      return res.status(200).json({ success: true, landingBannerUrl: bannerUrl, service })
-    } catch (error) {
-      return res.status(500).json({ message: 'Erro ao processar banner do serviço.' })
-    }
-  }
-
-  static async getPublicService(req, res) {
-    try {
-      const unitSlug = normalizeSlug(req.params.unitSlug)
-      const serviceSlug = normalizeSlug(req.params.serviceSlug)
-      const unit = await AgendaUnit.findOne({ slug: unitSlug, active: true }).lean()
-      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
-      const service = await AgendaService.findOne({ unitId: unit._id, slug: serviceSlug, active: true })
-        .populate('unitId', 'name slug address timezone')
-        .populate('resourceIds', 'name type active')
-        .lean()
-      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
-      return res.status(200).json({ unit, service, address: service.landingAddress || unit.address })
-    } catch (error) {
-      return res.status(500).json({ message: 'Erro ao carregar serviço.' })
-    }
-  }
-
-  static async getPublicAvailability(req, res) {
-    try {
-      const unitSlug = normalizeSlug(req.params.unitSlug)
-      const serviceSlug = normalizeSlug(req.params.serviceSlug)
-      const dateKey = String(req.query?.date || '')
-      if (!validDateKey(dateKey)) return res.status(422).json({ message: 'Data inválida.' })
-      const unit = await AgendaUnit.findOne({ slug: unitSlug, active: true }).lean()
-      if (!unit) return res.status(404).json({ message: 'Unidade não encontrada.' })
-      const service = await AgendaService.findOne({ unitId: unit._id, slug: serviceSlug, active: true })
-      if (!service) return res.status(404).json({ message: 'Serviço não encontrado.' })
-
-      req.params.id = String(service._id)
-      return AgendaController.availability(req, res)
-    } catch (error) {
-      return res.status(500).json({ message: 'Erro ao calcular horários disponíveis.' })
+      console.error('[callAppointment] Erro ao acionar chamada:', error)
+      return res.status(500).json({ message: error?.message || 'Não foi possível acionar a chamada no painel.' })
     }
   }
 }
-

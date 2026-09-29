@@ -415,14 +415,20 @@
     el('electorSearch').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') loadElectors() })
     el('btnImport').addEventListener('click', async () => {
       try {
+        const csv = String(el('csvContent').value || '').trim()
+        if (!csv) {
+          el('importResult').textContent = 'Cole o conteudo do CSV antes de importar.'
+          return
+        }
+        el('importResult').textContent = 'Importando...'
         const result = await api('/admin/servidores/import', {
           method: 'POST',
-          body: JSON.stringify({ csv: el('csvContent').value }),
+          body: JSON.stringify({ csv }),
         })
         el('importResult').textContent = JSON.stringify(result, null, 2)
         await refreshServidores()
       } catch (e) {
-        el('importResult').textContent = e.message
+        el('importResult').textContent = e.message || 'Erro ao importar eleitores.'
       }
     })
     async function refreshServidores() {

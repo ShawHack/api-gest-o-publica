@@ -35,6 +35,13 @@
         visibility: hidden !important;
         pointer-events: none !important;
       }
+      /* Mantém a acessibilidade acima do botão flutuante do WhatsApp. */
+      #accessibility-trigger {
+        bottom: 92px !important;
+      }
+      #accessibility-modal {
+        bottom: 153px !important;
+      }
     </style>
   </head>
   <body>
@@ -76,5 +83,7 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <!-- Acessibilidade universal: VLibras, teclado, contraste, fonte e leitura. -->
+    <script src="/cultura/acessibilidade.js" defer></script>
   </body>
 </html>

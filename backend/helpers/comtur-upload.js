@@ -10,8 +10,12 @@ const MAX = 25 * 1024 * 1024
 const allowed = new Set([
   'application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
   'image/x-icon', 'image/vnd.microsoft.icon', 'audio/mpeg', 'video/mp4',
+  'text/csv', 'application/csv', 'text/plain', 'application/json', 'text/json',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/octet-stream',
 ])
-const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.ico', '.pdf', '.mp3', '.mp4'])
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.ico', '.pdf', '.mp3', '.mp4', '.csv', '.xlsx', '.json'])
 
 function mimeOf(file) {
   const mime = String(file?.mimetype || '').toLowerCase()
@@ -41,7 +45,7 @@ const upload = multer({
     const mime = mimeOf(file)
     const ext = path.extname(file.originalname || '').toLowerCase()
     if (allowed.has(mime) || ALLOWED_EXT.has(ext)) return cb(null, true)
-    cb(new Error('Envie PDF, JPEG, PNG, WebP, MP3 ou MP4.'))
+    cb(new Error('Envie PDF, JPEG, PNG, WebP, MP3, MP4, CSV, XLSX ou JSON.'))
   },
 }).single('file')
 
@@ -53,6 +57,13 @@ function magicOk(file) {
   if (m === 'image/jpeg') return b[0] === 0xff && b[1] === 0xd8
   if (m === 'image/webp') return b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP'
   if (m.includes('icon')) return b[0] === 0 && b[1] === 0 && b[2] === 1 && b[3] === 0
+  const ext = path.extname(file.originalname || '').toLowerCase()
+  if (ext === '.xlsx' || m.includes('spreadsheetml')) return b[0] === 0x50 && b[1] === 0x4b
+  if (ext === '.json' || m.includes('json')) {
+    const head = fs.readFileSync(file.path).subarray(0, 64).toString('utf8').trimStart()
+    return head.startsWith('{') || head.startsWith('[')
+  }
+  if (ext === '.csv' || m.includes('csv') || m === 'text/plain') return true
   return true
 }
 

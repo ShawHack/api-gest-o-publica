@@ -35,10 +35,35 @@ async function loadPosts() {
       return;
     }
 
-    // Função auxiliar para data de exibição (criação)
+    // Parse YYYY-MM-DD as local date (evita UTC midnight → dia anterior no BR)
+    const parseLocalDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+      const s = String(value).trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    
+    const formatBrDate = (value) => {
+      if (!value) return '';
+      const s = String(value).trim();
+      const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+      const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (br) return s;
+      const d = (typeof parseLocalDate === 'function') ? parseLocalDate(s) : new Date(s);
+      if (!d || isNaN(d.getTime())) return s;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${dd}/${mm}/${d.getFullYear()}`;
+    };
+
     const getCreationDateStr = (dateString) => {
-      const dt = new Date(dateString);
-      return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace(' de ', ' de ');
+      const dt = parseLocalDate(dateString);
+      if (!dt) return '—';
+      return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
     // --- Renderizar Main Grid ---
@@ -54,11 +79,11 @@ async function loadPosts() {
       }
 
       // Se tiver data do evento, mostrar a primeira data. Senão, data de criação.
-      let eventDateStr = getCreationDateStr(post.dataCriacao);
+      let eventDateStr = getCreationDateStr(post.createdAt || post.publishedAt || post.dataCriacao);
       if (post.datasHorarios && post.datasHorarios.length > 0) {
          const sess = post.datasHorarios[0];
          const timeLabel = sess.horarioLabel || (sess.horarioFim ? `${sess.horario} – ${sess.horarioFim}` : sess.horario);
-         eventDateStr = sess.data + (timeLabel ? ' · ' + timeLabel : '');
+         eventDateStr = formatBrDate(sess.data) + (timeLabel ? ' · ' + timeLabel : '');
       }
 
       let formatoBadges = '';
@@ -113,8 +138,8 @@ async function loadPosts() {
             let day = "00";
             let monthStr = "MÊS";
             const dateRaw = post.datasHorarios[0].data; 
-            const d = new Date(dateRaw);
-            if (!isNaN(d.getTime())) {
+            const d = parseLocalDate(dateRaw);
+            if (d) {
               day = String(d.getDate()).padStart(2, '0');
               monthStr = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
             } else if (dateRaw.includes('/')) {
@@ -132,7 +157,7 @@ async function loadPosts() {
                 </div>
                 <div class="upcoming-info">
                   <h4>${post.titulo}</h4>
-                  <p><i data-lucide="clock" style="width:12px;height:12px;"></i> ${dateRaw} · ${post.datasHorarios[0].horarioLabel || (post.datasHorarios[0].horarioFim ? `${post.datasHorarios[0].horario} – ${post.datasHorarios[0].horarioFim}` : post.datasHorarios[0].horario)}</p>
+                  <p><i data-lucide="clock" style="width:12px;height:12px;"></i> ${formatBrDate(dateRaw)} · ${post.datasHorarios[0].horarioLabel || (post.datasHorarios[0].horarioFim ? `${post.datasHorarios[0].horario} – ${post.datasHorarios[0].horarioFim}` : post.datasHorarios[0].horario)}</p>
                 </div>
               </div>
             `;
@@ -153,7 +178,7 @@ async function loadPosts() {
     // --- Renderizar Mais Lidas (Sidebar) ---
     // Usando os 3 posts mais recentes como "Mais Lidas" por enquanto
     if (topNewsContainer) {
-      const topPosts = [...posts].sort((a,b) => new Date(b.dataCriacao) - new Date(a.dataCriacao)).slice(0, 3);
+      const topPosts = [...posts].sort((a,b) => (parseLocalDate(b.createdAt || b.publishedAt || b.dataCriacao) || 0) - (parseLocalDate(a.createdAt || a.publishedAt || a.dataCriacao) || 0)).slice(0, 3);
       topPosts.forEach((post, index) => {
         let imgPath = '';
         if (post.imagensUrl && post.imagensUrl.length > 0) {

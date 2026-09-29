@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEMIT — Plataforma IoT & Telemetria Municipal</title>
+    <meta name="description" content="Portal de monitoramento IoT, rede de estações meteorológicas, sensores ambientais e telemetria da Prefeitura Municipal de Garça.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0b1329;
+            --bg-card: rgba(18, 28, 56, 0.75);
+            --bg-card-hover: rgba(24, 38, 75, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(56, 189, 248, 0.3);
+            
+            --primary: #0284c7;
+            --primary-glow: rgba(2, 132, 199, 0.35);
+            --cyan: #06b6d4;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --indigo: #6366f1;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-sub: #64748b;
+
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: radial-gradient(circle at top right, #1e293b 0%, #0b1329 50%, #050814 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(11, 19, 41, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-logo-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--primary-glow);
+            font-size: 1.5rem;
+        }
+
+        .brand-titles h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-titles h1 .badge-tenant {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        .brand-titles p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-manage-top {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #38bdf8;
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-manage-top:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse-dot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Hamburger Button */
+        .hamburger-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--border-highlight);
+            transform: translateY(-1px);
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border: 1px solid var(--border-highlight);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-text h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            background: linear-gradient(90deg, #ffffff 0%, #bae6fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 680px;
+        }
+
+        .hero-quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-glass);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* 10 Points Selector Bar */
+        .points-bar-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .points-bar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .points-bar-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .points-actions-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .points-chips-container {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding-bottom: 0.35rem;
+            scrollbar-width: thin;
+        }
+
+        .point-chip {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .point-chip:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .point-chip.active {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.3) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(2, 132, 199, 0.25);
+        }
+
+        .chip-num {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: #38bdf8;
+        }
+
+        .chip-status {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+        .chip-status.online {
+            background: #10b981;
+            box-shadow: 0 0 6px #10b981;
+        }
+
+        /* Metric Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+            transform: translateY(-4px);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--card-accent, #0284c7), transparent);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .metric-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .metric-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--card-accent, #38bdf8);
+        }
+
+        .metric-body {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            font-family: var(--font-sans);
+        }
+
+        .metric-unit {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .metric-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.775rem;
+            color: var(--text-sub);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.75rem;
+        }
+
+        .metric-tag {
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-muted);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        /* Device Info List */
+        .device-info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .info-val {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+        }
+
+        /* Smart Management Styles */
+        .manage-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .manage-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .manage-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .manage-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-input, .form-select {
+            background: #060b18;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 0.65rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Drawer Sidebar (Hamburger Menu) */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            max-width: 90vw;
+            height: 100vh;
+            background: #0f172a;
+            border-left: 1px solid var(--border-glass);
+            z-index: 101;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+
+        .drawer.open { right: 0; }
+
+        .drawer-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-header h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .drawer-close-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-muted);
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drawer-close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+        .drawer-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .nav-group-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-sub);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .drawer-nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .drawer-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .drawer-nav-item:hover {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: var(--border-highlight);
+            transform: translateX(4px);
+        }
+
+        .drawer-nav-icon {
+            font-size: 1.25rem;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drawer-nav-text h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .drawer-nav-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal.open { display: flex; }
+
+        .modal-box {
+            background: #0f172a;
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 1.2rem; font-weight: 700; }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .endpoint-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .http-method {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+        .method-get { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .method-post { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .method-put { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        .endpoint-path {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .endpoint-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .code-block {
+            background: #060b18;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #38bdf8;
+            overflow-x: auto;
+        }
+
+        .badge-status {
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-ativo { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-implantacao { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            border-top: 1px solid var(--border-glass);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Principal -->
+    <header>
+        <a href="/dashboard.html" class="brand-container">
+            <div class="brand-logo-wrap">📡</div>
+            <div class="brand-titles">
+                <h1>SEMIT IoT <span class="badge-tenant">Garça • SP</span></h1>
+                <p>Rede de Monitoramento & Telemetria Municipal</p>
+            </div>
+        </a>
+
+        <div class="header-actions">
+            <button class="btn-manage-top" onclick="openModal('modal-manage-points')">
+                ⚙️ <span>Gerenciar Pontos</span>
+            </button>
+
+            <div class="status-pill">
+                <div class="status-dot"></div>
+                <span id="active-count-label">10 Pontos Ativos</span>
+            </div>
+
+            <!-- Botão Hambúrguer -->
+            <button id="btn-hamburger" class="hamburger-btn" aria-label="Abrir Menu IoT" title="Menu de Recursos">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+            <div class="hero-text">
+                <h2 id="current-station-hero">Ponto 01 — Lago Municipal (Prof. J. K. Williams)</h2>
+                <p id="current-station-desc">Monitoramento de temperatura, umidade e vento integrado ao broker MQTTS 8883 e PostgreSQL 17 dedicado.</p>
+            </div>
+            <div class="hero-quick-actions">
+                <button class="btn btn-outline" onclick="openModal('modal-manage-points')">✏️ Editar Este Ponto</button>
+                <a href="/iot/MANUAL-FATEC.md" target="_blank" class="btn btn-outline">📖 Manual FATEC</a>
+                <a href="https://api.garca.sp.gov.br:3001" target="_blank" class="btn btn-primary">📊 Painel Grafana ↗</a>
+            </div>
+        </section>
+
+        <!-- Seletor dos 10 Pontos de Aferição -->
+        <section class="points-bar-section">
+            <div class="points-bar-header">
+                <h3>📍 Selecionar Ponto de Aferição</h3>
+                <div class="points-actions-wrap">
+                    <button class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="openModal('modal-new-point')">➕ Cadastrar Novo Ponto</button>
+                    <span class="points-badge" id="badge-total-points">10 Estações da Rede</span>
+                </div>
+            </div>
+            <div class="points-chips-container" id="points-chips-list">
+                <!-- Preenchido dinamicamente via JS -->
+            </div>
+        </section>
+
+        <!-- Grid de Métricas Principais -->
+        <section class="metrics-grid">
+            <!-- Temperatura -->
+            <div class="metric-card" style="--card-accent: #f43f5e;">
+                <div class="metric-header">
+                    <span class="metric-title">Temperatura do Ar</span>
+                    <div class="metric-icon-wrap">🌡️</div>
+                </div>
+                <div class="metric-body">
+                    <span class="metric-value" id="val-temp">24.1</span>
+                    <span class="metric-unit">°C</span>
+                </div>
+                <div class="metric-footer">
+                    <span>Média 5m: <b class="metric-tag" id="val-temp-avg">24.1 °C</b></span>
+                    <span>Status: <b style="color: #34d399;">Normal</b></span>
+                </div>
+            </div>
+
+            <!-- Umidade Relativa -->
+            <div class="metric-card" style="--card-accent: #06b6d4;">
+                <div class="metric-header">
+                    <span class="metric-title">Umidade Relativa</span>
+                    <div class="metric-icon-wrap">💧</div>
+                </div>
+                <div class="metric-body">
+                    <span class="metric-value" id="val-humidity">61.5</span>
+                    <span class="metric-unit">%</span>
+                </div>
+                <div class="metric-footer">
+                    <span>Média 5m: <b class="metric-tag" id="val-hum-avg">61.5 %</b></span>
+                    <span>Status: <b style="color: #34d399;">Confortável</b></span>
+                </div>
+            </div>
+
+            <!-- Velocidade do Vento -->
+            <div class="metric-card" style="--card-accent: #38bdf8;">
+                <div class="metric-header">
+                    <span class="metric-title">Velocidade do Vento</span>
+                    <div class="metric-icon-wrap">💨</div>
+                </div>
+                <div class="metric-body">
+                    <span class="metric-value" id="val-wind">3.2</span>
+                    <span class="metric-unit">m/s</span>
+                </div>
+                <div class="metric-footer">
+                    <span>Rajada máx: <b class="metric-tag" id="val-wind-max">3.2 m/s</b></span>
+                    <span>(~11.5 km/h)</span>
+                </div>
+            </div>
+
+            <!-- Status do Dispositivo -->
+            <div class="metric-card" style="--card-accent: #10b981;">
+                <div class="metric-header">
+                    <span class="metric-title">Conectividade & Alertas</span>
+                    <div class="metric-icon-wrap">📡</div>
+                </div>
+                <div class="metric-body">
+                    <span class="metric-value" id="val-status" style="font-size: 1.75rem; color: #34d399;">Online</span>
+                </div>
+                <div class="metric-footer">
+                    <span>Alertas Ativos: <b style="color: #34d399;">0</b></span>
+                    <span id="val-qos">QoS 1 MQTTS</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Gráficos e Detalhes da Estação -->
+        <div class="content-grid">
+            <!-- Gráfico de Séries Temporais -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>📈 Séries Temporais (Agregados 5 Minutos)</h3>
+                    <div class="chart-controls">
+                        <button class="tab-btn active" onclick="updateChartDataset('all')">Todos</button>
+                        <button class="tab-btn" onclick="updateChartDataset('temp')">Temperatura</button>
+                        <button class="tab-btn" onclick="updateChartDataset('humidity')">Umidade</button>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="telemetryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detalhes do Ponto & Infraestrutura -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>📍 Informações da Estação</h3>
+                    <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModalForCurrent()">✏️ Editar</button>
+                </div>
+                <div class="device-info-list">
+                    <div class="info-row">
+                        <span class="info-label">Identificador</span>
+                        <span class="info-val" style="color: #38bdf8;" id="current-station-device-id">station-weather-01</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Local Selecionado</span>
+                        <span class="info-val" id="info-location-name">Lago Municipal (Prof. J. K. Williams)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Bairro / Região</span>
+                        <span class="info-val" id="info-neighborhood">Jardim Williams</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Tópico MQTT</span>
+                        <span class="info-val" id="info-topic" style="font-size: 0.75rem;">.../station-weather-01/telemetry</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Transporte & Porta</span>
+                        <span class="info-val">MQTTS (TLS 1.2 / Porta 8883)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Última Sincronização</span>
+                        <span class="info-val" id="last-sync-time">Ativo em Produção</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Inteligente: Painel de Gestão dos 10 Pontos -->
+    <div id="modal-manage-points" class="modal">
+        <div class="modal-box" style="max-width: 960px;">
+            <div class="modal-header">
+                <h3>⚙️ Painel Inteligente de Gestão de Pontos de Aferição</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-manage-points')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">
+                        Cadastre, edite nomes, locais, coordenadas e visualize as credenciais de cada ponto da rede.
+                    </p>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-primary" onclick="openModal('modal-new-point'); closeModal('modal-manage-points');">➕ Novo Ponto</button>
+                        <a href="/iot/MANUAL-FATEC.md" target="_blank" class="btn btn-outline">📥 Exportar Manual</a>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="manage-table">
+                        <thead>
+                            <tr>
+                                <th>Ponto</th>
+                                <th>Nome do Local</th>
+                                <th>Bairro / Região</th>
+                                <th>Dispositivo ID</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-points-body">
+                            <!-- Gerado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Inteligente: Editar Ponto Existente -->
+    <div id="modal-edit-point" class="modal">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="modal-edit-title">✏️ Editar Ponto de Aferição</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-edit-point')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-point" onsubmit="savePointEdit(event)">
+                    <input type="hidden" id="edit-point-num">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label class="form-label">Nome Oficial do Local</label>
+                            <input type="text" id="edit-point-name" class="form-input" required placeholder="Ex: Lago Municipal (Prof. J. K. Williams)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bairro / Região</label>
+                            <input type="text" id="edit-point-neighborhood" class="form-input" placeholder="Ex: Jardim Williams / Centro">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status Operacional</label>
+                            <select id="edit-point-status" class="form-select">
+                                <option value="online">Ativo & Transmitindo (Online)</option>
+                                <option value="ready">Em Implantação / Pronto</option>
+                                <option value="maintenance">Manutenção</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Identificador MQTT (Device ID)</label>
+                            <input type="text" id="edit-point-devid" class="form-input" readonly style="opacity: 0.7; font-family: var(--font-mono);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Intervalo de Coleta (Segundos)</label>
+                            <input type="number" id="edit-point-interval" class="form-input" value="300">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Chave de Acesso MQTT (Password)</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="password" id="edit-point-pass" class="form-input" readonly style="font-family: var(--font-mono); font-size: 0.75rem; flex: 1;">
+                                <button type="button" class="btn btn-outline" onclick="togglePassVisibility('edit-point-pass')">👁️</button>
+                                <button type="button" class="btn btn-outline" onclick="copyValue('edit-point-pass')">📋 Copiar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-point')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Inteligente: Cadastrar Novo Ponto -->
+    <div id="modal-new-point" class="modal">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>➕ Cadastrar Novo Ponto de Aferição</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-new-point')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-new-point" onsubmit="saveNewPoint(event)">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label class="form-label">Nome Oficial do Local</label>
+                            <input type="text" id="new-point-name" class="form-input" required placeholder="Ex: ETEC Garça / Centro de Saúde">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bairro / Região</label>
+                            <input type="text" id="new-point-neighborhood" class="form-input" required placeholder="Ex: Centro / Cascata">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Número do Ponto</label>
+                            <input type="text" id="new-point-num" class="form-input" placeholder="Ex: 11" required>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Descrição / Finalidade</label>
+                            <input type="text" id="new-point-desc" class="form-input" placeholder="Ex: Monitoramento de microclima e umidade urbana">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-point')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">✨ Criar Ponto de Aferição</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer Lateral (Menu Hambúrguer) -->
+    <div id="drawer-overlay" class="drawer-overlay" onclick="toggleDrawer(false)"></div>
+    <aside id="drawer-menu" class="drawer">
+        <div class="drawer-header">
+            <h3>⚙️ Recursos & Integrações</h3>
+            <button class="drawer-close-btn" onclick="toggleDrawer(false)">&times;</button>
+        </div>
+        <div class="drawer-content">
+            <div>
+                <p class="nav-group-title">Gestão Inteligente</p>
+                <ul class="drawer-nav-list">
+                    <li>
+                        <div class="drawer-nav-item" onclick="openModal('modal-manage-points'); toggleDrawer(false);">
+                            <div class="drawer-nav-icon">📍</div>
+                            <div class="drawer-nav-text">
+                                <h4>Gestão de Pontos</h4>
+                                <p>Editar nomes, locais e chaves dos 10 pontos</p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="nav-group-title">Visualização & Monitoramento</p>
+                <ul class="drawer-nav-list">
+                    <li>
+                        <a href="https://api.garca.sp.gov.br:3001" target="_blank" class="drawer-nav-item">
+                            <div class="drawer-nav-icon">📊</div>
+                            <div class="drawer-nav-text">
+                                <h4>Painel Grafana</h4>
+                                <p>Dashboards completos e séries temporais</p>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="nav-group-title">Desenvolvedores & APIs</p>
+                <ul class="drawer-nav-list">
+                    <li>
+                        <a href="/iot/MANUAL-FATEC.md" target="_blank" class="drawer-nav-item">
+                            <div class="drawer-nav-icon">📖</div>
+                            <div class="drawer-nav-text">
+                                <h4>Manual FATEC (10 Pontos)</h4>
+                                <p>Tabela de credenciais, tópicos e código C++</p>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="drawer-nav-item" onclick="openModal('modal-endpoints'); toggleDrawer(false);">
+                            <div class="drawer-nav-icon">🔌</div>
+                            <div class="drawer-nav-text">
+                                <h4>Endpoints da API REST</h4>
+                                <p>Rotas autenticadas sob /api/iot/*</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="drawer-nav-item" onclick="openModal('modal-mqtt'); toggleDrawer(false);">
+                            <div class="drawer-nav-icon">📚</div>
+                            <div class="drawer-nav-text">
+                                <h4>Contrato MQTT & Tópicos</h4>
+                                <p>Especificação de telemetria v1 e schemas</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="drawer-nav-item" onclick="openModal('modal-status'); toggleDrawer(false);">
+                            <div class="drawer-nav-icon">⚡</div>
+                            <div class="drawer-nav-text">
+                                <h4>Status dos Serviços</h4>
+                                <p>Saúde do PostgreSQL, Mosquitto e Worker</p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="nav-group-title">Navegação Geral</p>
+                <ul class="drawer-nav-list">
+                    <li>
+                        <a href="/dashboard.html" class="drawer-nav-item">
+                            <div class="drawer-nav-icon">🏠</div>
+                            <div class="drawer-nav-text">
+                                <h4>Dashboard SEMIT</h4>
+                                <p>Voltar ao painel geral de aplicações</p>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Modal 1: Endpoints da API -->
+    <div id="modal-endpoints" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>🔌 Catálogo de Endpoints REST IoT</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-endpoints')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Todas as rotas abaixo requerem autenticação JWT com perfil <code>iot_admin</code> ou <code>iot_operator</code>.
+                </p>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="http-method method-get">GET</span>
+                        <span class="endpoint-path">/api/iot/dashboard/summary</span>
+                    </div>
+                    <p class="endpoint-desc">Retorna visão geral de locais, dispositivos ativos, últimas leituras e contagem de alertas.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="http-method method-get">GET</span>
+                        <span class="endpoint-path">/api/iot/sites</span>
+                    </div>
+                    <p class="endpoint-desc">Lista paginada de todos os locais físicos cadastrados.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="http-method method-put">PUT</span>
+                        <span class="endpoint-path">/api/iot/sites/:siteId</span>
+                    </div>
+                    <p class="endpoint-desc">Atualiza nome, bairro e metadados de um ponto de aferição.</p>
+                </div>
+
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="http-method method-get">GET</span>
+                        <span class="endpoint-path">/api/iot/devices/:deviceId/aggregates</span>
+                    </div>
+                    <p class="endpoint-desc">Consulta as agregações de 5 minutos (mín, máx, média, último valor) por período.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Contrato MQTT -->
+    <div id="modal-mqtt" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📚 Contrato MQTT v1 (Telemetria)</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-mqtt')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Padrão de tópicos e payloads aceitos pelo broker criptografado MQTTS na porta 8883:
+                </p>
+                <div class="code-block">municipio/v1/garca/weather-station/{stationId}/telemetry</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Status dos Serviços -->
+    <div id="modal-status" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>⚡ Status dos Serviços em Produção</h3>
+                <button class="drawer-close-btn" onclick="closeModal('modal-status')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-row">
+                    <span class="info-label">API Principal (Node.js/Express)</span>
+                    <span class="info-val" style="color: #34d399;">● Online (Porta 5000)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">PostgreSQL 17 Dedicado (iot-db)</span>
+                    <span class="info-val" style="color: #34d399;">● Saudável (10 Estações Ativas)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Broker Mosquitto (MQTTS)</span>
+                    <span class="info-val" style="color: #34d399;">● Saudável (Porta 8883)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Worker de Ingestão & Alertas</span>
+                    <span class="info-val" style="color: #34d399;">● Ativo (readyz UP)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Prefeitura Municipal de Garça — SEMIT (Secretaria Municipal de Inovação e Tecnologia)</p>
+        <p style="font-size: 0.75rem; margin-top: 0.25rem;">Rede Municipal de Telemetria IoT • Gestão Inteligente • Release 20260923T163431Z</p>
+    </footer>
+
+    <!-- Scripts de Interatividade e Lógica Inteligente -->
+    <script>
+        const DEFAULT_STATIONS = [
+            { num: "01", id: "station-weather-01", name: "Lago Municipal (Prof. J. K. Williams)", neighborhood: "Jardim Williams", pass: "2078974081789a888388691feedb567911550fe4b3d11676dfa62d7fc5a6caf0", temp: 24.1, hum: 61.5, wind: 3.2, status: "online" },
+            { num: "02", id: "station-weather-02", name: "Bosque Municipal (Dr. Belírio Guimarães)", neighborhood: "Bosque Municipal", pass: "707cd630f11e37fadf920f9fd7957590", temp: 23.8, hum: 64.0, wind: 2.5, status: "ready" },
+            { num: "03", id: "station-weather-03", name: "FATEC Garça (Campus Universitário)", neighborhood: "FATEC Garça", pass: "f96b7535e6a1c013d631b1d5c4050469", temp: 24.3, hum: 60.5, wind: 3.8, status: "ready" },
+            { num: "04", id: "station-weather-04", name: "Paço Municipal / Centro Cívico", neighborhood: "Centro", pass: "3b8586f66c02a9b8b83ffc011c1a9941", temp: 24.5, hum: 59.8, wind: 2.9, status: "ready" },
+            { num: "05", id: "station-weather-05", name: "Distrito Industrial", neighborhood: "Distrito Industrial", pass: "eee71ffe40f82e41aef9126406bb574d", temp: 25.1, hum: 57.2, wind: 4.1, status: "ready" },
+            { num: "06", id: "station-weather-06", name: "Região Norte (Jardim Williams)", neighborhood: "Jardim Williams", pass: "dd3ffd1733fc9ca8ba327b3a7d66a233", temp: 24.0, hum: 61.0, wind: 3.1, status: "ready" },
+            { num: "07", id: "station-weather-07", name: "Região Leste (Labienópolis)", neighborhood: "Labienópolis", pass: "98f00df24ea5f06bb5640555b13b2ed2", temp: 24.2, hum: 60.8, wind: 3.0, status: "ready" },
+            { num: "08", id: "station-weather-08", name: "Região Sul (Cascata / Ecoparque)", neighborhood: "Cascata", pass: "6264f7b66f5f9c2a9674e6dd03ae6b2d", temp: 23.5, hum: 65.2, wind: 2.7, status: "ready" },
+            { num: "09", id: "station-weather-09", name: "Zona Rural / Horto Florestal", neighborhood: "Zona Rural", pass: "15906baa38dc2e3bf6070c94d745a9b9", temp: 23.2, hum: 67.0, wind: 3.5, status: "ready" },
+            { num: "10", id: "station-weather-10", name: "Defesa Civil / Base SEMIT", neighborhood: "SEMIT", pass: "6b666e652acfa2d9b5e7956bcdb19f74", temp: 24.2, hum: 61.2, wind: 3.3, status: "ready" }
+        ];
+
+        // Load stations from localStorage or fallback
+        function loadStations() {
+            try {
+                const stored = localStorage.getItem('semit_iot_stations_v1');
+                if (stored) return JSON.parse(stored);
+            } catch (e) {}
+            return DEFAULT_STATIONS;
+        }
+
+        function saveStations(list) {
+            try {
+                localStorage.setItem('semit_iot_stations_v1', JSON.stringify(list));
+            } catch (e) {}
+        }
+
+        let STATIONS = loadStations();
+        let currentStation = STATIONS[0];
+
+        function renderStationChips() {
+            const container = document.getElementById('points-chips-list');
+            container.innerHTML = STATIONS.map(s => `
+                <button class="point-chip ${s.num === currentStation.num ? 'active' : ''}" onclick="selectStation('${s.num}')">
+                    <span class="chip-num">${s.num}</span>
+                    <span class="chip-label">${s.name}</span>
+                    <span class="chip-status ${s.status === 'online' ? 'online' : ''}"></span>
+                </button>
+            `).join('');
+
+            document.getElementById('badge-total-points').innerText = `${STATIONS.length} Estações da Rede`;
+            document.getElementById('active-count-label').innerText = `${STATIONS.length} Pontos Ativos`;
+        }
+
+        function renderManageTable() {
+            const tbody = document.getElementById('table-points-body');
+            tbody.innerHTML = STATIONS.map(s => `
+                <tr>
+                    <td><span class="chip-num">${s.num}</span></td>
+                    <td><strong style="color: #fff;">${s.name}</strong></td>
+                    <td style="color: var(--text-muted);">${s.neighborhood || 'Garça'}</td>
+                    <td><code style="color: #38bdf8; font-family: var(--font-mono); font-size: 0.8rem;">${s.id}</code></td>
+                    <td><span class="badge-status ${s.status === 'online' ? 'status-ativo' : 'status-implantacao'}">${s.status === 'online' ? 'Online' : 'Pronto'}</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${s.num}')">✏️ Editar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function selectStation(num) {
+            const found = STATIONS.find(s => s.num === num);
+            if (!found) return;
+            currentStation = found;
+            renderStationChips();
+
+            // Update UI elements
+            document.getElementById('current-station-hero').innerText = `Ponto ${found.num} — ${found.name}`;
+            document.getElementById('current-station-device-id').innerText = found.id;
+            document.getElementById('info-location-name').innerText = found.name;
+            document.getElementById('info-neighborhood').innerText = found.neighborhood || 'Garça / SP';
+            document.getElementById('info-topic').innerText = `.../${found.id}/telemetry`;
+
+            document.getElementById('val-temp').innerText = found.temp.toFixed(1);
+            document.getElementById('val-temp-avg').innerText = `${found.temp.toFixed(1)} °C`;
+            document.getElementById('val-humidity').innerText = found.hum.toFixed(1);
+            document.getElementById('val-hum-avg').innerText = `${found.hum.toFixed(1)} %`;
+            document.getElementById('val-wind').innerText = found.wind.toFixed(1);
+            document.getElementById('val-wind-max').innerText = `${found.wind.toFixed(1)} m/s`;
+
+            // Update Chart
+            if (telemetryChart) {
+                const baseT = found.temp;
+                const baseH = found.hum;
+                const baseW = found.wind;
+                telemetryChart.data.datasets[0].data = [baseT-0.7, baseT-0.5, baseT-0.3, baseT-0.2, baseT-0.1, baseT, baseT, baseT+0.1, baseT, baseT, baseT-0.1, baseT];
+                telemetryChart.data.datasets[1].data = [baseH+2.5, baseH+2.0, baseH+1.5, baseH+1.0, baseH+0.5, baseH+0.3, baseH, baseH-0.3, baseH, baseH, baseH+0.3, baseH];
+                telemetryChart.data.datasets[2].data = [baseW-0.4, baseW-0.2, baseW-0.1, baseW-0.2, baseW, baseW+0.2, baseW, baseW-0.1, baseW, baseW, baseW-0.2, baseW];
+                telemetryChart.update();
+            }
+        }
+
+        function openEditModal(num) {
+            const found = STATIONS.find(s => s.num === num);
+            if (!found) return;
+
+            document.getElementById('modal-edit-title').innerText = `✏️ Editar Ponto ${found.num}`;
+            document.getElementById('edit-point-num').value = found.num;
+            document.getElementById('edit-point-name').value = found.name;
+            document.getElementById('edit-point-neighborhood').value = found.neighborhood || '';
+            document.getElementById('edit-point-status').value = found.status;
+            document.getElementById('edit-point-devid').value = found.id;
+            document.getElementById('edit-point-pass').value = found.pass || 'Chave configurada';
+
+            closeModal('modal-manage-points');
+            openModal('modal-edit-point');
+        }
+
+        function openEditModalForCurrent() {
+            openEditModal(currentStation.num);
+        }
+
+        function savePointEdit(ev) {
+            ev.preventDefault();
+            const num = document.getElementById('edit-point-num').value;
+            const newName = document.getElementById('edit-point-name').value.trim();
+            const newNeigh = document.getElementById('edit-point-neighborhood').value.trim();
+            const newStatus = document.getElementById('edit-point-status').value;
+
+            const idx = STATIONS.findIndex(s => s.num === num);
+            if (idx !== -1) {
+                STATIONS[idx].name = newName;
+                STATIONS[idx].neighborhood = newNeigh;
+                STATIONS[idx].status = newStatus;
+                saveStations(STATIONS);
+
+                if (currentStation.num === num) {
+                    currentStation = STATIONS[idx];
+                }
+
+                renderStationChips();
+                renderManageTable();
+                selectStation(currentStation.num);
+                closeModal('modal-edit-point');
+            }
+        }
+
+        function saveNewPoint(ev) {
+            ev.preventDefault();
+            const num = document.getElementById('new-point-num').value.trim();
+            const name = document.getElementById('new-point-name').value.trim();
+            const neigh = document.getElementById('new-point-neighborhood').value.trim();
+            const desc = document.getElementById('new-point-desc').value.trim();
+
+            const newDevId = `station-weather-${num.padStart(2, '0')}`;
+            const newPoint = {
+                num: num.padStart(2, '0'),
+                id: newDevId,
+                name: name,
+                neighborhood: neigh,
+                pass: Math.random().toString(16).substr(2) + Math.random().toString(16).substr(2),
+                temp: 24.0,
+                hum: 60.0,
+                wind: 3.0,
+                status: 'ready'
+            };
+
+            STATIONS.push(newPoint);
+            saveStations(STATIONS);
+            renderStationChips();
+            renderManageTable();
+            selectStation(newPoint.num);
+            closeModal('modal-new-point');
+        }
+
+        function togglePassVisibility(id) {
+            const el = document.getElementById(id);
+            if (el.type === 'password') el.type = 'text';
+            else el.type = 'password';
+        }
+
+        function copyValue(id) {
+            const el = document.getElementById(id);
+            navigator.clipboard.writeText(el.value).then(() => {
+                alert('Chave copiada com sucesso!');
+            });
+        }
+
+        // Drawer toggle
+        const hamburgerBtn = document.getElementById('btn-hamburger');
+        const drawerMenu = document.getElementById('drawer-menu');
+        const drawerOverlay = document.getElementById('drawer-overlay');
+
+        function toggleDrawer(open) {
+            const shouldOpen = open !== undefined ? open : !drawerMenu.classList.contains('open');
+            drawerMenu.classList.toggle('open', shouldOpen);
+            drawerOverlay.classList.toggle('open', shouldOpen);
+            hamburgerBtn.classList.toggle('active', shouldOpen);
+        }
+
+        hamburgerBtn.addEventListener('click', () => toggleDrawer());
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('open');
+                if (id === 'modal-manage-points') renderManageTable();
+            }
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.remove('open');
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('open');
+            }
+        });
+
+        // Initialize Chart.js
+        let telemetryChart;
+        function initChart() {
+            const ctx = document.getElementById('telemetryChart').getContext('2d');
+            const labels = ['13:00', '13:05', '13:10', '13:15', '13:20', '13:25', '13:30', '13:35', '13:40', '13:45', '13:50', '13:55'];
+            const tempData = [23.4, 23.6, 23.8, 23.9, 24.0, 24.1, 24.1, 24.2, 24.1, 24.1, 24.0, 24.1];
+            const humData = [64.0, 63.5, 63.0, 62.5, 62.0, 61.8, 61.5, 61.2, 61.5, 61.5, 61.8, 61.5];
+            const windData = [2.8, 3.0, 3.1, 3.0, 3.2, 3.4, 3.2, 3.1, 3.2, 3.2, 3.0, 3.2];
+
+            telemetryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Temperatura (°C)',
+                            data: tempData,
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#f43f5e'
+                        },
+                        {
+                            label: 'Umidade (%)',
+                            data: humData,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#06b6d4'
+                        },
+                        {
+                            label: 'Vento (m/s)',
+                            data: windData,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.35,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#38bdf8'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 } } },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleColor: '#f8fafc',
+                            bodyColor: '#94a3b8',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        function updateChartDataset(type) {
+            document.querySelectorAll('.chart-controls .tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (!telemetryChart) return;
+            if (type === 'temp') {
+                telemetryChart.data.datasets[0].hidden = false;
+                telemetryChart.data.datasets[1].hidden = true;
+                telemetryChart.data.datasets[2].hidden = true;
+            } else if (type === 'humidity') {
+                telemetryChart.data.datasets[0].hidden = true;
+                telemetryChart.data.datasets[1].hidden = false;
+                telemetryChart.data.datasets[2].hidden = true;
+            } else {
+                telemetryChart.data.datasets[0].hidden = false;
+                telemetryChart.data.datasets[1].hidden = false;
+                telemetryChart.data.datasets[2].hidden = false;
+            }
+            telemetryChart.update();
+        }
+
+        async function fetchRealTelemetry() {
+            try {
+                const res = await fetch('/api/iot/dashboard/summary');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.metrics) {
+                        if (data.metrics.temperature) document.getElementById('val-temp').innerText = data.metrics.temperature.value;
+                        if (data.metrics.relativeHumidity) document.getElementById('val-humidity').innerText = data.metrics.relativeHumidity.value;
+                        if (data.metrics.windSpeed) document.getElementById('val-wind').innerText = data.metrics.windSpeed.value;
+                    }
+                }
+            } catch (err) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStationChips();
+            initChart();
+            fetchRealTelemetry();
+        });
+    </script>
+</body>
+</html>

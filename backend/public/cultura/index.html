@@ -14,7 +14,8 @@
 <body>
   <!-- Scroll Progress -->
   <div class="scroll-progress"></div>
-<!-- VLibras Widget -->
+
+  <!-- VLibras Widget -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -301,24 +302,6 @@
       }
     }
 
-    @media (min-width: 1025px) {
-      .welcome-text {
-        font-size: 1.12rem !important;
-      }
-      .hero-title {
-        font-size: clamp(2.35rem, 3.4vw, 3.15rem) !important;
-      }
-      .hero-description {
-        font-size: 1.18rem;
-        max-width: 520px;
-        line-height: 1.65;
-      }
-      .cta-btn {
-        font-size: 1.05rem;
-        padding: 1.1rem 2.25rem;
-      }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .blob-bg,
       .hero-title,
@@ -518,35 +501,14 @@
         <button id="closeModalBtn" class="close-modal-btn"><i data-lucide="x"></i></button>
         <div class="newsletter-image-side"></div>
         <div class="newsletter-content">
-          <h2 class="newsletter-title">Receba Nossas Atualizações</h2>
-          <p class="newsletter-desc">Cadastre-se para receber avisos, novidades e informações sobre nossos eventos culturais, cursos e muito mais.</p>
+          <h2 class="newsletter-title">Fique por dentro!</h2>
+          <p class="newsletter-desc">Entre no nosso grupo do WhatsApp para receber avisos, novidades e informações sobre nossos eventos culturais, cursos e muito mais, diretamente no seu celular.</p>
           
-          <form class="newsletter-form" onsubmit="event.preventDefault(); document.getElementById('newsletterModal').style.display='none'; showToast('Cadastro realizado com sucesso! Você passará a receber nossas notificações.', 'success');">
-            <div class="input-group">
-              <i data-lucide="user"></i>
-              <input type="text" placeholder="Seu Nome Completo" required>
-            </div>
-            <div class="input-group">
-              <i data-lucide="mail"></i>
-              <input type="email" placeholder="Seu melhor e-mail" required>
-            </div>
-            
-            <div class="toggle-container">
-              <label class="toggle-switch">
-                <input type="checkbox" checked>
-                <span class="slider round"></span>
-              </label>
-              <span class="toggle-label" style="color: white;">Ativar notificações e avisos</span>
-            </div>
-
-            <button type="submit" class="newsletter-btn">Cadastrar <i data-lucide="send"></i></button>
-          </form>
-
-          <div class="whatsapp-group-container" style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
-            <p style="font-size: 0.95rem; margin-bottom: 12px; opacity: 0.9;">Ou receba as novidades pelo WhatsApp:</p>
-            <a href="https://chat.whatsapp.com/LvbTMjtWSvC7PRTDzXOUx2" target="_blank" class="whatsapp-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; background-color: #25D366; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(37, 211, 102, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(37, 211, 102, 0.4)';">
-              <i data-lucide="message-circle"></i>
-              Entrar no Grupo
+          <div class="whatsapp-group-container" style="margin-top: 35px; display: flex; flex-direction: column; align-items: center;">
+            <a href="https://chat.whatsapp.com/LvbTMjtWSvC7PRTDzXOUx2" target="_blank" class="whatsapp-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 14px; font-size: 1.15rem; text-decoration: none; font-weight: 700; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); width: 100%; box-sizing: border-box; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(37, 211, 102, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(37, 211, 102, 0.4)';">
+              <i data-lucide="message-circle" style="width:24px; height:24px;"></i>
+              Entrar no Grupo do WhatsApp
+              <div class="btn-shine"></div>
             </a>
           </div>
         </div>
@@ -571,17 +533,23 @@
           to { opacity: 1; }
         }
         
+        @keyframes modalFloat {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+          100% { transform: translateY(0); }
+        }
+
         .newsletter-container {
           background: linear-gradient(135deg, #ff716e 0%, #ff9f66 100%);
-          box-shadow: 0 20px 50px rgba(255, 113, 110, 0.3);
-          border-radius: 24px;
+          box-shadow: 0 20px 50px rgba(255, 113, 110, 0.4), 0 0 40px rgba(255, 159, 102, 0.2);
+          border-radius: 28px;
           padding: 0;
-          max-width: 900px;
-          width: 90%;
+          max-width: 1100px; /* Increased from 900px */
+          width: 95%;
           position: relative;
           text-align: center;
           transform: translateY(50px);
-          animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, modalFloat 6s ease-in-out infinite 0.6s;
           color: white;
           display: flex;
           overflow: hidden;
@@ -589,11 +557,27 @@
         
         .newsletter-image-side {
           display: none;
-          flex: 1;
+          flex: 1.2;
           background: url('./modal_banner.png') center/cover no-repeat;
-          min-width: 350px;
+          min-width: 450px;
+          position: relative;
         }
-        
+
+        .newsletter-image-side::after {
+          content: "";
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+          background-size: 200% 200%;
+          animation: shineEffect 5s linear infinite;
+          pointer-events: none;
+        }
+
+        @keyframes shineEffect {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+
         @media (min-width: 768px) {
           .newsletter-image-side {
             display: block;
@@ -602,11 +586,28 @@
         
         .newsletter-content {
           flex: 1;
-          padding: 50px;
+          padding: 70px 60px; /* Increased padding */
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
         
         @keyframes slideUp {
           to { transform: translateY(0); }
+        }
+        
+        .btn-shine {
+          position: absolute;
+          top: 0; left: -100%;
+          width: 50%; height: 100%;
+          background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+          transform: skewX(-20deg);
+          animation: btnShineAnim 4s infinite;
+        }
+        @keyframes btnShineAnim {
+          0% { left: -100%; }
+          20% { left: 200%; }
+          100% { left: 200%; }
         }
         
         .close-modal-btn {
@@ -633,13 +634,13 @@
         
         .newsletter-title {
           font-family: 'Rubik', sans-serif;
-          font-size: 2.2rem;
+          font-size: 2.8rem;
           font-weight: 800;
-          margin-bottom: 15px;
+          margin-bottom: 20px;
         }
         
         .newsletter-desc {
-          font-size: 1.05rem;
+          font-size: 1.3rem;
           margin-bottom: 30px;
           line-height: 1.6;
           opacity: 0.9;
@@ -829,8 +830,6 @@
         });
       </script>
     </div>
-  
-  <script src="/cultura/acessibilidade.js" defer></script>
 </body>
 </html>
 

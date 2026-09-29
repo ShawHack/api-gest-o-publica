@@ -39,6 +39,10 @@ const agendaAppointmentSchema = new Schema(
     completedAt: Date,
     noShowAt: Date,
     statusUpdatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    /** Senha exibida no painel da TV (reservada no agendamento). */
+    panelTicket: { type: String, trim: true, default: '' },
+    panelTicketPrefix: { type: String, trim: true, default: '' },
+    panelTicketNumber: { type: Number, min: 0 },
     statusHistory: [{
       status: { type: String, enum: ['booked', 'confirmed', 'cancelled', 'completed', 'no_show'], required: true },
       at: { type: Date, required: true },

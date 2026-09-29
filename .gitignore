@@ -40,6 +40,10 @@ cultura-src/biblioteca/bibliotecaimages/
 cultura-src/biblioteca/*.mp4
 
 # Backups e pacotes
+backups/
+backend/public/agendamentos/downloads/
+deploy-*/
+*-before-*
 full/
 backend.pre_sync_bak.*/
 *.bak

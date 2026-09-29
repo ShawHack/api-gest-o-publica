@@ -1,12 +1,11 @@
 const Votation = require('../models/Votation')
-const VotingServidor = require('../models/VotingServidor')
 const validateCPF = require('../helpers/validate-cpf')
-const { onlyDigits, computeCpfHash, cpfLast4 } = require('../helpers/voting-identity-hash')
+const { onlyDigits, cpfLast4, normalizeNomeForLogin } = require('../helpers/voting-identity-hash')
 const { nowInRange, hasParticipated } = require('../helpers/voting-election-service')
 const { issueVotingSession } = require('../helpers/voting-auth-session')
 const { landingPath } = require('../helpers/voting-slug')
 const { recordVoteEvent } = require('../helpers/vote-audit-bridge')
-const { findEligibleVoter } = require('../helpers/voting-electorate-service')
+const { findEligibleVoter, suggestVoterNames } = require('../helpers/voting-electorate-service')
 
 function publicVotationFields(v) {
   return {
@@ -45,10 +44,28 @@ module.exports = {
     }
   },
 
+  async suggestNames(req, res) {
+    try {
+      const slug = String(req.params.slug || '').trim().toLowerCase()
+      const q = String(req.query?.q || '').trim()
+      const vot = await Votation.findOne({ slug }).lean()
+      if (!vot) return res.status(404).json({ message: 'Pleito não encontrado.' })
+      if (!['test', 'active'].includes(vot.status)) {
+        return res.json({ suggestions: [] })
+      }
+      if (q.length < 2) return res.json({ suggestions: [] })
+      const suggestions = await suggestVoterNames(vot, q, { limit: 8 })
+      return res.json({ suggestions })
+    } catch (e) {
+      console.error('[VotingLanding.suggestNames]', e)
+      return res.status(500).json({ message: 'Erro ao buscar nomes.' })
+    }
+  },
+
   async unlockWithCpf(req, res) {
     try {
       const slug = String(req.params.slug || '').trim().toLowerCase()
-      const { cpf } = req.body || {}
+      const { cpf, nome } = req.body || {}
       const vot = await Votation.findOne({ slug })
       if (!vot) return res.status(404).json({ message: 'Pleito não encontrado.' })
 
@@ -75,23 +92,45 @@ module.exports = {
         })
       }
 
+      const nomeTrim = String(nome || '').trim()
       const cpfClean = onlyDigits(cpf)
-      if (!cpfClean || !validateCPF(cpfClean)) {
+      const hasValidCpf = !!(cpfClean && validateCPF(cpfClean))
+
+      if (!nomeTrim && !hasValidCpf) {
         void recordVoteEvent(req, {
           votationId: vot._id,
           action: 'auth.unlock_failed',
           resourceType: 'servidor',
           eventType: 'SECURITY',
           status: 'denied',
-          meta: { reason: 'invalid_cpf', slug },
+          meta: { reason: 'missing_identity', slug },
         })
-        return res.status(422).json({ reason: 'invalid_cpf', message: 'CPF inválido. Verifique os números informados.' })
+        return res.status(422).json({
+          reason: 'invalid_identity',
+          message: 'Informe seu nome completo cadastrado.',
+        })
+      }
+
+      if (nomeTrim && (!normalizeNomeForLogin(nomeTrim) || nomeTrim.length < 3) && !hasValidCpf) {
+        void recordVoteEvent(req, {
+          votationId: vot._id,
+          action: 'auth.unlock_failed',
+          resourceType: 'servidor',
+          eventType: 'SECURITY',
+          status: 'denied',
+          meta: { reason: 'invalid_nome', slug },
+        })
+        return res.status(422).json({
+          reason: 'invalid_nome',
+          message: 'Informe o nome completo exatamente como está na lista de eleitores.',
+        })
       }
 
       const doc = await findEligibleVoter(vot, {
-        cpf: cpfClean,
-        name: req.body?.nome,
+        cpf: hasValidCpf ? cpfClean : '',
+        name: nomeTrim,
         identifier: req.body?.identificador,
+        phone: req.body?.whatsapp || req.body?.telefone,
       })
       if (!doc) {
         void recordVoteEvent(req, {
@@ -100,11 +139,17 @@ module.exports = {
           resourceType: 'servidor',
           eventType: 'SECURITY',
           status: 'denied',
-          meta: { reason: 'not_eligible', cpfLast4: cpfLast4(cpfClean), slug },
+          meta: {
+            reason: 'not_eligible',
+            cpfLast4: hasValidCpf ? cpfLast4(cpfClean) : undefined,
+            slug,
+          },
         })
         return res.status(401).json({
           reason: 'not_eligible',
-          message: 'CPF não consta na base eleitoral deste pleito.',
+          message: nomeTrim
+            ? 'Nome não consta na base eleitoral deste pleito.'
+            : 'CPF não consta na base eleitoral deste pleito.',
         })
       }
 
@@ -174,7 +219,7 @@ module.exports = {
       })
     } catch (e) {
       console.error('[VotingLanding.unlockWithCpf]', e)
-      return res.status(500).json({ message: 'Erro ao validar CPF.' })
+      return res.status(500).json({ message: 'Erro ao validar identificação.' })
     }
   },
 }

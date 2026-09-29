@@ -2,19 +2,60 @@ const crypto = require('crypto')
 const VotingServidor = require('../models/VotingServidor')
 const VotingRefreshToken = require('../models/VotingRefreshToken')
 const validateCPF = require('../helpers/validate-cpf')
-const { onlyDigits, findServidorByCpf, cpfLast4 } = require('../helpers/voting-identity-hash')
-const { findServidorByMatriculaAndCpf, findServidorByNomeAndCpf } = require('../helpers/voting-election-service')
+const { onlyDigits, findServidorByCpf, cpfLast4, normalizeNomeForLogin } = require('../helpers/voting-identity-hash')
+const { findServidorByMatriculaAndCpf, findServidorByNomeAndCpf, findServidorByNome } = require('../helpers/voting-election-service')
+const { suggestVoterNames } = require('../helpers/voting-electorate-service')
 const { hashRefresh, signAccess, issueVotingSession } = require('../helpers/voting-auth-session')
 const { recordVoteEvent } = require('../helpers/vote-audit-bridge')
 
 const ACCESS_TTL = process.env.VOTACAO_ACCESS_TTL || '15m'
 const REFRESH_TTL_DAYS = parseInt(process.env.VOTACAO_REFRESH_DAYS || '7', 10)
 module.exports = {
+  async suggestNames(req, res) {
+    try {
+      const q = String(req.query?.q || '').trim()
+      if (q.length < 2) return res.json({ suggestions: [] })
+      const suggestions = await suggestVoterNames(null, q, { limit: 8 })
+      return res.json({ suggestions })
+    } catch (e) {
+      console.error('[VotingAuth.suggestNames]', e)
+      return res.status(500).json({ message: 'Erro ao buscar nomes.' })
+    }
+  },
+
   async login(req, res) {
     try {
       const { cpf, nome, matricula } = req.body || {}
       const cpfClean = onlyDigits(cpf)
-      if (!cpfClean || !validateCPF(cpfClean)) {
+      const hasValidCpf = !!(cpfClean && validateCPF(cpfClean))
+      const nomeTrim = String(nome || '').trim()
+
+      let doc = null
+
+      // Preferência: nome completo (substitui CPF)
+      if (nomeTrim && !hasValidCpf) {
+        if (!normalizeNomeForLogin(nomeTrim) || nomeTrim.length < 3) {
+          void recordVoteEvent(req, {
+            action: 'auth.login_failed',
+            resourceType: 'servidor',
+            eventType: 'SECURITY',
+            status: 'denied',
+            meta: { reason: 'invalid_nome' },
+          })
+          return res.status(422).json({ message: 'Informe o nome completo cadastrado.' })
+        }
+        doc = await findServidorByNome(nomeTrim)
+        if (!doc) {
+          void recordVoteEvent(req, {
+            action: 'auth.login_failed',
+            resourceType: 'servidor',
+            eventType: 'SECURITY',
+            status: 'denied',
+            meta: { reason: 'nome_not_found' },
+          })
+          return res.status(401).json({ message: 'Nome não encontrado na base de eleitores.' })
+        }
+      } else if (!hasValidCpf) {
         void recordVoteEvent(req, {
           action: 'auth.login_failed',
           resourceType: 'servidor',
@@ -22,12 +63,9 @@ module.exports = {
           status: 'denied',
           meta: { reason: 'invalid_cpf' },
         })
-        return res.status(422).json({ message: 'CPF inválido.' })
-      }
-
-      let doc = null
-      if (nome && String(nome).trim()) {
-        doc = await findServidorByNomeAndCpf(nome, cpfClean)
+        return res.status(422).json({ message: 'Informe o nome completo (ou CPF válido no formato legado).' })
+      } else if (nomeTrim) {
+        doc = await findServidorByNomeAndCpf(nomeTrim, cpfClean)
         if (!doc) {
           void recordVoteEvent(req, {
             action: 'auth.login_failed',

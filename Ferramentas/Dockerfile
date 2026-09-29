@@ -18,14 +18,9 @@ COPY package.json package-lock.json* ./
 RUN mkdir -p public && npm ci
 
 COPY . .
-# node-pre-gyp e seu tar empacotado são usados apenas para instalar o binário
-# nativo do muhammara; não são necessários durante a execução da aplicação.
 RUN npm run test:smoke \
   && npm run build \
-  && npm prune --omit=dev \
-  && rm -rf \
-    node_modules/muhammara/node_modules/@mapbox \
-    node_modules/muhammara/node_modules/tar
+  && npm prune --omit=dev
 
 ENV NODE_ENV=production
 

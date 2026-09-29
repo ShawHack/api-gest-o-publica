@@ -87,17 +87,46 @@ module.exports = class CulturaPostController {
       const filter = buildPublicFilter(req.query)
       const sort = { publishedAt: -1, createdAt: -1 }
 
+      let items = await CulturaPost.find(filter).lean()
+
+      const getEventDate = (post) => {
+        if (!post.datasHorarios || post.datasHorarios.length === 0) return Infinity
+        let minDate = Infinity
+        for (const dh of post.datasHorarios) {
+          if (!dh.data) continue
+          const parts = dh.data.split('/')
+          if (parts.length === 3) {
+            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00Z`).getTime()
+            if (!isNaN(d) && d < minDate) {
+              minDate = d
+            }
+          }
+        }
+        return minDate
+      }
+
+      items.sort((a, b) => {
+        // Se ambos forem Evento, ordenar por data crescente
+        if (a.tipo === 'Evento' && b.tipo === 'Evento') {
+          const dateA = getEventDate(a)
+          const dateB = getEventDate(b)
+          if (dateA !== dateB) return dateA - dateB
+        }
+        // Se apenas um for Evento, podemos manter a ordem padrão ou colocar eventos primeiro,
+        // mas como a query geralmente filtra por tipo, o fallback é publishedAt
+        const pubA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
+        const pubB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
+        return pubB - pubA
+      })
+
       if (!req.query.page && !req.query.limit) {
-        const items = await CulturaPost.find(filter).sort(sort).lean()
         return res.json(items.map(normalizePost))
       }
 
       const { page, limit, skip } = parsePagination(req.query, { maxLimit: 100 })
-      const [items, total] = await Promise.all([
-        CulturaPost.find(filter).sort(sort).skip(skip).limit(limit).lean(),
-        CulturaPost.countDocuments(filter),
-      ])
-      return res.json(paginatedResponse(items.map(normalizePost), total, page, limit))
+      const total = items.length
+      const paginatedItems = items.slice(skip, skip + limit)
+      return res.json(paginatedResponse(paginatedItems.map(normalizePost), total, page, limit))
     } catch (error) {
       console.error('[CulturaPostController.listPublic]', error)
       return err(res, 500, 'Erro ao listar publicações')

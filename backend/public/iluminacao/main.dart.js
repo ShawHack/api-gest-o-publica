@@ -126970,7 +126970,7 @@ A.dN().$1("[IluminacaoMap] Marcadores gerados: "+i.length+" ocorr\xeancias, "+h.
 j=k.a.d
 r=k.gan1()
 q=t.p
-p=A.b([A.bh1(19,18,B.Q0,"https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",l),A.bh1(19,18,B.Q0,"https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",l)],q)
+p=A.b([A.bh1(19,18,B.Q0,"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",l),A.bh1(19,18,B.Q0,"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",l)],q)
 if(k.a.c.y){o=A.X(i).i("a0<1,rA<x>>")
 o=A.a_(new A.a0(i,new A.aX0(),o),o.i("al.E"))
 p.push(new A.Gn(o,m,t.Pi))}if(k.a.c.x){o=A.X(h).i("a0<1,lz>")

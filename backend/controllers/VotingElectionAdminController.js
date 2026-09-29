@@ -193,7 +193,16 @@ module.exports = {
   async importVoters(req, res) {
     try {
       const content = req.body?.csv
-      const result = await importVotersFromCsv(VotingServidor, content ? { content } : {})
+      if (content == null || !String(content).trim()) {
+        return res.status(400).json({
+          message: 'Cole o conteudo do CSV antes de importar (separador ;).',
+          code: 'CSV_REQUIRED',
+        })
+      }
+      const result = await importVotersFromCsv(VotingServidor, {
+        content: String(content),
+        replace: req.body?.replace !== false,
+      })
       void recordVoteEvent(req, {
         action: 'admin.voters_import',
         resourceType: 'voting_servidor',
@@ -202,13 +211,19 @@ module.exports = {
           imported: result.imported,
           updated: result.updated,
           skipped: result.skipped,
+          deactivated: result.deactivated,
+          replace: result.replace,
           errors: result.errors.length,
         },
       })
       return res.json(result)
     } catch (e) {
       console.error('[VotingElectionAdmin.importVoters]', e)
-      return res.status(500).json({ message: 'Erro ao importar eleitores.' })
+      const status = Number(e.statusCode) || 500
+      return res.status(status).json({
+        message: e.message || 'Erro ao importar eleitores.',
+        code: e.code || 'IMPORT_FAILED',
+      })
     }
   },
 

@@ -86,10 +86,9 @@
         <div id="loader" class="loader">Validando permissões…</div>
     </div>
 
+    <script src="/semit-session.js?v=1"></script>
     <script>
         (function () {
-            var TOKEN_KEY = 'semit_dashboard_token';
-            var REFRESH_KEY = 'semit_dashboard_refresh';
             var API = '/api/admin/dashboard';
 
             function showMsg(text, type) {
@@ -109,21 +108,20 @@
             }
 
             function authHeaders() {
-                var t = sessionStorage.getItem(TOKEN_KEY);
-                return t ? { Authorization: 'Bearer ' + t } : {};
+                return SemitSession.authHeaders();
             }
 
             function clearSession() {
-                sessionStorage.removeItem(TOKEN_KEY);
+                SemitSession.clear();
             }
 
             async function validateSession() {
-                var token = sessionStorage.getItem(TOKEN_KEY);
-                if (!token) return false;
-                var res = await fetch(API + '/session', {
-                    headers: { Authorization: 'Bearer ' + token },
-                    cache: 'no-store',
-                });
+                SemitSession.restoreSync();
+                if (!SemitSession.readAccess() && SemitSession.readRefresh()) {
+                    await SemitSession.refreshAccess();
+                }
+                if (!SemitSession.readAccess()) return false;
+                var res = await SemitSession.fetchAuth(API + '/session');
                 if (res.status === 401) {
                     clearSession();
                     return false;
@@ -145,9 +143,8 @@
                         setLoading(false);
                         return;
                     }
-                    var res = await fetch(API + '/content', {
+                    var res = await SemitSession.fetchAuth(API + '/content', {
                         headers: authHeaders(),
-                        cache: 'no-store',
                     });
                     if (res.status === 401 || res.status === 403) {
                         clearSession();
@@ -195,8 +192,7 @@
                         showMsg('Resposta de login inválida.', 'error');
                         return;
                     }
-                    sessionStorage.setItem(TOKEN_KEY, data.token || data.accessToken);
-                    if (data.refreshToken) sessionStorage.setItem(REFRESH_KEY, data.refreshToken);
+                    SemitSession.persist(data.token || data.accessToken, data.refreshToken);
                     await loadDashboard();
                 } catch (e) {
                     setLoading(false);

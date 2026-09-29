@@ -336,32 +336,43 @@
     panel.innerHTML = `
       ${topNav('eleitores')}
       <div class="card">
-        <h2>Importar CSV (base global)</h2>
-        <p class="muted">Colunas: Nome; Empresa; Departamento; Cargo; Matrícula; CPF (separador ;). Elegibilidade por pleito ainda é global nesta fase.</p>
-        <textarea id="csvContent" rows="6" placeholder="Cole o conteúdo do CSV"></textarea>
+        <h2>Importar CSV (base do pleito)</h2>
+        <p class="muted">Colunas: Nome e Telefone (separador ; , tab ou espaço). A importação <strong>substitui</strong> a lista ativa — eleitores de importações anteriores saem da base.</p>
+        <textarea id="csvContent" rows="6" placeholder="Nome;Telefone&#10;Maria Silva;(14) 99999-9999"></textarea>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.9rem;">
+          <input type="checkbox" id="replaceList" checked style="width:auto;" />
+          Substituir lista atual (não acumular com eleitores antigos)
+        </label>
         <div class="row" style="margin-top:8px;">
           <button type="button" id="btnImport">Importar eleitores</button>
         </div>
         <pre class="raw" id="importResult"></pre>
-        <h3>Cadastrados</h3>
+        <h3>Cadastrados (ativos)</h3>
         <div id="servidoresList" class="muted">—</div>
       </div>
     `
     el('btnImport').addEventListener('click', async () => {
       try {
+        const csv = String(el('csvContent').value || '').trim()
+        if (!csv) {
+          el('importResult').textContent = 'Cole o conteudo do CSV antes de importar.'
+          return
+        }
+        el('importResult').textContent = 'Importando...'
         const result = await api('/admin/servidores/import', {
           method: 'POST',
-          body: JSON.stringify({ csv: el('csvContent').value }),
+          body: JSON.stringify({ csv, replace: !!el('replaceList')?.checked }),
         })
         el('importResult').textContent = JSON.stringify(result, null, 2)
         await refreshServidores()
       } catch (e) {
-        el('importResult').textContent = e.message
+        el('importResult').textContent = e.message || 'Erro ao importar eleitores.'
       }
     })
     async function refreshServidores() {
       const data = await api('/admin/servidores')
-      el('servidoresList').textContent = `${(data.servidores || []).length} eleitor(es) cadastrado(s).`
+      const ativos = (data.servidores || []).filter((s) => s.active !== false)
+      el('servidoresList').textContent = `${ativos.length} eleitor(es) ativo(s) na base.`
     }
     try {
       await refreshServidores()

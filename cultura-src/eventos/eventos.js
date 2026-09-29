@@ -11,7 +11,7 @@ async function loadPosts() {
   try {
     let categories = [];
     try {
-      const catRes = await fetch('http://localhost:3000/api/categories');
+      const catRes = await fetch('/api/categories');
       categories = await catRes.json();
       
       const categorySelect = document.querySelector('.category-select');
@@ -23,7 +23,7 @@ async function loadPosts() {
     } catch(e) { console.error('Erro categorias:', e); }
 
     // 2. Fetch Posts
-    const res = await fetch('http://localhost:3000/api/posts');
+    const res = await fetch('/api/posts');
     let posts = await res.json();
     
     grid.innerHTML = '';
@@ -35,10 +35,35 @@ async function loadPosts() {
       return;
     }
 
-    // Função auxiliar para data de exibição (criação)
+    // Parse YYYY-MM-DD as local date (evita UTC midnight → dia anterior no BR)
+    const parseLocalDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+      const s = String(value).trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    
+    const formatBrDate = (value) => {
+      if (!value) return '';
+      const s = String(value).trim();
+      const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+      const br = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (br) return s;
+      const d = (typeof parseLocalDate === 'function') ? parseLocalDate(s) : new Date(s);
+      if (!d || isNaN(d.getTime())) return s;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${dd}/${mm}/${d.getFullYear()}`;
+    };
+
     const getCreationDateStr = (dateString) => {
-      const dt = new Date(dateString);
-      return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace(' de ', ' de ');
+      const dt = parseLocalDate(dateString);
+      if (!dt) return '—';
+      return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
     // --- Renderizar Main Grid ---
@@ -47,16 +72,31 @@ async function loadPosts() {
       let imgPath = '';
       if (post.imagensUrl && post.imagensUrl.length > 0) {
         const principalImg = post.imagensUrl[0];
-        imgPath = principalImg.startsWith('http') ? principalImg : `http://localhost:3000${principalImg}`;
+        imgPath = principalImg.startsWith('http') ? principalImg : `${principalImg}`;
         imageHTML = `<img src="${imgPath}" alt="${post.titulo}">`;
       } else {
         imageHTML = `<div style="background:#e2e8f0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;"><i data-lucide="image"></i></div>`;
       }
 
       // Se tiver data do evento, mostrar a primeira data. Senão, data de criação.
-      let eventDateStr = getCreationDateStr(post.dataCriacao);
+      let timestamp = 0;
+      let eventDateStr = getCreationDateStr(post.createdAt || post.publishedAt || post.dataCriacao);
       if (post.datasHorarios && post.datasHorarios.length > 0) {
-         eventDateStr = post.datasHorarios[0].data + ' às ' + post.datasHorarios[0].horario;
+         const sess = post.datasHorarios[0];
+         const timeLabel = sess.horarioLabel || (sess.horarioFim ? `${sess.horario} – ${sess.horarioFim}` : sess.horario);
+         eventDateStr = formatBrDate(sess.data) + (timeLabel ? ' · ' + timeLabel : '');
+         
+         let d = null;
+         if (sess.data.includes('/')) {
+            const parts = sess.data.split('/');
+            d = new Date(parts[2], parts[1] - 1, parts[0]);
+         } else {
+            d = parseLocalDate(sess.data);
+         }
+         if (d) timestamp = d.getTime();
+      } else {
+         const d = parseLocalDate(post.createdAt || post.publishedAt || post.dataCriacao);
+         if (d) timestamp = d.getTime();
       }
 
       let formatoBadges = '';
@@ -71,7 +111,7 @@ async function loadPosts() {
       }
 
       const cardHTML = `
-        <a href="detalhes.html?id=${post._id}" class="event-card" data-category="${post.tipo}" data-formato='${formatoJson}'>
+        <a href="detalhes.html?id=${post._id}" class="event-card" data-category="${post.tipo}" data-formato='${formatoJson}' data-timestamp="${timestamp}">
           <div class="event-image">
             ${imageHTML}
           </div>
@@ -111,8 +151,8 @@ async function loadPosts() {
             let day = "00";
             let monthStr = "MÊS";
             const dateRaw = post.datasHorarios[0].data; 
-            const d = new Date(dateRaw);
-            if (!isNaN(d.getTime())) {
+            const d = parseLocalDate(dateRaw);
+            if (d) {
               day = String(d.getDate()).padStart(2, '0');
               monthStr = d.toLocaleString('pt-BR', { month: 'short' }).toUpperCase().replace('.', '');
             } else if (dateRaw.includes('/')) {
@@ -130,7 +170,7 @@ async function loadPosts() {
                 </div>
                 <div class="upcoming-info">
                   <h4>${post.titulo}</h4>
-                  <p><i data-lucide="clock" style="width:12px;height:12px;"></i> ${dateRaw} às ${post.datasHorarios[0].horario}</p>
+                  <p><i data-lucide="clock" style="width:12px;height:12px;"></i> ${formatBrDate(dateRaw)} · ${post.datasHorarios[0].horarioLabel || (post.datasHorarios[0].horarioFim ? `${post.datasHorarios[0].horario} – ${post.datasHorarios[0].horarioFim}` : post.datasHorarios[0].horario)}</p>
                 </div>
               </div>
             `;
@@ -151,11 +191,11 @@ async function loadPosts() {
     // --- Renderizar Mais Lidas (Sidebar) ---
     // Usando os 3 posts mais recentes como "Mais Lidas" por enquanto
     if (topNewsContainer) {
-      const topPosts = [...posts].sort((a,b) => new Date(b.dataCriacao) - new Date(a.dataCriacao)).slice(0, 3);
+      const topPosts = [...posts].sort((a,b) => (parseLocalDate(b.createdAt || b.publishedAt || b.dataCriacao) || 0) - (parseLocalDate(a.createdAt || a.publishedAt || a.dataCriacao) || 0)).slice(0, 3);
       topPosts.forEach((post, index) => {
         let imgPath = '';
         if (post.imagensUrl && post.imagensUrl.length > 0) {
-          imgPath = post.imagensUrl[0].startsWith('http') ? post.imagensUrl[0] : `http://localhost:3000${post.imagensUrl[0]}`;
+          imgPath = post.imagensUrl[0].startsWith('http') ? post.imagensUrl[0] : `${post.imagensUrl[0]}`;
         } else {
           imgPath = '../logo.jpg'; // fallback
         }
@@ -189,6 +229,9 @@ function initFilters() {
   const filterBtns = document.querySelectorAll('.filter-btn');
   const categorySelect = document.querySelector('.category-select');
   const cards = document.querySelectorAll('.event-card');
+  const grid = document.getElementById('events-grid-container');
+  const btnSort = document.querySelector('.btn-sort');
+  let currentSort = 'recentes';
 
   const applyFilters = () => {
     const activeBtn = document.querySelector('.filter-btn.active');
@@ -222,7 +265,31 @@ function initFilters() {
         card.style.display = 'none';
       }
     });
+
+    // Apply Sort Visually
+    if (grid) {
+      const cardsArray = Array.from(grid.querySelectorAll('.event-card'));
+      cardsArray.sort((a, b) => {
+         const tA = parseInt(a.getAttribute('data-timestamp') || '0', 10);
+         const tB = parseInt(b.getAttribute('data-timestamp') || '0', 10);
+         if (currentSort === 'recentes') {
+            return tB - tA; // Mais recentes primeiro (descendente)
+         } else {
+            return tA - tB; // Mais antigos primeiro (ascendente)
+         }
+      });
+      cardsArray.forEach(card => grid.appendChild(card));
+    }
   };
+
+  if (btnSort) {
+    btnSort.addEventListener('click', () => {
+      currentSort = currentSort === 'recentes' ? 'antigos' : 'recentes';
+      btnSort.innerHTML = currentSort === 'recentes' ? 'Mais recentes <i data-lucide="chevron-down"></i>' : 'Mais antigos <i data-lucide="chevron-up"></i>';
+      if (window.lucide) lucide.createIcons();
+      applyFilters();
+    });
+  }
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {

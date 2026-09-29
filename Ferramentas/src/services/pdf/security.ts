@@ -1,4 +1,3 @@
-import muhammara from "muhammara";
 import { AppError, UserMessages, logTechnical } from "@/lib/errors";
 
 function assertBuffer(buffer: Buffer, label: string) {
@@ -10,7 +9,13 @@ function assertBuffer(buffer: Buffer, label: string) {
   }
 }
 
-function recryptBuffer(
+async function getMuhammara() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mod: any = await import("muhammara");
+  return mod.default || mod;
+}
+
+async function recryptBuffer(
   input: Buffer,
   options: {
     password?: string;
@@ -18,7 +23,8 @@ function recryptBuffer(
     ownerPassword?: string;
     userProtectionFlag?: number;
   },
-): Buffer {
+): Promise<Buffer> {
+  const muhammara = await getMuhammara();
   const inputStream = new muhammara.PDFRStreamForBuffer(input);
   const outputStream = new muhammara.PDFWStreamForBuffer();
   muhammara.recrypt(inputStream, outputStream, options);
@@ -39,7 +45,7 @@ export async function protectPdf(buffer: Buffer, password: string): Promise<Buff
   }
 
   try {
-    return recryptBuffer(buffer, {
+    return await recryptBuffer(buffer, {
       userPassword: password,
       ownerPassword: password,
       userProtectionFlag: 4,
@@ -64,7 +70,7 @@ export async function unlockPdf(buffer: Buffer, password: string): Promise<Buffe
   }
 
   try {
-    return recryptBuffer(buffer, {
+    return await recryptBuffer(buffer, {
       password,
       userPassword: "",
       ownerPassword: "",

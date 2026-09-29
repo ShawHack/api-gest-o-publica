@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Integrações — Turismo Garça</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;color:#10213f;background:#f4f7fb}
+    header,main{max-width:1100px;margin:auto;padding:22px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    a{color:#075d57;text-decoration:none}a:hover{text-decoration:underline}
+    h1{margin:0 0 8px;font-size:clamp(1.6rem,3vw,2.1rem)}
+    .lead{color:#52627a;margin:0 0 24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+    .card{background:#fff;border-radius:18px;box-shadow:0 14px 40px #10213f14;display:flex;flex-direction:column;padding:18px;gap:8px}
+    .card h2{margin:0;font-size:1.1rem;line-height:1.3}
+    .meta{color:#64748b;font-size:.9rem}
+    .badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#eff6ff;color:#1e3a8a;font-size:.78rem;font-weight:700;margin-right:6px}
+    .badge.ok{background:#ecfdf5;color:#065f46}
+    .btn{display:inline-flex;align-items:center;justify-content:center;margin-top:auto;padding:10px 14px;border-radius:10px;background:#075d57;color:#fff;font-weight:700}
+    .empty,.error{padding:28px;background:#fff;border-radius:14px;color:#52627a}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/turismo/">← Turismo Garça</a>
+    <a href="/turismo/comtur">COMTUR</a>
+  </header>
+  <main>
+    <h1>Integrações</h1>
+    <p class="lead">Sistemas e conexões do Portal Municipal de Turismo.</p>
+    <div id="list" class="grid" aria-live="polite">Carregando…</div>
+  </main>
+  <script>
+  (async () => {
+    const box = document.getElementById('list');
+    try {
+      const res = await fetch('/api/comtur/content?type=integration&limit=50');
+      if (!res.ok) throw new Error(res.status);
+      const { data = [] } = await res.json();
+      const items = data.filter((i) => (i.metadata || {}).showOnPortal !== false);
+      if (!items.length) {
+        box.className = 'empty';
+        box.textContent = 'Nenhuma integração publicada no momento.';
+        return;
+      }
+      box.innerHTML = '';
+      items.forEach((item) => {
+        const meta = item.metadata || {};
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = `/turismo/integracoes/${encodeURIComponent(item.slug)}`;
+        const tech = meta.techStatus || '';
+        a.innerHTML = `
+          <div>
+            ${meta.kind ? `<span class="badge">${meta.kind}</span>` : ''}
+            ${tech ? `<span class="badge ${tech === 'Ativa' ? 'ok' : ''}">${tech}</span>` : ''}
+          </div>
+          <h2>${item.title || 'Integração'}</h2>
+          <div class="meta">${meta.system || meta.platform || ''}</div>
+          <p class="meta">${(meta.description || item.summary || '').slice(0, 160)}</p>
+          <span class="btn">Ver integração</span>`;
+        box.append(a);
+      });
+    } catch (e) {
+      box.className = 'error';
+      box.textContent = 'Não foi possível carregar as integrações agora.';
+    }
+  })();
+  </script>
+</body>
+</html>

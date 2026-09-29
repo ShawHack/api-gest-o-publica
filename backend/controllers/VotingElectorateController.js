@@ -4,32 +4,51 @@ const VotingServidor = require('../models/VotingServidor')
 const Votation = require('../models/Votation')
 const { parseElectorCsv } = require('../helpers/voting-electorate-service')
 const validateCPF = require('../helpers/validate-cpf')
-const { onlyDigits, computeCpfHash, cpfLast4 } = require('../helpers/voting-identity-hash')
+const { onlyDigits, computeCpfHash, computeNomeLoginHash, computeNomeIdentityHash, cpfLast4, syntheticMatriculaFromNome } = require('../helpers/voting-identity-hash')
 const { recordVoteEvent } = require('../helpers/vote-audit-bridge')
 
 const userIdOf = (req) => req.user?._id || req.user?.id
 
-function electorPayload(body = {}, { requireCpf = false } = {}) {
+function electorPayload(body = {}, { requireIdentity = false } = {}) {
   const name = String(body.name || '').trim()
-  const identifier = String(body.identifier || '').trim()
+  const phone = onlyDigits(body.phone || body.telefone || body.whatsapp)
+  let identifier = String(body.identifier || '').trim()
   const cpf = onlyDigits(body.cpf)
   if (name.length < 3) return { error: 'Informe o nome completo do eleitor.' }
-  if (!identifier) return { error: 'Informe o identificador ou matrÃ­cula.' }
-  if (requireCpf && !cpf) return { error: 'Informe o CPF do eleitor.' }
-  if (cpf && !validateCPF(cpf)) return { error: 'CPF invÃ¡lido.' }
+
+  if (cpf) {
+    if (!validateCPF(cpf)) return { error: 'CPF inválido.' }
+    if (!identifier) identifier = cpfLast4(cpf)
+    return {
+      data: {
+        name,
+        identifier,
+        email: String(body.email || '').trim().toLowerCase(),
+        phone,
+        group: String(body.group || '').trim(),
+        role: String(body.role || '').trim(),
+        cpfHash: computeCpfHash(cpf),
+        cpfLast4: cpfLast4(cpf),
+        identityHash: computeCpfHash(`${cpf}|${identifier}`),
+      },
+    }
+  }
+
+  if (requireIdentity && phone.length < 10) {
+    return { error: 'Informe o telefone do eleitor (mín. 10 dígitos).' }
+  }
+  if (!identifier) identifier = syntheticMatriculaFromNome(name, phone)
   return {
     data: {
       name,
       identifier,
       email: String(body.email || '').trim().toLowerCase(),
-      phone: onlyDigits(body.phone),
+      phone,
       group: String(body.group || '').trim(),
       role: String(body.role || '').trim(),
-      ...(cpf ? {
-        cpfHash: computeCpfHash(cpf),
-        cpfLast4: cpfLast4(cpf),
-        identityHash: computeCpfHash(`${cpf}|${identifier}`),
-      } : {}),
+      cpfHash: computeNomeLoginHash(name),
+      cpfLast4: phone.length >= 4 ? phone.slice(-4) : '',
+      identityHash: computeNomeIdentityHash(name, phone),
     },
   }
 }
@@ -104,13 +123,13 @@ module.exports = {
     try {
       const base = await VotingElectorateBase.findOne({ _id: req.params.baseId, status: 'active' })
       if (!base) return res.status(404).json({ message: 'Base eleitoral nÃ£o encontrada.' })
-      const parsed = electorPayload(req.body, { requireCpf: true })
+      const parsed = electorPayload(req.body, { requireIdentity: true })
       if (parsed.error) return res.status(422).json({ message: parsed.error })
       const elector = await VotingElector.create({ ...parsed.data, electorateBaseId: base._id, active: true })
       void recordVoteEvent(req, { action: 'admin.electorate_elector_create', resourceType: 'voting_elector', resourceId: elector._id, eventType: 'CREATE', meta: { electorateBaseId: String(base._id) } })
       return res.status(201).json({ elector: publicElector(elector) })
     } catch (e) {
-      if (e.code === 11000) return res.status(409).json({ message: 'CPF ou identificador jÃ¡ cadastrado nesta base.' })
+      if (e.code === 11000) return res.status(409).json({ message: 'Nome ou identificador já cadastrado nesta base.' })
       console.error('[VotingElectorate.createElector]', e)
       return res.status(500).json({ message: 'Erro ao adicionar eleitor.' })
     }
@@ -129,7 +148,7 @@ module.exports = {
       void recordVoteEvent(req, { action: 'admin.electorate_elector_update', resourceType: 'voting_elector', resourceId: elector._id, before, after, meta: { electorateBaseId: String(elector.electorateBaseId) } })
       return res.json({ elector: after })
     } catch (e) {
-      if (e.code === 11000) return res.status(409).json({ message: 'CPF ou identificador jÃ¡ cadastrado nesta base.' })
+      if (e.code === 11000) return res.status(409).json({ message: 'Nome ou identificador já cadastrado nesta base.' })
       console.error('[VotingElectorate.updateElector]', e)
       return res.status(500).json({ message: 'Erro ao atualizar eleitor.' })
     }
