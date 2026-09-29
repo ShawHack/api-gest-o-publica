@@ -34,6 +34,8 @@ const User = mongoose.model(
           'secretario',
           'Secretario',
           'Secretário',
+          'forms_admin',
+          'forms_organizador',
         ],
         default: 'usuario',
         index: true,

@@ -6,12 +6,19 @@ const verifyToken = require('../helpers/verify-token');
 // Health check
 router.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
-// ─── FORMULÁRIOS ────────────────────────────
+// ─── ÁREA PÚBLICA (SEM TOKEN) ────────────────
+router.get('/public/forms/:slug', FormsGarcaController.getPublicFormBySlug);
+
+// ─── FORMULÁRIOS / EVENTOS (ADMIN & ORGANIZADOR) ──
 router.get('/forms/statistics', verifyToken, FormsGarcaController.getStatistics);
 router.get('/forms', verifyToken, FormsGarcaController.getForms);
 router.get('/forms/:id', verifyToken, FormsGarcaController.getFormById);
+router.get('/forms/:id/dashboard', verifyToken, FormsGarcaController.getFormDashboard);
 router.post('/forms', verifyToken, FormsGarcaController.createForm);
 router.put('/forms/:id', verifyToken, FormsGarcaController.updateForm);
+router.post('/forms/:id/duplicate', verifyToken, FormsGarcaController.duplicateForm);
+router.post('/forms/:id/publish', verifyToken, FormsGarcaController.publishForm);
+router.post('/forms/:id/archive', verifyToken, FormsGarcaController.archiveForm);
 router.delete('/forms/:id', verifyToken, FormsGarcaController.deleteForm);
 
 // ─── INSCRIÇÕES ─────────────────────────────

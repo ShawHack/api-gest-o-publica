@@ -2,10 +2,30 @@ import api from '../utils/api'
 
 const BASE = '/forms-garca'
 
-export const listForms = async (status) => (await api.get(`${BASE}/forms`, { params: status ? { status } : {} })).data
+export const listForms = async (params) => {
+  const query = typeof params === 'string' ? { status: params } : (params || {})
+  return (await api.get(`${BASE}/forms`, { params: query })).data
+}
+
 export const getForm = async (id) => (await api.get(`${BASE}/forms/${id}`)).data
+export const getFormDashboard = async (id) => (await api.get(`${BASE}/forms/${id}/dashboard`)).data
 export const createForm = async (payload) => (await api.post(`${BASE}/forms`, payload)).data
 export const updateForm = async (id, payload) => (await api.put(`${BASE}/forms/${id}`, payload)).data
+export const duplicateForm = async (id) => (await api.post(`${BASE}/forms/${id}/duplicate`)).data
+export const publishForm = async (id) => (await api.post(`${BASE}/forms/${id}/publish`)).data
+export const archiveForm = async (id) => (await api.post(`${BASE}/forms/${id}/archive`)).data
 export const deleteForm = async (id) => (await api.delete(`${BASE}/forms/${id}`)).data
 export const getStatistics = async () => (await api.get(`${BASE}/forms/statistics`)).data
-export const listInscriptions = async (formId) => (await api.get(`${BASE}/inscriptions`, { params: formId ? { formId } : {} })).data
+
+export const listInscriptions = async (params) => {
+  const query = typeof params === 'string' ? { formId: params } : (params || {})
+  return (await api.get(`${BASE}/inscriptions`, { params: query })).data
+}
+
+export const getInscription = async (id) => (await api.get(`${BASE}/inscriptions/${id}`)).data
+export const createInscription = async (payload) => (await api.post(`${BASE}/inscriptions`, payload)).data
+export const updateInscription = async (id, payload) => (await api.put(`${BASE}/inscriptions/${id}`, payload)).data
+export const deleteInscription = async (id) => (await api.delete(`${BASE}/inscriptions/${id}`)).data
+export const isUserInscribed = async (formId, userId) => (await api.get(`${BASE}/inscriptions/check`, { params: { formId, userId } })).data
+
+export const getPublicEvent = async (slug) => (await api.get(`${BASE}/public/forms/${slug}`)).data
