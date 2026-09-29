@@ -5,7 +5,7 @@ import { Context } from '../../../context/UserContext'
 import api from '../../../utils/api'
 import styles from './FormsLoginPage.module.css'
 
-const TERMS_URL = 'https://docs.google.com/document/d/1zhhrT0VLFMh_mUFs5ydWIfh2elEvRMUE3tkeaWzv0Rk/view'
+const TERMS_URL = 'https://docs.google.com/document/d/1RAJPJlDpwSqCWtOp7urtAIsVxU7yeo6HCAoMc75sCDc/edit?tab=t.0'
 
 const EMPTY_REG = {
   name: '',
