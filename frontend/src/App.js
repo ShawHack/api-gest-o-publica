@@ -44,6 +44,8 @@ import RuralAccessDeniedPage from './components/pages/RuralPortal/RuralAccessDen
 import RuralOperatorLoginPage from './components/pages/RuralPortal/RuralOperatorLoginPage'
 import RuralVerifyEmailPage from './components/pages/RuralPortal/RuralVerifyEmailPage'
 import FormsGarcaPortal from './components/pages/FormsGarca/FormsGarcaPortal'
+import FormsGarcaLoginPage from './components/pages/FormsGarca/FormsGarcaLoginPage'
+import FormsGarcaRegisterPage from './components/pages/FormsGarca/FormsGarcaRegisterPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -100,8 +102,10 @@ function App() {
                     <Route path="/rotas-rurais/admin" element={
                         <RequireAuth loginPath="/rotas-rurais/login"><RoleGate allow={['admin', 'rotas_admin']} fallback={<RuralAccessDeniedPage />}><RuralAdminPage /></RoleGate></RequireAuth>
                     } />
+                    <Route path="/formularios/login" element={<FormsGarcaLoginPage />} />
+                    <Route path="/formularios/cadastro" element={<FormsGarcaRegisterPage />} />
                     <Route path="/formularios/*" element={
-                        <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
                     <Route path="/formularios-react/*" element={
                         <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
