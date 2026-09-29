@@ -189,9 +189,6 @@ export default function FormsLoginPage() {
             className={styles.brandLogoImg}
           />
         </Link>
-        <Link to="/dashboard" className={styles.backLink}>
-          Ir para a Dashboard
-        </Link>
       </header>
 
       {/* Main Container */}

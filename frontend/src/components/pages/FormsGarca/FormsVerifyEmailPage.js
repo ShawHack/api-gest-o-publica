@@ -54,9 +54,6 @@ export default function FormsVerifyEmailPage() {
             className={styles.brandLogoImg}
           />
         </Link>
-        <Link to="/dashboard" className={styles.backLink}>
-          Ir para a Dashboard
-        </Link>
       </header>
 
       {/* Main Container */}
@@ -105,9 +102,6 @@ export default function FormsVerifyEmailPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Link to="/formularios/login" className={styles.btnPrimary} style={{ textDecoration: 'none' }}>
                   Ir para a tela de Login
-                </Link>
-                <Link to="/dashboard" style={{ color: '#94a3b8', fontSize: '0.88rem', textDecoration: 'none' }}>
-                  Voltar para a Dashboard
                 </Link>
               </div>
             </div>

@@ -57,10 +57,10 @@ export default function FormsAccessDeniedPage() {
               className={styles.secondary}
               type="button"
               onClick={() => {
-                window.location.href = '/dashboard'
+                window.location.href = '/formularios/login'
               }}
             >
-              Voltar ao Dashboard
+              Voltar ao Início
             </button>
           </div>
         </div>
