@@ -272,9 +272,9 @@ export default function ServiceLanding({ unitSlug, serviceSlug, onExit }) {
           <ul className="landing-meta" style={{ marginTop: '.8rem' }}>
             <li>⏱️ {service.durationMinutes} min</li>
             <li>👥 {service.capacity} vaga(s)</li>
-            {(service.resourceIds || []).filter((item) => item.active && item.type === 'attendant').map((item) => (
-              <li key={item._id}>👤 {item.name}</li>
-            ))}
+            {(service.resourceIds || []).some((item) => item.active && item.type === 'attendant') && (
+              <li>👥 Equipe {unit.name}</li>
+            )}
           </ul>
         </div>
 
