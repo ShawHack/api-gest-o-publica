@@ -1,0 +1,137 @@
+@import './FormsTokens.module.css';
+
+.summaryContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forms-space-4);
+  font-family: var(--forms-font-sans);
+  color: var(--forms-text-main);
+}
+
+.alertBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: var(--forms-danger-bg);
+  border: 1px solid rgba(185, 28, 28, 0.2);
+  border-radius: var(--forms-radius-md);
+  padding: 10px 12px;
+  color: var(--forms-danger);
+  font-size: 0.8rem;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alertText strong {
+  display: block;
+  font-weight: var(--forms-weight-semibold);
+  margin-bottom: 4px;
+}
+
+.alertText ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.warningBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: var(--forms-radius-md);
+  padding: 8px 12px;
+  color: #854d0e;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.warningIcon {
+  flex-shrink: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--forms-border-subtle);
+  padding-bottom: var(--forms-space-3);
+}
+
+.section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--forms-primary);
+  margin-bottom: 4px;
+}
+
+.sectionHeader h4 {
+  font-size: 0.82rem;
+  font-weight: var(--forms-weight-semibold);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forms-space-2);
+  font-size: 0.82rem;
+}
+
+.label {
+  color: var(--forms-text-muted);
+  white-space: nowrap;
+}
+
+.value {
+  font-weight: var(--forms-weight-medium);
+  color: var(--forms-text-main);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 190px;
+}
+
+.badgeSuccess {
+  font-size: 0.74rem;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 2px 8px;
+  border-radius: var(--forms-radius-full);
+  font-weight: var(--forms-weight-medium);
+}
+
+.badgeMuted {
+  font-size: 0.74rem;
+  color: var(--forms-text-subtle);
+  background-color: var(--forms-surface-muted);
+  padding: 2px 8px;
+  border-radius: var(--forms-radius-full);
+}
+
+.colorIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.colorSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
