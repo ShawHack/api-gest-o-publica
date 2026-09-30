@@ -1,17 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  Calendar,
   CheckCircle2,
   Copy,
   Download,
   ExternalLink,
-  Layers,
-  MapPin,
   Plus,
   RefreshCw,
   Search,
   Settings,
-  SlidersHorizontal,
   Trash2,
   Users,
   XCircle,
@@ -22,8 +18,6 @@ import {
   ListPlus,
   UploadCloud,
   AlertCircle,
-  Pencil,
-  CopyPlus,
   Archive,
   Send,
   X
@@ -48,6 +42,7 @@ import {
   FormsStickyActionBar,
   FormsStatusBadge,
   FormsSectionCard,
+  FormsEventsList,
 } from './components'
 import styles from './FormsGarcaPortal.module.css'
 
@@ -320,7 +315,7 @@ export default function FormsGarcaPortal() {
 
         {/* 1. MEUS EVENTOS */}
         {tab === 'events' && (
-          <EventsListPage
+          <FormsEventsList
             forms={forms}
             statistics={statistics}
             loading={loading}
@@ -333,11 +328,14 @@ export default function FormsGarcaPortal() {
             onCreate={startCreate}
             onEdit={startEdit}
             onDashboard={openDashboard}
+            onManage={openDashboard}
             onResponses={openResponses}
             onDuplicate={handleDuplicate}
             onPublish={handlePublish}
             onArchive={handleArchive}
             onDelete={handleDelete}
+            error={error}
+            onRetry={loadData}
           />
         )}
 
@@ -381,213 +379,6 @@ export default function FormsGarcaPortal() {
         )}
       </div>
     </FormsAppShell>
-  )
-}
-
-/* =========================================================================
-   COMPONENTE: MEUS EVENTOS (LISTA DE EVENTOS)
-   ========================================================================= */
-function EventsListPage({
-  forms,
-  statistics,
-  loading,
-  searchQuery,
-  setSearchQuery,
-  statusFilter,
-  setStatusFilter,
-  onSearch,
-  onRefresh,
-  onCreate,
-  onEdit,
-  onDashboard,
-  onResponses,
-  onDuplicate,
-  onPublish,
-  onArchive,
-  onDelete,
-}) {
-  return (
-    <>
-      {/* CABEÇALHO DA PÁGINA */}
-      <FormsPageHeader
-        eyebrow="Prefeitura Municipal de Garça"
-        title="Meus Eventos"
-        description="Gestão centralizada de formulários, eventos municipais e inscrições públicas."
-        actions={
-          <button type="button" className={styles.primary} onClick={onCreate}>
-            <Plus size={17} aria-hidden="true" />
-            <span>Novo</span>
-          </button>
-        }
-      />
-
-      {/* BARRA DE FILTROS E BUSCA */}
-      <div className={styles.filterBar}>
-        <form onSubmit={onSearch} className={styles.searchForm}>
-          <div className={styles.searchBox}>
-            <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Buscar evento por título ou organizador..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button type="submit" className={styles.secondary}>Buscar</button>
-        </form>
-
-        <div className={styles.statusFilters}>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'todos' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('todos')}
-          >
-            Todos ({statistics.total || 0})
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'aberto' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('aberto')}
-          >
-            Abertos ({statistics.aberto || 0})
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'rascunho' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('rascunho')}
-          >
-            Rascunhos ({statistics.rascunho || 0})
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'emAndamento' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('emAndamento')}
-          >
-            Em Andamento ({statistics.emAndamento || 0})
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'concluido' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('concluido')}
-          >
-            Concluídos ({statistics.concluido || 0})
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${statusFilter === 'arquivado' ? styles.filterActive : ''}`}
-            onClick={() => setStatusFilter('arquivado')}
-          >
-            Arquivados ({statistics.arquivado || 0})
-          </button>
-        </div>
-
-        <button type="button" className={styles.iconBtn} onClick={onRefresh} title="Atualizar lista">
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      {/* GRID DE CARTÕES DE EVENTOS */}
-      {loading ? (
-        <div className={styles.loading}>Carregando eventos...</div>
-      ) : forms.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Layers size={44} className={styles.emptyIcon} />
-          <h3>Nenhum evento encontrado</h3>
-          <p>Não há eventos com os filtros selecionados ou ainda não há eventos criados.</p>
-          <button type="button" className={styles.primary} onClick={onCreate}>
-            <Plus size={17} /> Criar meu primeiro evento
-          </button>
-        </div>
-      ) : (
-        <div className={styles.cardsGrid}>
-          {forms.map((form) => {
-            const spotsLabel = form.limiteInscricoes
-              ? `${form.vagasOcupadas || 0}/${form.limiteInscricoes} vagas`
-              : 'Vagas livres'
-
-            return (
-              <article key={form._id} className={styles.eventCard}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.badgeWrapper}>
-                    <FormsStatusBadge status={form.status} size="sm" />
-                    {form.publicado && (
-                      <FormsStatusBadge status="publicado" size="sm" label="Publicado" />
-                    )}
-                  </div>
-                  <span className={styles.eventDate}>
-                    <Calendar size={13} aria-hidden="true" /> {localDate(form.dataEvento)}
-                  </span>
-                </div>
-
-                <div className={styles.cardBody}>
-                  <h3 className={styles.cardTitle}>{form.titulo}</h3>
-                  {form.subtitulo && <p className={styles.cardSubtitle}>{form.subtitulo}</p>}
-
-                  <div className={styles.cardMeta}>
-                    {form.local && (
-                      <span className={styles.cardMetaItem}>
-                        <MapPin size={13} aria-hidden="true" /> {form.local}
-                      </span>
-                    )}
-                    <span className={styles.cardMetaItem}>
-                      <Users size={13} aria-hidden="true" /> {spotsLabel} · {(form.campos || []).length} campos
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.cardFooter}>
-                  <div className={styles.cardActions}>
-                    <button
-                      type="button"
-                      className={styles.secondary}
-                      onClick={() => onDashboard(form)}
-                      title="Painel e Indicadores"
-                    >
-                      <SlidersHorizontal size={14} /> Painel
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.secondary}
-                      onClick={() => onResponses(form)}
-                      title="Ver Inscrições"
-                    >
-                      <Users size={14} /> Inscrições
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.secondary}
-                      onClick={() => onEdit(form)}
-                      title="Editar Configurações"
-                    >
-                      <Pencil size={14} /> Editar
-                    </button>
-                  </div>
-
-                  <div className={styles.cardActions}>
-                    <button
-                      type="button"
-                      className={styles.iconBtn}
-                      onClick={() => onDuplicate(form)}
-                      title="Duplicar Evento"
-                    >
-                      <CopyPlus size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.iconDanger}
-                      onClick={() => onDelete(form)}
-                      title="Excluir Evento"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      )}
-    </>
   )
 }
 

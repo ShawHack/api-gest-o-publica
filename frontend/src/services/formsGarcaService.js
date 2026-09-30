@@ -13,7 +13,10 @@ export const getFormDashboard = async (id) => {
   try {
     return (await api.get(`${BASE}/forms/${id}/dashboard`)).data
   } catch (err) {
-    // Fallback gracioso caso o endpoint dedicado não esteja no backend
+    // Apenas realiza agregação se o backend retornar 404 (rota não implementada)
+    if (err?.response?.status !== 404) {
+      throw err
+    }
     const [formRes, inscRes] = await Promise.all([
       getForm(id),
       listInscriptions({ formId: id }),
@@ -50,7 +53,9 @@ export const duplicateForm = async (id) => {
   try {
     return (await api.post(`${BASE}/forms/${id}/duplicate`)).data
   } catch (err) {
-    // Fallback criando nova cópia rascunho
+    if (err?.response?.status !== 404) {
+      throw err
+    }
     const source = await getForm(id)
     const baseData = source.form || source
     const { _id, createdAt, updatedAt, __v, ...rest } = baseData
@@ -67,6 +72,9 @@ export const publishForm = async (id) => {
   try {
     return (await api.post(`${BASE}/forms/${id}/publish`)).data
   } catch (err) {
+    if (err?.response?.status !== 404) {
+      throw err
+    }
     return await updateForm(id, { status: 'aberto', publicado: true })
   }
 }
@@ -75,6 +83,9 @@ export const archiveForm = async (id) => {
   try {
     return (await api.post(`${BASE}/forms/${id}/archive`)).data
   } catch (err) {
+    if (err?.response?.status !== 404) {
+      throw err
+    }
     return await updateForm(id, { status: 'arquivado' })
   }
 }
@@ -113,6 +124,9 @@ export const updateInscriptionStatus = async (id, status) => {
   try {
     return (await api.patch(`${BASE}/inscriptions/${id}/status`, { status })).data
   } catch (err) {
+    if (err?.response?.status !== 404) {
+      throw err
+    }
     return await updateInscription(id, { status })
   }
 }
