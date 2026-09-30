@@ -46,6 +46,7 @@ import RuralVerifyEmailPage from './components/pages/RuralPortal/RuralVerifyEmai
 import FormsGarcaPortal from './components/pages/FormsGarca/FormsGarcaPortal'
 import FormsGarcaLoginPage from './components/pages/FormsGarca/FormsGarcaLoginPage'
 import FormsGarcaRegisterPage from './components/pages/FormsGarca/FormsGarcaRegisterPage'
+import FormsPublicEventPage from './components/pages/FormsGarca/FormsPublicEventPage'
 
 /* layout */
 import Navbar from './components/layout/Navbar'
@@ -104,6 +105,7 @@ function App() {
                     } />
                     <Route path="/formularios/login" element={<FormsGarcaLoginPage />} />
                     <Route path="/formularios/cadastro" element={<FormsGarcaRegisterPage />} />
+                    <Route path="/formularios/evento/:slug" element={<FormsPublicEventPage />} />
                     <Route path="/formularios/*" element={
                         <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
