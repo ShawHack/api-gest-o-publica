@@ -1,0 +1,126 @@
+@import './FormsTokens.module.css';
+
+.shellRoot {
+  min-height: 100vh;
+  background-color: var(--forms-bg);
+  display: flex;
+  font-family: var(--forms-font-sans);
+  color: var(--forms-text-main);
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Container Principal à direita da Sidebar */
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: var(--forms-sidebar-width);
+  transition: margin-left var(--forms-transition-normal);
+  background-color: var(--forms-bg);
+  min-height: 100vh;
+}
+
+.mainWrapperCollapsed {
+  margin-left: var(--forms-sidebar-collapsed);
+}
+
+/* Barra Superior Mobile / Tablet */
+.mobileTopBar {
+  display: none;
+  height: var(--forms-header-height);
+  padding: 0 var(--forms-space-4);
+  background-color: var(--forms-surface);
+  border-bottom: 1px solid var(--forms-border);
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: var(--forms-z-sticky);
+}
+
+.hamburgerBtn {
+  background: none;
+  border: 1px solid var(--forms-border);
+  padding: 8px;
+  border-radius: var(--forms-radius-md);
+  color: var(--forms-text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--forms-transition-fast);
+}
+
+.hamburgerBtn:hover {
+  background-color: var(--forms-surface-muted);
+}
+
+.mobileBrand {
+  font-size: 0.95rem;
+  font-weight: var(--forms-weight-semibold);
+  color: var(--forms-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+}
+
+/* Área de Conteúdo da Página */
+.pageContent {
+  flex: 1;
+  padding: var(--forms-space-6);
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Layout com Painel Contextual (68% / 32%) */
+.workspaceTwoColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: var(--forms-space-6);
+  align-items: start;
+}
+
+.workspaceSingleColumn {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .workspaceTwoColumns {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: var(--forms-space-4);
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainWrapper {
+    margin-left: 0;
+  }
+
+  .mainWrapperCollapsed {
+    margin-left: 0;
+  }
+
+  .mobileTopBar {
+    display: flex;
+  }
+
+  .workspaceTwoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .pageContent {
+    padding: var(--forms-space-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContent {
+    padding: var(--forms-space-3);
+  }
+}

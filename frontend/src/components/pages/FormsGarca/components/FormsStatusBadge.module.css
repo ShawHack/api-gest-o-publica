@@ -1,0 +1,83 @@
+@import './FormsTokens.module.css';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--forms-space-1);
+  font-family: var(--forms-font-sans);
+  font-weight: var(--forms-weight-medium);
+  line-height: 1;
+  border-radius: var(--forms-radius-full);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: var(--forms-transition-fast);
+}
+
+.sizeSm {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+
+.sizeMd {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--forms-radius-full);
+  display: inline-block;
+  background-color: currentColor;
+}
+
+/* Status variants */
+.statusAberto,
+.statusConfirmado {
+  background-color: var(--forms-success-bg);
+  color: var(--forms-success);
+  border: 1px solid var(--forms-success-border);
+}
+
+.statusRascunho {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.statusEmAndamento {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.statusConcluido {
+  background-color: #f5f3ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.statusArquivado,
+.statusPendente {
+  background-color: var(--forms-warning-bg);
+  color: var(--forms-warning);
+  border: 1px solid var(--forms-warning-border);
+}
+
+.statusCancelado {
+  background-color: var(--forms-danger-bg);
+  color: var(--forms-danger);
+  border: 1px solid var(--forms-danger-border);
+}
+
+.statusPublicado {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.statusDefault {
+  background-color: var(--forms-surface-muted);
+  color: var(--forms-text-muted);
+  border: 1px solid var(--forms-border);
+}

@@ -1,0 +1,142 @@
+@import './FormsTokens.module.css';
+
+.eventHeader {
+  background-color: var(--forms-surface);
+  border-bottom: 1px solid var(--forms-border);
+  padding: var(--forms-space-3) var(--forms-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forms-space-4);
+  min-height: var(--forms-header-height);
+  box-sizing: border-box;
+}
+
+.leftCol {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--forms-space-1);
+  padding: 6px 10px;
+  border-radius: var(--forms-radius-md);
+  background-color: var(--forms-surface-muted);
+  border: 1px solid var(--forms-border);
+  color: var(--forms-text-muted);
+  font-family: var(--forms-font-sans);
+  font-size: 0.8rem;
+  font-weight: var(--forms-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--forms-transition-fast);
+  flex-shrink: 0;
+}
+
+.backBtn:hover {
+  background-color: #e2e8f0;
+  color: var(--forms-text-main);
+  border-color: var(--forms-border-hover);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.eventTitle {
+  font-family: var(--forms-font-sans);
+  font-size: 1.05rem;
+  font-weight: var(--forms-weight-semibold);
+  color: var(--forms-text-main);
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+
+.dateBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--forms-font-sans);
+  font-size: 0.78rem;
+  color: var(--forms-text-muted);
+  padding: 3px 8px;
+  background-color: var(--forms-surface-muted);
+  border-radius: var(--forms-radius-sm);
+  white-space: nowrap;
+}
+
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--forms-radius-md);
+  font-family: var(--forms-font-sans);
+  font-size: 0.82rem;
+  font-weight: var(--forms-weight-medium);
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid var(--forms-border);
+  background-color: var(--forms-surface);
+  color: var(--forms-text-main);
+  transition: var(--forms-transition-fast);
+  white-space: nowrap;
+}
+
+.actionBtn:hover {
+  background-color: var(--forms-surface-muted);
+  border-color: var(--forms-border-hover);
+}
+
+.actionBtnCopied {
+  background-color: var(--forms-success-bg);
+  color: var(--forms-success);
+  border-color: var(--forms-success-border);
+}
+
+@media (max-width: 768px) {
+  .eventHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--forms-space-3) var(--forms-space-4);
+    gap: var(--forms-space-2);
+    min-height: auto;
+  }
+
+  .leftCol {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .eventTitle {
+    max-width: 100%;
+    font-size: 0.98rem;
+  }
+
+  .rightActions {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+}

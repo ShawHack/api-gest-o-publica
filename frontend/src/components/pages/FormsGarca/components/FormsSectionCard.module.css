@@ -1,0 +1,114 @@
+@import './FormsTokens.module.css';
+
+.card {
+  background-color: var(--forms-surface);
+  border: 1px solid var(--forms-border);
+  border-radius: var(--forms-radius-lg);
+  box-shadow: var(--forms-shadow-xs);
+  overflow: hidden;
+  transition: border-color var(--forms-transition-fast), box-shadow var(--forms-transition-fast);
+}
+
+.card:focus-within {
+  border-color: var(--forms-border-hover);
+}
+
+.header {
+  padding: var(--forms-space-4) var(--forms-space-6);
+  border-bottom: 1px solid var(--forms-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forms-space-3);
+  background-color: var(--forms-surface);
+}
+
+.headerClickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.headerClickable:hover {
+  background-color: var(--forms-surface-muted);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+}
+
+.title {
+  font-family: var(--forms-font-sans);
+  font-size: 1rem;
+  font-weight: var(--forms-weight-semibold);
+  color: var(--forms-text-main);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.subtitle {
+  font-family: var(--forms-font-sans);
+  font-size: 0.82rem;
+  font-weight: var(--forms-weight-regular);
+  color: var(--forms-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.actionArea {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+}
+
+.collapseTrigger {
+  background: none;
+  border: none;
+  color: var(--forms-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: var(--forms-radius-sm);
+}
+
+.body {
+  padding: var(--forms-space-6);
+}
+
+.bodyCondensed {
+  padding: var(--forms-space-4);
+}
+
+.footer {
+  padding: var(--forms-space-3) var(--forms-space-6);
+  border-top: 1px solid var(--forms-border);
+  background-color: var(--forms-surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--forms-space-2);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--forms-space-3) var(--forms-space-4);
+  }
+
+  .body {
+    padding: var(--forms-space-4);
+  }
+
+  .footer {
+    padding: var(--forms-space-3) var(--forms-space-4);
+  }
+}

@@ -1,0 +1,105 @@
+@import './FormsTokens.module.css';
+
+.contextPanel {
+  background-color: var(--forms-surface);
+  border: 1px solid var(--forms-border);
+  border-radius: var(--forms-radius-lg);
+  box-shadow: var(--forms-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--forms-header-height) + var(--forms-space-4));
+  overflow: hidden;
+  transition: width var(--forms-transition-normal), opacity var(--forms-transition-normal);
+}
+
+.header {
+  padding: var(--forms-space-3) var(--forms-space-4);
+  border-bottom: 1px solid var(--forms-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--forms-surface-muted);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--forms-space-2);
+}
+
+.title {
+  font-family: var(--forms-font-sans);
+  font-size: 0.88rem;
+  font-weight: var(--forms-weight-semibold);
+  color: var(--forms-text-main);
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background-color: var(--forms-surface);
+  border: 1px solid var(--forms-border);
+  border-radius: var(--forms-radius-md);
+  padding: 2px;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--forms-radius-sm);
+  font-family: var(--forms-font-sans);
+  font-size: 0.75rem;
+  font-weight: var(--forms-weight-medium);
+  color: var(--forms-text-muted);
+  cursor: pointer;
+  transition: var(--forms-transition-fast);
+}
+
+.tabBtn:hover {
+  color: var(--forms-text-main);
+}
+
+.tabBtnActive {
+  background-color: var(--forms-primary);
+  color: var(--forms-text-inverse);
+  font-weight: var(--forms-weight-semibold);
+}
+
+.tabBtnActive:hover {
+  background-color: var(--forms-primary-hover);
+  color: var(--forms-text-inverse);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--forms-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--forms-radius-sm);
+  display: flex;
+  align-items: center;
+}
+
+.closeBtn:hover {
+  background-color: var(--forms-surface);
+  color: var(--forms-text-main);
+}
+
+.body {
+  padding: var(--forms-space-4);
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .contextPanel {
+    position: static;
+    margin-top: var(--forms-space-4);
+  }
+}

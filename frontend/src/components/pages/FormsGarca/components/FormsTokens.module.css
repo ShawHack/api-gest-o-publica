@@ -1,0 +1,98 @@
+:root {
+  /* =========================================================================
+     DESIGN TOKENS — SEMIT FORMS (GOVERNO MUNICIPAL DE GARÇA)
+     ========================================================================= */
+
+  /* Cores Base e Superfícies */
+  --forms-bg: #f8fafc;
+  --forms-surface: #ffffff;
+  --forms-surface-muted: #f1f5f9;
+  --forms-surface-subtle: #f8fafc;
+  --forms-border: #e2e8f0;
+  --forms-border-subtle: #f1f5f9;
+  --forms-border-hover: #cbd5e1;
+  --forms-border-focus: #2563eb;
+
+  /* Azul Institucional Municipal */
+  --forms-primary: #1e3a8a;
+  --forms-primary-hover: #1d4ed8;
+  --forms-primary-active: #172554;
+  --forms-primary-light: #eff6ff;
+  --forms-primary-border: #bfdbfe;
+
+  /* Acentos e Cores Neutras */
+  --forms-accent: #2563eb;
+  --forms-text-main: #0f172a;
+  --forms-text-muted: #64748b;
+  --forms-text-subtle: #94a3b8;
+  --forms-text-inverse: #ffffff;
+
+  /* Estados Semânticos */
+  --forms-success: #15803d;
+  --forms-success-bg: #f0fdf4;
+  --forms-success-border: #bbf7d0;
+
+  --forms-warning: #b45309;
+  --forms-warning-bg: #fffbeb;
+  --forms-warning-border: #fde68a;
+
+  --forms-danger: #b91c1c;
+  --forms-danger-bg: #fef2f2;
+  --forms-danger-border: #fecaca;
+
+  --forms-info: #0369a1;
+  --forms-info-bg: #f0f9ff;
+  --forms-info-border: #bae6fd;
+
+  /* Tipografia */
+  --forms-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --forms-weight-regular: 400;
+  --forms-weight-medium: 500;
+  --forms-weight-semibold: 600;
+
+  /* Escala de Espaçamento Base 8px */
+  --forms-space-1: 4px;
+  --forms-space-2: 8px;
+  --forms-space-3: 12px;
+  --forms-space-4: 16px;
+  --forms-space-5: 20px;
+  --forms-space-6: 24px;
+  --forms-space-8: 32px;
+  --forms-space-10: 40px;
+  --forms-space-12: 48px;
+
+  /* Bordas e Cantos */
+  --forms-radius-sm: 6px;
+  --forms-radius-md: 8px;
+  --forms-radius-lg: 12px;
+  --forms-radius-xl: 16px;
+  --forms-radius-full: 9999px;
+
+  /* Sombras Sutis */
+  --forms-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --forms-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --forms-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --forms-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+
+  /* Dimensões do Shell */
+  --forms-sidebar-width: 264px;
+  --forms-sidebar-collapsed: 72px;
+  --forms-header-height: 60px;
+  --forms-actionbar-height: 68px;
+
+  /* Transições Suaves */
+  --forms-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --forms-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-Index Hierarchy */
+  --forms-z-dropdown: 40;
+  --forms-z-sticky: 100;
+  --forms-z-sidebar: 110;
+  --forms-z-backdrop: 200;
+  --forms-z-drawer: 210;
+  --forms-z-modal: 300;
+}
+
+.tokensPlaceholder {
+  display: contents;
+}
