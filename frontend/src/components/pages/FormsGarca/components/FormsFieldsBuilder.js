@@ -16,6 +16,10 @@ import FormsFieldDrawer from './FormsFieldDrawer'
 import { FIELD_TYPE_LABELS } from './FormsFieldTypePicker'
 import styles from './FormsFieldsBuilder.module.css'
 
+export function generateFieldId(prefix = 'campo') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+}
+
 export default function FormsFieldsBuilder({
   campos = [],
   onChange,
@@ -69,9 +73,9 @@ export default function FormsFieldsBuilder({
     ...f,
   }))
 
-  // Abertura para novo campo
+  // Abertura para novo campo com ID canônico estável
   const handleAddNewField = () => {
-    const newId = `campo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+    const newId = generateFieldId()
     const initialNewField = {
       id: newId,
       fieldId: newId,
@@ -131,7 +135,7 @@ export default function FormsFieldsBuilder({
   const handleDuplicateField = (index) => {
     const original = normalizedFields[index]
     if (!original) return
-    const newId = `campo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+    const newId = generateFieldId()
     const duplicated = {
       ...original,
       id: newId,
