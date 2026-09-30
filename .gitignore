@@ -30,6 +30,7 @@ blob-report/
 # Conteúdo operacional e privado
 uploads/
 backend/private/
+backend/scripts/saae-electorate-input.json
 backend/public/
 !backend/public/
 !backend/public/openapi.json
