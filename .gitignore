@@ -11,6 +11,7 @@ firebase_options.dart
 
 # Dependências e caches
 node_modules/
+backend/scripts/saae-electorate-input.json
 .dart_tool/
 .next/
 .pytest_cache/
