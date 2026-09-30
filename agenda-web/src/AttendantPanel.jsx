@@ -466,7 +466,7 @@ export default function AttendantPanel({ agenda }) {
                         <strong>{citizenName}</strong>
                       </div>
                       <p className="service-sub">
-                        {item.serviceId?.name} {item.resourceId?.name ? `· Atendente: ${item.resourceId.name}` : ''}
+                        {item.serviceId?.name} · Equipe {item.unitId?.name || 'de atendimento'}
                       </p>
                     </div>
 
