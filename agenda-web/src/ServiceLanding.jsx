@@ -345,6 +345,7 @@ export default function ServiceLanding({ unitSlug, serviceSlug, onExit }) {
             <BookingCalendar
               key={`${service._id}-${service.bookingFrom}-${service.bookingUntil}`}
               service={service}
+              closures={pack.closures || []}
               availabilityPath={availabilityPath}
               onBook={book}
             />

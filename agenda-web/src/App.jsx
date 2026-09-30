@@ -62,6 +62,7 @@ export default function App() {
   const [services, setServices] = useState([])
   const [appointments, setAppointments] = useState([])
   const [selected, setSelected] = useState('')
+  const [closures, setClosures] = useState([])
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [rebooking, setRebooking] = useState(null)
@@ -75,6 +76,17 @@ export default function App() {
   }, [])
   const landing = parseLandingHash(hash)
   const service = useMemo(() => services.find((item) => item._id === selected), [services, selected])
+  useEffect(() => {
+    let cancelled = false
+    if (!service?.slug || !service?.unitId?.slug) {
+      setClosures([])
+      return undefined
+    }
+    api(`/api/agenda/public/${service.unitId.slug}/${service.slug}`)
+      .then((data) => { if (!cancelled) setClosures(data.closures || []) })
+      .catch(() => { if (!cancelled) setClosures([]) })
+    return () => { cancelled = true }
+  }, [service?._id, service?.slug, service?.unitId?.slug])
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -207,7 +219,7 @@ export default function App() {
               </select>
             </label>
             {service && <p className="muted">Duração: {service.durationMinutes} minutos. Clique no dia e depois no horário.</p>}
-            {service && <BookingCalendar key={service._id} service={service} onBook={book} />}
+            {service && <BookingCalendar key={service._id} service={service} closures={closures} onBook={book} />}
           </section>
         )}
         {tab === 'meus' && (

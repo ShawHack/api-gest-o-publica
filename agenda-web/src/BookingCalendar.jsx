@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from './api'
+import { closureLabelsByDate } from './bookingCalendar'
 
 const weekLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
@@ -42,7 +43,7 @@ function groupByHour(slots) {
   return groups
 }
 
-export default function BookingCalendar({ service, availabilityPath, onBook, confirmLabel = 'Confirmar agendamento' }) {
+export default function BookingCalendar({ service, closures = [], availabilityPath, onBook, confirmLabel = 'Confirmar agendamento' }) {
   const now = new Date()
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [date, setDate] = useState('')
@@ -59,6 +60,7 @@ export default function BookingCalendar({ service, availabilityPath, onBook, con
     () => new Set((service.weeklyAvailability || []).filter((entry) => entry.periods?.length).map((entry) => entry.dayOfWeek)),
     [service],
   )
+  const closureLabels = useMemo(() => closureLabelsByDate(closures), [closures])
   const visible = useMemo(
     () => (showTaken ? slots : slots.filter((slot) => slot.available)),
     [slots, showTaken],
@@ -129,16 +131,19 @@ export default function BookingCalendar({ service, availabilityPath, onBook, con
             const weekday = new Date(cursor.year, cursor.month, day).getDay()
             const past = key < min || (max && key > max)
             const closed = !openWeekdays.has(weekday)
-            const disabled = past || closed
+            const closureLabel = closureLabels.get(key)
+            const disabled = past || closed || Boolean(closureLabel)
             return (
               <button
                 key={key}
                 type="button"
-                className={`cal-day${key === date ? ' selected' : ''}${closed ? ' closed' : ''}`}
+                className={`cal-day${key === date ? ' selected' : ''}${closed ? ' closed' : ''}${closureLabel ? ' blocked' : ''}`}
                 disabled={disabled}
                 onClick={() => loadDay(key)}
+                title={closureLabel || undefined}
               >
-                {day}
+                <span>{day}</span>
+                {closureLabel && <small>{closureLabel}</small>}
               </button>
             )
           })}
