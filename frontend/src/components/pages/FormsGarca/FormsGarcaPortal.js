@@ -835,8 +835,29 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
     updateField(index, { options: options.filter((_, i) => i !== optIndex) })
   }
 
+  const STEPS = [
+    { id: 'info', num: 'Passo 1', label: 'Informações' },
+    { id: 'rules', num: 'Passo 2', label: 'Inscrições' },
+    { id: 'fields', num: 'Passo 3', label: `Campos (${form.campos.length})` },
+    { id: 'appearance', num: 'Passo 4', label: 'Personalização' },
+    { id: 'publish', num: 'Passo 5', label: 'Revisão' },
+  ]
+  const stepIdx = STEPS.findIndex((s) => s.id === currentStep)
+  const prevStep = stepIdx > 0 ? STEPS[stepIdx - 1] : null
+  const nextStep = stepIdx < STEPS.length - 1 ? STEPS[stepIdx + 1] : null
+
   async function submit(e) {
     if (e) e.preventDefault()
+    if (!form.titulo?.trim()) {
+      setError('O Título do evento é obrigatório. Por favor, preencha no Passo 1.')
+      setCurrentStep('info')
+      return
+    }
+    if (!form.dataEvento) {
+      setError('A Data do evento é obrigatória. Por favor, preencha no Passo 1.')
+      setCurrentStep('info')
+      return
+    }
     setSaving(true)
     setError('')
     try {
@@ -865,49 +886,34 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
       <div className={styles.heading}>
         <div>
           <h2>{isEdit ? 'Editar formulário' : 'Novo formulário'}</h2>
-          <p>Defina as informações gerais, regras de inscrição, campos e aparência.</p>
-        </div>
-        <div className={styles.stepTabs}>
-          <button
-            type="button"
-            className={styles.stepTab}
-            onClick={() => document.getElementById('sec-info')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            1. Informações
-          </button>
-          <button
-            type="button"
-            className={styles.stepTab}
-            onClick={() => document.getElementById('sec-rules')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            2. Inscrições
-          </button>
-          <button
-            type="button"
-            className={styles.stepTab}
-            onClick={() => document.getElementById('sec-fields')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            3. Campos ({form.campos.length})
-          </button>
-          <button
-            type="button"
-            className={styles.stepTab}
-            onClick={() => document.getElementById('sec-appearance')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            4. Aparência
-          </button>
-          <button
-            type="button"
-            className={styles.stepTab}
-            onClick={() => document.getElementById('sec-publish')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            5. Revisão
-          </button>
+          <p>Configure cada etapa do seu evento de forma intuitiva, organizada em abas.</p>
         </div>
       </div>
 
+      {/* ABAS EM PASSOS ESTILO DOITY */}
+      <div className={styles.doityStepTabs}>
+        {STEPS.map((s) => {
+          const isActive = currentStep === s.id
+          return (
+            <button
+              key={s.id}
+              type="button"
+              className={`${styles.doityStepCard} ${isActive ? styles.doityStepCardActive : ''}`}
+              onClick={() => {
+                setCurrentStep(s.id)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            >
+              <span className={styles.doityStepNum}>{s.num}</span>
+              <span className={styles.doityStepLabel}>{s.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
       {/* SEÇÃO 1: INFORMAÇÕES BÁSICAS */}
-      <div className={styles.stepContent} id="sec-info">
+      {currentStep === 'info' && (
+        <div className={styles.stepContent} id="sec-info">
         <h3 className={styles.sectionHeader}>1. Informações Gerais do Evento</h3>
           <div className={styles.grid}>
             <label>
@@ -993,9 +999,11 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
             </label>
           </div>
         </div>
+      )}
 
       {/* SEÇÃO 2: INSCRIÇÕES E VAGAS */}
-      <div className={styles.stepContent} id="sec-rules">
+      {currentStep === 'rules' && (
+        <div className={styles.stepContent} id="sec-rules">
         <h3 className={styles.sectionHeader}>2. Inscrições e Vagas</h3>
           <div className={styles.grid}>
             <label>
@@ -1052,9 +1060,11 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
             />
           </label>
         </div>
+      )}
 
       {/* SEÇÃO 3: CAMPOS DO FORMULÁRIO */}
-      <div className={styles.stepContent} id="sec-fields">
+      {currentStep === 'fields' && (
+        <div className={styles.stepContent} id="sec-fields">
           <div className={styles.heading} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
             <h3 style={{ color: '#1e3a8a', margin: 0 }}>Campos do formulário</h3>
             <button className={styles.secondary} type="button" onClick={addField}>
@@ -1192,9 +1202,11 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
             )}
           </div>
         </div>
+      )}
 
       {/* SEÇÃO 4: APARÊNCIA & WHITE LABEL */}
-      <div className={styles.stepContent} id="sec-appearance">
+      {currentStep === 'appearance' && (
+        <div className={styles.stepContent} id="sec-appearance">
         <h3 className={styles.sectionHeader}>4. Aparência & White Label</h3>
           <div className={styles.grid}>
             <label>
@@ -1330,9 +1342,11 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
             </small>
           </label>
         </div>
+      )}
 
       {/* SEÇÃO 5: REVISÃO E PUBLICAÇÃO */}
-      <div className={styles.stepContent} id="sec-publish">
+      {currentStep === 'publish' && (
+        <div className={styles.stepContent} id="sec-publish">
         <h3 className={styles.sectionHeader}>5. Revisão e Publicação</h3>
           <div className={styles.checklistCard}>
             <div className={styles.checklistItem}>
@@ -1353,15 +1367,50 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
             </div>
           </div>
         </div>
+      )}
 
-      {/* BOTÕES DE AÇÃO */}
-      <div className={styles.actions} style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '18px' }}>
-        <button className={styles.primary} disabled={saving} type="submit">
-          {saving ? 'Salvando…' : 'Salvar formulário'}
-        </button>
-        <button className={styles.secondary} type="button" onClick={onCancel}>
-          Cancelar
-        </button>
+      {/* NAVEGAÇÃO ENTRE PASSOS & SALVAMENTO ESTILO DOITY */}
+      <div className={styles.stepNavigation}>
+        <div className={styles.stepNavLeft}>
+          {prevStep ? (
+            <button
+              type="button"
+              className={styles.secondary}
+              onClick={() => {
+                setCurrentStep(prevStep.id)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            >
+              ← Voltar: {prevStep.label}
+            </button>
+          ) : (
+            <button className={styles.secondary} type="button" onClick={onCancel}>
+              Cancelar
+            </button>
+          )}
+        </div>
+
+        <div className={styles.stepNavRight}>
+          <button className={styles.secondary} disabled={saving} type="submit" title="Salvar formulário">
+            {saving ? 'Salvando…' : 'Salvar formulário'}
+          </button>
+          {nextStep ? (
+            <button
+              type="button"
+              className={styles.primary}
+              onClick={() => {
+                setCurrentStep(nextStep.id)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            >
+              Avançar: {nextStep.label} →
+            </button>
+          ) : (
+            <button className={styles.primary} disabled={saving} type="submit">
+              {saving ? 'Salvando…' : 'Salvar e Concluir'}
+            </button>
+          )}
+        </div>
       </div>
     </form>
   )

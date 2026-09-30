@@ -336,9 +336,28 @@ module.exports = class AgendaController {
     const found = await AgendaController.resolvePublicService(req.params.unitSlug, req.params.serviceSlug)
     if (!found) return res.status(404).json({ message: 'Esta página de agendamento não está disponível.' })
     const { unit, service } = found
+    const timezone = unit.timezone || 'America/Sao_Paulo'
+    const blocks = await AgendaScheduleBlock.find({
+      unitId: unit._id,
+      scope: 'unit',
+      active: true,
+      endsAt: { $gte: new Date() },
+    })
+      .select('startsAt endsAt reason category')
+      .sort({ startsAt: 1 })
+      .limit(500)
+      .lean()
     return res.status(200).json({
-      unit: { name: unit.name, slug: unit.slug, address: unit.address || '', timezone: unit.timezone || 'America/Sao_Paulo' },
+      unit: { name: unit.name, slug: unit.slug, address: unit.address || '', timezone },
       service,
+      closures: blocks.map((block) => ({
+        date: zonedDateKey(block.startsAt, timezone),
+        startsAt: block.startsAt,
+        endsAt: block.endsAt,
+        reason: block.reason || '',
+        category: block.category || 'other',
+        fullDay: block.endsAt.getTime() - block.startsAt.getTime() >= 23 * 60 * 60 * 1000,
+      })),
       address: service.landingAddress || unit.address || '',
       sharePath: `/agendamentos/#/p/${unit.slug}/${service.slug}`,
     })
