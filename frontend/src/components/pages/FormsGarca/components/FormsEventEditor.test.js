@@ -176,7 +176,7 @@ describe('FormsEventEditor Component (Fase 4)', () => {
 
     expect(screen.getByText(/pré-visualização em tempo real · somente leitura/i)).toBeInTheDocument()
     expect(screen.getAllByText('Seminário Municipal de Inovação').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Cargo / Função')).toBeInTheDocument()
+    expect(screen.getAllByText('Cargo / Função').length).toBeGreaterThanOrEqual(1)
 
     // Altera o título no formulário e verifica sincronização em tempo real na prévia
     const titleInput = screen.getByLabelText(/título \*/i)

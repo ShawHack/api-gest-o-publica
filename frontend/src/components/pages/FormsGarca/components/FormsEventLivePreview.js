@@ -4,7 +4,8 @@ import {
   MapPin,
   Users,
   Eye,
-  Building2
+  Building2,
+  UploadCloud
 } from 'lucide-react'
 import styles from './FormsEventLivePreview.module.css'
 
@@ -171,7 +172,17 @@ export default function FormsEventLivePreview({ form = {} }) {
                 {campo.required && <span className={styles.req}> *</span>}
               </label>
 
-              {campo.type === 'textarea' ? (
+              {campo.type === 'file' ? (
+                <div style={{ padding: '8px 12px', border: '1px dashed #cbd5e1', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: '0.82rem' }}>
+                  <UploadCloud size={18} />
+                  <span>Clique para selecionar o arquivo (simulação)</span>
+                </div>
+              ) : campo.type === 'terms' ? (
+                <label className={styles.choiceItem}>
+                  <input type="checkbox" disabled />
+                  <span>{campo.label || 'Concordo com os termos do regulamento'}</span>
+                </label>
+              ) : campo.type === 'textarea' ? (
                 <textarea
                   className={styles.simInput}
                   disabled

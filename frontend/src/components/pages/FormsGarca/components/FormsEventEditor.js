@@ -2,11 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import {
   CheckCircle2,
   XCircle,
-  Plus,
   Trash2,
-  ArrowUp,
-  ArrowDown,
-  ListPlus,
   UploadCloud,
   Eye,
   SlidersHorizontal,
@@ -24,21 +20,8 @@ import FormsContextPanel from './FormsContextPanel'
 import FormsStickyActionBar from './FormsStickyActionBar'
 import FormsEventSummary from './FormsEventSummary'
 import FormsEventLivePreview from './FormsEventLivePreview'
+import FormsFieldsBuilder from './FormsFieldsBuilder'
 import styles from './FormsEventEditor.module.css'
-
-const FIELD_TYPES = [
-  ['text', 'Texto Simples'],
-  ['textarea', 'Texto Longo (Parágrafo)'],
-  ['number', 'Número'],
-  ['email', 'E-mail'],
-  ['phone', 'Telefone / Celular'],
-  ['cpf', 'CPF'],
-  ['date', 'Data'],
-  ['select', 'Seleção Única (Menu Dropdown)'],
-  ['radio', 'Seleção Única (Múltipla Escolha)'],
-  ['checkbox', 'Caixas de Seleção (Múltipla Escolha)'],
-  ['file', 'Envio de Arquivo (Upload PDF/Imagem)'],
-]
 
 function localDate(date) {
   if (!date) return '—'
@@ -139,49 +122,35 @@ export default function FormsEventEditor({
     }
   }
 
-  // Operações do Builder de Campos (preservadas funcionalmente até a Fase 5)
-  const addField = () => {
-    setForm((curr) => ({
-      ...curr,
-      campos: [
-        ...curr.campos,
-        {
-          id: `campo_${Date.now()}`,
-          fieldId: `campo_${Date.now()}`,
-          label: '',
-          type: 'text',
-          required: false,
-          placeholder: '',
-          helpText: '',
-          options: [],
-        },
-      ],
-    }))
-  }
+  // Estado para draft ativo no drawer do Builder de Campos (Fase 5)
+  const [activeDraftField, setActiveDraftField] = useState(null)
 
-  const updateField = (index, patch) => {
-    setForm((curr) => ({
-      ...curr,
-      campos: curr.campos.map((f, pos) => (pos === index ? { ...f, ...patch } : f)),
-    }))
-  }
-
-  const removeField = (index) => {
-    setForm((curr) => ({
-      ...curr,
-      campos: curr.campos.filter((_, pos) => pos !== index),
-    }))
-  }
-
-  const moveField = (index, direction) => {
-    const targetIndex = index + direction
-    if (targetIndex < 0 || targetIndex >= form.campos.length) return
-    const newFields = [...form.campos]
-    const temp = newFields[index]
-    newFields[index] = newFields[targetIndex]
-    newFields[targetIndex] = temp
+  const handleFieldsChange = (newFields) => {
     setForm((curr) => ({ ...curr, campos: newFields }))
   }
+
+  // Prévia dinâmica sincronizada com o estado local + draft ativo em tempo real
+  const previewForm = useMemo(() => {
+    let campos = form.campos || []
+    if (activeDraftField && activeDraftField.label && activeDraftField.label.trim()) {
+      const exists = campos.some(
+        (c) =>
+          (c.fieldId && c.fieldId === activeDraftField.fieldId) ||
+          (c.id && c.id === activeDraftField.id)
+      )
+      if (exists) {
+        campos = campos.map((c) =>
+          (c.fieldId && c.fieldId === activeDraftField.fieldId) ||
+          (c.id && c.id === activeDraftField.id)
+            ? { ...c, ...activeDraftField }
+            : c
+        )
+      } else {
+        campos = [...campos, activeDraftField]
+      }
+    }
+    return { ...form, campos }
+  }, [form, activeDraftField])
 
   // Cancelar alterações: restaura o último snapshot persistido
   const handleCancelChanges = () => {
@@ -221,9 +190,29 @@ export default function FormsEventEditor({
     setSaving(true)
     if (setError) setError('')
     try {
+      let finalCampos = form.campos || []
+      // Se há um draft ativo no drawer com rótulo preenchido, assegura inclusão imediata
+      if (activeDraftField && activeDraftField.label && activeDraftField.label.trim()) {
+        const exists = finalCampos.some(
+          (c) =>
+            (c.fieldId && c.fieldId === activeDraftField.fieldId) ||
+            (c.id && c.id === activeDraftField.id)
+        )
+        if (exists) {
+          finalCampos = finalCampos.map((c) =>
+            (c.fieldId && c.fieldId === activeDraftField.fieldId) ||
+            (c.id && c.id === activeDraftField.id)
+              ? { ...c, ...activeDraftField }
+              : c
+          )
+        } else {
+          finalCampos = [...finalCampos, activeDraftField]
+        }
+      }
+
       const payload = {
         ...form,
-        campos: (form.campos || []).map((f) => ({
+        campos: finalCampos.map((f) => ({
           ...f,
           options: ['select', 'radio', 'checkbox'].includes(f.type) ? f.options : [],
         })),
@@ -470,126 +459,13 @@ export default function FormsEventEditor({
               </FormsSectionCard>
             </section>
 
-            {/* SEÇÃO 3: CAMPOS DO FORMULÁRIO (Preservado para a Fase 5) */}
-            <section id="sec-fields">
-              <FormsSectionCard
-                title="Campos Personalizados do Formulário"
-                subtitle="Configure as perguntas que os munícipes responderão ao se inscreverem"
-                action={
-                  <button type="button" className={styles.addBtn} onClick={addField}>
-                    <Plus size={15} /> Adicionar campo
-                  </button>
-                }
-              >
-                {(form.campos || []).length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <ListPlus size={36} className={styles.emptyIcon} />
-                    <h4>Nenhum campo personalizado adicionado</h4>
-                    <p>O formulário coletará por padrão Nome, E-mail, CPF e Telefone do usuário autenticado.</p>
-                    <button type="button" className={styles.secondaryBtn} onClick={addField}>
-                      <Plus size={14} /> Adicionar meu primeiro campo
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.fieldsList}>
-                    {form.campos.map((field, index) => (
-                      <div key={field.id || index} className={styles.fieldItem}>
-                        <div className={styles.fieldItemLeft}>
-                          <div className={styles.fieldOrderActions}>
-                            <button
-                              type="button"
-                              className={styles.orderBtn}
-                              onClick={() => moveField(index, -1)}
-                              disabled={index === 0}
-                              title="Mover para cima"
-                              aria-label="Mover campo para cima"
-                            >
-                              <ArrowUp size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.orderBtn}
-                              onClick={() => moveField(index, 1)}
-                              disabled={index === form.campos.length - 1}
-                              title="Mover para baixo"
-                              aria-label="Mover campo para baixo"
-                            >
-                              <ArrowDown size={14} />
-                            </button>
-                          </div>
-
-                          <div className={styles.fieldDetails}>
-                            <div className={styles.fieldTitleRow}>
-                              <label className={styles.formLabel} style={{ width: '100%', margin: 0 }}>
-                                Rótulo *
-                                <input
-                                  value={field.label}
-                                  onChange={(e) => updateField(index, { label: e.target.value })}
-                                  placeholder="Ex: Nome da Escola / Tamanho da Camiseta"
-                                  required
-                                />
-                              </label>
-                            </div>
-
-                            <div className={styles.fieldOptionsRow}>
-                              <label className={styles.formLabel} style={{ minWidth: 160, margin: 0 }}>
-                                Tipo
-                                <select
-                                  value={field.type}
-                                  onChange={(e) => updateField(index, { type: e.target.value })}
-                                >
-                                  {FIELD_TYPES.map(([val, label]) => (
-                                    <option key={val} value={val}>{label}</option>
-                                  ))}
-                                </select>
-                              </label>
-
-                              <label className={styles.checkboxLabel} style={{ marginTop: 18 }}>
-                                <input
-                                  type="checkbox"
-                                  checked={Boolean(field.required)}
-                                  onChange={(e) => updateField(index, { required: e.target.checked })}
-                                />
-                                <span>Obrigatório</span>
-                              </label>
-                            </div>
-
-                            {['select', 'radio', 'checkbox'].includes(field.type) && (
-                              <label className={styles.formLabel} style={{ marginTop: 8 }}>
-                                Opções de resposta (uma por linha)
-                                <textarea
-                                  rows={3}
-                                  value={(field.options || []).join('\n')}
-                                  onChange={(e) =>
-                                    updateField(index, {
-                                      options: e.target.value
-                                        .split('\n')
-                                        .map((o) => o.trim())
-                                        .filter(Boolean),
-                                    })
-                                  }
-                                  placeholder="Opção 1&#10;Opção 2&#10;Opção 3"
-                                />
-                              </label>
-                            )}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          className={styles.iconDanger}
-                          onClick={() => removeField(index)}
-                          title="Remover este campo"
-                          aria-label={`Remover campo ${field.label || index + 1}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </FormsSectionCard>
-            </section>
+            {/* SEÇÃO 3: BUILDER DE CAMPOS DO FORMULÁRIO (FASE 5) */}
+            <FormsFieldsBuilder
+              campos={form.campos || []}
+              onChange={handleFieldsChange}
+              onDraftChange={setActiveDraftField}
+              eventInscriptionsCount={form.totalInscritos || 0}
+            />
 
             {/* SEÇÃO 4: APARÊNCIA E WHITE LABEL */}
             <section id="sec-appearance">
@@ -821,7 +697,7 @@ export default function FormsEventEditor({
               {contextTab === 'summary' ? (
                 <FormsEventSummary form={form} />
               ) : (
-                <FormsEventLivePreview form={form} />
+                <FormsEventLivePreview form={previewForm} />
               )}
             </FormsContextPanel>
           </aside>
@@ -889,7 +765,7 @@ export default function FormsEventEditor({
                 {contextTab === 'summary' ? (
                   <FormsEventSummary form={form} />
                 ) : (
-                  <FormsEventLivePreview form={form} />
+                  <FormsEventLivePreview form={previewForm} />
                 )}
               </div>
             </div>

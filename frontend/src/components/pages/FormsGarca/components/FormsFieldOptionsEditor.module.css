@@ -1,0 +1,163 @@
+@import './FormsTokens.module.css';
+
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forms-space-2);
+  background-color: var(--forms-surface-muted);
+  border: 1px solid var(--forms-border-subtle);
+  border-radius: var(--forms-radius-md);
+  padding: var(--forms-space-3);
+  margin-top: 4px;
+}
+
+.optionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.optionsTitle {
+  font-size: 0.8rem;
+  font-weight: var(--forms-weight-semibold);
+  color: var(--forms-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.addOptionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--forms-surface);
+  border: 1px solid var(--forms-border);
+  color: var(--forms-primary);
+  padding: 4px 10px;
+  border-radius: var(--forms-radius-sm);
+  font-size: 0.76rem;
+  font-weight: var(--forms-weight-medium);
+  cursor: pointer;
+  transition: var(--forms-transition-fast);
+}
+
+.addOptionBtn:hover:not(:disabled) {
+  background-color: var(--forms-primary-light);
+  border-color: var(--forms-primary-border);
+}
+
+.emptyOptions {
+  padding: var(--forms-space-4);
+  text-align: center;
+  color: var(--forms-text-muted);
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.addFirstBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--forms-primary);
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--forms-radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--forms-surface);
+  border: 1px solid var(--forms-border);
+  border-radius: var(--forms-radius-sm);
+  padding: 4px 8px;
+}
+
+.optionGrip {
+  color: var(--forms-text-subtle);
+  display: flex;
+  align-items: center;
+}
+
+.optionIndex {
+  font-size: 0.76rem;
+  color: var(--forms-text-subtle);
+  font-weight: var(--forms-weight-medium);
+  min-width: 18px;
+}
+
+.optionInput {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  padding: 4px 0 !important;
+  font-size: 0.84rem !important;
+  color: var(--forms-text-main) !important;
+  box-shadow: none !important;
+}
+
+.optionInput:focus {
+  outline: none !important;
+}
+
+.optionActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.moveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--forms-text-muted);
+  cursor: pointer;
+  border-radius: var(--forms-radius-sm);
+}
+
+.moveBtn:hover:not(:disabled) {
+  background-color: var(--forms-surface-muted);
+  color: var(--forms-text-main);
+}
+
+.moveBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--forms-danger);
+  cursor: pointer;
+  border-radius: var(--forms-radius-sm);
+}
+
+.removeBtn:hover:not(:disabled) {
+  background-color: var(--forms-danger-bg);
+}
+
+.shortcutHint {
+  font-size: 0.72rem;
+  color: var(--forms-text-subtle);
+  margin-top: 2px;
+}
