@@ -22,7 +22,9 @@ import {
   ArrowDown,
   Palette,
   FileText,
-  ListPlus
+  ListPlus,
+  UploadCloud,
+  AlertCircle
 } from 'lucide-react'
 import {
   createForm,
@@ -36,6 +38,7 @@ import {
   publishForm,
   archiveForm,
   updateInscriptionStatus,
+  uploadFile,
 } from '../../../services/formsGarcaService'
 import styles from './FormsGarcaPortal.module.css'
 
@@ -730,7 +733,46 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
   const [form, setForm] = useState(initial)
   const [saving, setSaving] = useState(false)
   const [currentStep, setCurrentStep] = useState('info') // 'info' | 'rules' | 'fields' | 'appearance' | 'publish'
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const isEdit = Boolean(form._id)
+
+  const handleUploadLogo = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingLogo(true)
+    setUploadError('')
+    try {
+      const res = await uploadFile(file)
+      if (res?.fileLink) {
+        setForm((curr) => ({ ...curr, logoUrl: res.fileLink }))
+      }
+    } catch (err) {
+      setUploadError('Erro no upload do logotipo: ' + (err?.response?.data?.message || err.message))
+    } finally {
+      setUploadingLogo(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleUploadBanner = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingBanner(true)
+    setUploadError('')
+    try {
+      const res = await uploadFile(file)
+      if (res?.fileLink) {
+        setForm((curr) => ({ ...curr, bannerUrl: res.fileLink }))
+      }
+    } catch (err) {
+      setUploadError('Erro no upload do banner: ' + (err?.response?.data?.message || err.message))
+    } finally {
+      setUploadingBanner(false)
+      e.target.value = ''
+    }
+  }
 
   const update = ({ target }) => {
     const value = target.type === 'checkbox' ? target.checked : target.value
@@ -1179,15 +1221,101 @@ function EventSettingsPage({ initial, onCancel, onSaved, setError }) {
           </div>
 
           <div className={styles.grid}>
-            <label>
-              URL do Logotipo do Evento/Secretaria
-              <input name="logoUrl" value={form.logoUrl || ''} onChange={update} placeholder="https://.../logo.png" />
-            </label>
-            <label>
-              URL do Banner de Topo
-              <input name="bannerUrl" value={form.bannerUrl || ''} onChange={update} placeholder="https://.../banner.jpg" />
-            </label>
+            {/* LOGOTIPO */}
+            <div className={styles.mediaUploadGroup}>
+              <span className={styles.mediaLabel}>Logotipo do Evento / Secretaria</span>
+              <div className={styles.mediaInputRow}>
+                <input
+                  name="logoUrl"
+                  value={form.logoUrl || ''}
+                  onChange={update}
+                  placeholder="https://.../logo.png ou faça upload"
+                  className={styles.mediaInput}
+                />
+                <label className={styles.uploadBtn} title="Fazer upload de imagem do computador">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadLogo}
+                    disabled={uploadingLogo}
+                    style={{ display: 'none' }}
+                  />
+                  <UploadCloud size={16} />
+                  <span>{uploadingLogo ? 'Enviando…' : 'Upload'}</span>
+                </label>
+              </div>
+              <small className={styles.mediaHelp}>
+                PNG, JPG, SVG ou WebP (recomendado fundo transparente ou claro)
+              </small>
+              {form.logoUrl && (
+                <div className={styles.mediaPreview}>
+                  <div className={styles.logoThumb}>
+                    <img src={form.logoUrl} alt="Preview do Logo" onError={(e) => { e.target.style.display = 'none' }} />
+                  </div>
+                  <span className={styles.previewName}>{form.logoUrl.split('/').pop()}</span>
+                  <button
+                    type="button"
+                    className={styles.clearMediaBtn}
+                    onClick={() => setForm((curr) => ({ ...curr, logoUrl: '' }))}
+                    title="Remover logotipo"
+                  >
+                    <XCircle size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* BANNER */}
+            <div className={styles.mediaUploadGroup}>
+              <span className={styles.mediaLabel}>Banner de Topo do Evento</span>
+              <div className={styles.mediaInputRow}>
+                <input
+                  name="bannerUrl"
+                  value={form.bannerUrl || ''}
+                  onChange={update}
+                  placeholder="https://.../banner.jpg ou faça upload"
+                  className={styles.mediaInput}
+                />
+                <label className={styles.uploadBtn} title="Fazer upload de banner do computador">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadBanner}
+                    disabled={uploadingBanner}
+                    style={{ display: 'none' }}
+                  />
+                  <UploadCloud size={16} />
+                  <span>{uploadingBanner ? 'Enviando…' : 'Upload'}</span>
+                </label>
+              </div>
+              <small className={styles.mediaHelp}>
+                Dimensão recomendada: 1200x300 ou 1600x400 (JPG, PNG ou WebP)
+              </small>
+              {form.bannerUrl && (
+                <div className={styles.mediaPreview}>
+                  <div className={styles.bannerThumb}>
+                    <img src={form.bannerUrl} alt="Preview do Banner" onError={(e) => { e.target.style.display = 'none' }} />
+                  </div>
+                  <span className={styles.previewName}>{form.bannerUrl.split('/').pop()}</span>
+                  <button
+                    type="button"
+                    className={styles.clearMediaBtn}
+                    onClick={() => setForm((curr) => ({ ...curr, bannerUrl: '' }))}
+                    title="Remover banner"
+                  >
+                    <XCircle size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+
+          {uploadError && (
+            <div className={styles.errorBanner} style={{ marginTop: '8px' }}>
+              <AlertCircle size={16} />
+              <span>{uploadError}</span>
+            </div>
+          )}
 
           <label>
             Identificador Amigável (Slug da URL)
