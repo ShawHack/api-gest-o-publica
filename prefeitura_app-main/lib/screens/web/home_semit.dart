@@ -851,7 +851,7 @@ class _HomeSemitScreenState extends State<HomeSemitScreen>
           colors: [_laranja, _laranja.withValues(alpha: 0.8)],
         ),
         'photo': 'forms_garca.png',
-        'url': 'https://api.garca.sp.gov.br/formularios/',
+        'url': 'https://api.garca.sp.gov.br/formularios/login',
         'isComingSoon': false,
       },
       {

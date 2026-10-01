@@ -107,7 +107,7 @@ function App() {
                     <Route path="/formularios/cadastro" element={<FormsGarcaRegisterPage />} />
                     <Route path="/formularios/evento/:slug" element={<FormsPublicEventPage />} />
                     <Route path="/formularios/*" element={
-                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
+                        <RequireAuth loginPath="/formularios/login"><RoleGate allow={['admin']} fallback={<Navigate to="/formularios/login" replace />}><FormsGarcaPortal /></RoleGate></RequireAuth>
                     } />
                     <Route path="/formularios-react/*" element={
                         <RequireAuth><RoleGate allow={['admin']}><FormsGarcaPortal /></RoleGate></RequireAuth>
